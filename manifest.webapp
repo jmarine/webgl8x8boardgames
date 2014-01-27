@@ -1,0 +1,13 @@
+{
+    "name":"WebGL 8x8 board games",
+    "description":"Play draughts/checkers, chess or breakthrough games against your computer, or with a local/remote friend. It only works with browsers with WebGL support.",
+    "launch_path": "index.html",
+    "developer": {
+        "name":"Jordi Mariné Fort",
+        "url":"http://usuaris.tinet.cat/jmarine"
+    },
+    "icons":{
+        "128":"resources/images/logo.png"
+    },
+    "default_locale": "en"
+}

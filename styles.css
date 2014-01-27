@@ -1,0 +1,178 @@
+/*
+    WebGL 8x8 board games
+    Copyright (C) 2011 by Jordi Mariné Fort
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, sans-serif;
+  padding: 0px;
+}
+
+#main {
+  width: 100%;
+  height: 100%;
+}
+
+#title {
+  position: absolute; 
+  top: 0px; 
+  left: 0px; 
+  width: 260px; 
+  padding: 5px; 
+  border: 3px groove #4d2b2a; 
+  background-color: #f7e3a4; 
+  color: #4d2b2a; 
+  -webkit-user-select: none; -moz-user-select: none; user-select: none;
+  -webkit-border-bottom-right-radius: 10px; -khtml-border-bottom-right-radius: 10px; border-bottom-right-radius: 10px
+}
+
+#board {
+  float: left;
+  left: 0;
+  overflow: auto;
+  right: 0;
+}
+
+#credits {
+  font-size: 12px;
+}
+
+#help {
+  text-decoration: none
+}
+
+#config {
+  font-size: 12px;
+  position: absolute; 
+  right: 0px; 
+  padding: 5px; 
+  border: 3px groove #4d2b2a; 
+  background-color: #f7e3a4; 
+  color: #4d2b2a; 
+  -webkit-user-select: none; -moz-user-select: none; user-select: none;
+  -webkit-border-bottom-left-radius: 10px; -khtml-border-bottom-left-radius: 10px; border-bottom-left-radius: 10px;
+}
+
+#options {
+  display: none;
+}
+
+#players {
+  margin-top: 0px;
+}
+
+#ai {
+  margin-top: 20px;
+  display: none;
+}
+
+#network {
+  margin-top: 20px;
+  display: none;
+}
+
+#messageBox {
+  position: absolute; 
+  bottom: 8px; 
+  left: 50%; 
+  margin-left: -262px; 
+  width: 500px; 
+  height: 60px; 
+  border: 3px groove #4d2b2a; 
+  background-color: #f7e3a4; 
+  color: #4d2b2a; 
+  padding: 10px; 
+  text-align: center;
+  -webkit-user-select: none; -moz-user-select: none; user-select: none;
+  -webkit-border-radius: 10px; -khtml-border-radius: 10px; border-radius: 10px; 
+}
+
+#join, #join2, #network_status {
+  clear:both;
+  display: none;
+}
+
+select.list {
+  width: 250px;
+}
+
+#controls {
+  clear:both;
+  float: left;
+}
+
+#start, #options {
+  float: left;
+}
+
+#connect, #list_games, #list_users, #open_game, #reject, #disconnect {
+  display: none;
+  float: left;
+}
+
+H1 {
+   font-size: 20px;
+}
+
+A {
+   color: #4d2b2a;
+}
+
+A.author {
+   font-size: 14px;
+   font-weight: bold;
+   text-decoration: none;
+   line-height: 150%;
+}
+
+#message {
+   font-size: 16px;
+   font-weight: bold;
+   color: #4d2b2a;
+}
+
+H4 {
+   font-size: 13px;
+   text-decoration: underline;
+   clear:both;
+   float:left;
+   color: #4d2b2a;
+   margin-top: 4px;
+   margin-bottom: 3px;
+}
+
+form dt {
+   clear:both;
+   float:left;
+   width: 70px;
+   text-align:left;
+   margin:0 0 0.0em 0em;
+}
+
+form dd {
+   float:left;
+   margin:0 0 0.3em 0.25em;
+}
+
+form input {
+   clear:both;
+   float:left;
+}

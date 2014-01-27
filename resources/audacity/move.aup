@@ -1,0 +1,23 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="move_data" version="1.3.0" audacityversion="1.3.12-beta" sel0="0.3029386524" sel1="0.3029386524" vpos="0" h="0.0000000000" zoom="435.7317858292" rate="44100">
+	<tags>
+		<tag name="id3v2" value="1"/>
+		<tag name="GENRE" value="Sound Clip"/>
+		<tag name="ARTIST" value="Jordi Mariné Fort"/>
+		<tag name="TRACKNUMBER" value="1"/>
+		<tag name="TITLE" value="Piece flying"/>
+		<tag name="ALBUM" value="Game effects"/>
+		<tag name="YEAR" value="2011"/>
+	</tags>
+	<wavetrack name="move" channel="2" linked="0" mute="0" solo="0" height="150" minimized="0" rate="44100" gain="1" pan="0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="524288" sampleformat="131073" numsamples="55918">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000dfb.au" len="55918" min="-0.901703" max="0.696991" rms="0.097674"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+</project>

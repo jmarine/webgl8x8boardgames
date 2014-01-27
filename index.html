@@ -1,0 +1,532 @@
+<!--
+    WebGL 8x8 board games
+    Copyright (C) 2011 by Jordi Mariné Fort
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<HTML>
+<HEAD manifest="manifest.appcache">
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"> 
+<TITLE>WebGL 8x8 board games</TITLE> 
+
+<meta name="author" content="Jordi Mariné Fort <jmarine@tinet.org>">
+<meta name="description" content="Play draughts/checkers, chess or breakthrough games against your computer, or with a local/remote friend. It only works in browsers with WebGL support.">
+
+<link rel="stylesheet" href="styles.css" />
+
+<script src='libs/spidergl.js'></script>
+<SCRIPT type="text/javascript" src="libs/sylvester.js"></SCRIPT>
+
+<SCRIPT type="text/javascript" src="theme.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Board.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/BoardCell.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Pawn.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Queen.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/King.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Bishop.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Knight.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Rook.js"></SCRIPT>  
+
+<SCRIPT language="javascript">
+var chessTheme = BlenderExport;
+var breakthroughTheme = BlenderExport;
+</SCRIPT>
+
+<SCRIPT type="text/javascript" src="theme.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/draughts/Board.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="themes/draughts/BoardCell.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="themes/draughts/Pawn.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="themes/draughts/Queen.js"></SCRIPT>
+
+<SCRIPT language="javascript">
+var draughtsTheme = BlenderExport;
+var checkersTheme = BlenderExport;
+</SCRIPT>
+
+
+<script src='libs/jquery-1.5.min.js'></script>
+<script src='libs/strophe.js'></script>
+<script src='libs/flXHR.js'></script>
+<script src='libs/strophe.flxhr.js'></script>
+
+<SCRIPT type="text/javascript" src="ai.js"></SCRIPT>  
+<script type="text/javascript" src='ui.js'></script>
+<SCRIPT type="text/javascript" src="game.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="move.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="draughts.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="checkers.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="chess.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="breakthrough.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="players.js"></SCRIPT>  
+<script type="text/javascript" src='index.js'></script>
+<script type="text/javascript" src='board3d.js'></script>
+<script type="text/javascript" src='storage.js'></script>
+<script type="text/javascript" src='network.js'></script>
+
+<script language="javascript">
+function preloadSounds() {
+  var audio = document.getElementById('move');
+  if(audio) audio.load();
+  audio = document.getElementById('select');
+  if(audio) audio.load(); 
+}
+
+function playSound(id) {
+   if($('#sounds')[0].checked) {
+     var audio = document.getElementById(id);
+     if(audio) { 
+       audio.load(); 
+       audio.play(); 
+     }
+   }
+}
+</script>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21265464-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+<script id="SHADOW_PASS_VERTEX_SHADER" type="x-shader/x-vertex">
+precision mediump float;
+
+uniform   mat4 u_mvp;
+attribute vec4 a_position;
+void main(void)
+{
+        gl_Position = u_mvp * a_position;
+}
+</script>
+
+<script id="SHADOW_PASS_FRAGMENT_SHADER" type="x-shader/x-fragment">
+precision mediump float;
+
+
+vec4 pack_depth(const in float depth)
+{
+        const vec4 bit_shift = vec4(256.0*256.0*256.0, 256.0*256.0, 256.0, 1.0);
+        const vec4 bit_mask  = vec4(0.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);
+        vec4 res = fract(depth * bit_shift);
+        res -= res.xxyz * bit_mask;
+        return res;
+}
+
+
+void main(void)
+{
+        gl_FragData[0] = pack_depth(gl_FragCoord.z);
+}
+</script>
+
+
+<script id="LIGHT_PASS_VERTEX_SHADER" type="x-shader/x-vertex">
+precision mediump float;
+
+uniform   mat4 u_mv;
+uniform   mat4 u_mvp;
+uniform   mat4 u_shadowMatrix;
+uniform   mat3 u_worldNormalMatrix;
+
+attribute vec3 a_position;
+attribute vec3 a_normal;
+attribute vec2 a_texCoord;
+
+varying   vec3 v_normal;
+varying   vec4 v_shadowCoord;
+varying   vec2 v_texCoord;
+varying   vec4 v_position;
+
+
+void main (void)
+{
+	v_texCoord    = a_texCoord;
+	v_normal      = u_worldNormalMatrix * a_normal;
+	v_position    = u_mv * vec4(a_position, 1.0);
+	v_shadowCoord = u_shadowMatrix * vec4(a_position, 1.0);
+	gl_Position   = u_mvp * vec4(a_position, 1.0);
+}
+
+</script>
+
+<script id="LIGHT_PASS_FRAGMENT_SHADER" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform float     u_opacity;
+uniform float     u_materialShininess;
+uniform sampler2D u_texture;
+uniform sampler2D u_shadowMap;
+uniform float     u_biasToLowerMoirePattern;
+
+uniform vec3 u_worldLightPos;
+uniform vec3 u_ambientColor;
+uniform vec3 u_diffuseLightColor;
+uniform vec3 u_specularLightColor;
+
+varying vec4 v_shadowCoord;
+varying vec2 v_texCoord;
+
+varying vec3 v_normal;
+varying vec4 v_position;
+
+float unpack_depth(const in vec4 rgba_depth)
+{
+      const vec4 bit_shift = vec4(1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1.0);
+      float depth = dot(rgba_depth, bit_shift);
+      return depth;
+}
+
+void main (void)
+{
+      vec3  shadow_coord = v_shadowCoord.xyz / v_shadowCoord.w;
+      float depth = unpack_depth(texture2D(u_shadowMap, shadow_coord.xy));
+      float visibility = (depth > shadow_coord.z-u_biasToLowerMoirePattern) ? (1.0) : (0.75);
+
+      vec3 lightDirection = normalize(u_worldLightPos - v_position.xyz);
+      vec3 normal = normalize(v_normal.xyz);
+
+      vec3 eyeDirection = normalize(-v_position.xyz);
+      vec3 reflectionDirection = reflect(-lightDirection, normal);
+
+      float specularLightWeighting = 0.0;
+      if(u_materialShininess > 0.0) {
+        specularLightWeighting = pow(clamp(dot(reflectionDirection, eyeDirection), 0.0, 1.0), u_materialShininess);
+      }
+
+      float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+
+      vec3 lightWeighting = u_ambientColor
+        + u_diffuseLightColor * diffuseLightWeighting
+        + u_specularLightColor * specularLightWeighting;
+
+      vec4 textureColor = texture2D(u_texture, vec2(v_texCoord.s, v_texCoord.t));
+      vec3 color = vec3(textureColor.rgb * lightWeighting * visibility);
+
+      if(u_opacity == 0.0) {
+        gl_FragData[0] = vec4(color, textureColor.a);
+      } else {
+        gl_FragData[0] = vec4(color, u_opacity);
+      }
+
+}
+
+</script>
+
+
+ 
+<SCRIPT type="text/javascript"> 
+
+function showMessage(msg) {
+  if(msg) {
+	$('#message').html(msg);
+	$('#messageBox').slideDown();
+  } else {
+        $('#messageBox').hide();
+  }
+}
+
+
+function toggleCredits() {
+  $('#credits').toggle();
+  //showMessage("Test message");
+}
+
+
+function hideOptions() {
+  $('#options').hide();
+  $('#configure').show();
+}
+
+function showOptions() {
+  $('#configure').hide();
+  $('#options').show();
+
+/*
+  $('#config').hover(function() { 
+    hideOptions();
+  });
+*/
+
+}
+
+
+</SCRIPT> 
+ 
+ 
+</HEAD>
+<BODY onload="initBoard3D(); UI.createGame(); listGames(); preloadSounds();"> 
+<DIV id="main"> 
+   <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
+
+   <DIV id="title">
+     <H1><a href="javascript:toggleCredits()">WebGL 8x8 board games</a></H1>
+     <div id="credits">
+     <a class="author" href="mailto:jmarine@tinet.org">Copyright &copy; 2011 Jordi Marin&eacute; Fort</a><br>
+     The <a href="src/dames-20131201.tgz" target="_blank">source code</a> of this game is licensed<br>under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a> and uses the libraries:<br>
+     - <a href="http://www.spidergl.org" target="_blank">SpiderGL</a> <br>
+     - <a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester</a> <br>
+     - <a href="http://code.stanziq.com/strophe/" target="_blank">Strophe.js</a><br>
+     - <a href="http://jquery.com" target="_blank">jQuery</a><br>
+     - <a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a><br>
+     </div>
+   </DIV>
+
+   <DIV id="config">
+    <DIV id="configure">
+    <form id="configure_form" onSubmit="javascript:showOptions(); return false;">
+      <input type="submit" value="Configuration">
+    </form>
+    </DIV>
+    <DIV id="options">
+      <H4><a href="javascript:hideOptions()">Game configuration</a></H4><br>
+
+      <DIV id="players">
+         <form id="players_form">
+         <dl>
+	   <dt><label for="game_type">Type</label> <a id="help" href="#">(?)</a>:</dt>
+	   <dd><select id="game_type">
+		<option value="draughts">Draughts</option>
+		<option value="checkers">Checkers</option>
+		<option value="chess">Chess</option>
+		<option value="breakthrough">Breakthrough</option>
+	      </select>
+           </dd>
+
+           <dt><label for=player1>Player 1:</label></dt>
+           <dd>
+		<select id='player1' name="player1">
+		  <option value="1">Local user</option>
+		  <option value="2">Network user</option>
+		  <option value="3">Computer Engine</option>
+		</select>
+           </dd>
+           <dt><label for=player2>Player 2:</label></dt>
+           <dd>
+		<select id='player2' name="player2">
+		  <option value="1">Local user</option>
+		  <option value="2">Network user</option>
+		  <option value="3" selected="true">Computer Engine</option>
+		</select>
+	   </dd>
+	 </dl>
+         </form>
+
+         <form id='promotion_form'>
+         <dl>
+           <dt><label for="promotion_piece">Promote to:</label></dt>
+           <dd><select id="promotion_piece">
+                <option value="Q">Queen</option>
+                <option value="R">Rook</option>
+                <option value="B">Bishop</option>
+                <option value="N">Knight</option>
+              </select>
+           </dd>
+         </dl>
+         </form>
+
+
+         <form id='save_form'>
+           <input type=submit id='save_submit' value="Save game">
+         </form>
+
+         <form id='retract_form' style="float: left">
+           <input type=submit id='retract_submit' value="Retract move">
+         </form>
+
+      </DIV>
+
+      <DIV id="storage" style="display: none">
+      <H4>Storage configuration</H4>
+         <form id='saved_games_form' style="clear:both">
+           <dl>
+           <dt><label for="saved_games">Games:</label></dt>
+           <dd><select name="saved_games"></select></dd>
+           </dl>
+         </form>
+         <form id='load_form' style="float:left;clear:left">
+           <input type=submit id='load_submit' value="Load">
+         </form>
+         <form id='delete_form' style="float:left">
+           <input type=submit id='delete_submit' value='Delete'>
+         </form>
+         <form id='delete_all_form' style="float:left">
+           <input type=submit id='delete_all_submit' value='Delete all'>
+         </form>
+
+      </DIV>
+
+
+      <DIV id="ui">
+      <H4>UI configuration</H4>
+      <form id="ui_form">
+	<dl>
+
+           <dt><label for="shadows">Shadows:</label></dt>
+           <dd><input id='shadows' type="checkbox" value="1" checked></dd>
+
+           <dt><label for="reflections">Reflections:</label></dt>
+           <dd><input id='reflections' type="checkbox" value="1"></dd>
+	</dl>
+      </form>
+      </DIV>
+
+      <DIV id="sound">
+      <H4>Sound configuration</H4>
+      <form id="ui_form">
+        <dl>
+           <dt><label for="sounds">Effects:</label></dt>
+           <dd><input id='sounds' type="checkbox" value="1"></dd>
+	</dl>
+      </form>
+      </DIV>
+
+
+      <DIV id="ai">
+      <H4>AI engine configuration</H4>
+      <form id="ai_form" onSubmit="return false;">
+	<dl>
+	   <dt><label for="algorithm_name">Algorithm:</label></dt>
+	   <dd><select id="algorithm_name">
+		<option value="alphaBeta">Alpha-Beta</option>
+		<option value="negascout">Negascout</option>
+		<option value="MTDf">MTDf</option>
+	      </select>
+           </dd>
+           <dt><label for="level">Level:</label></dt>
+           <dd><input id='level' value="6" size="1" maxlength="1"></dd>
+	</dl>
+      </form>
+      </DIV>
+
+      <DIV id="network">
+      <H4>Network configuration</H4>
+      <h5 style="clear:both;float:left;margin-bottom:3px;">(you need a XMPP server with BOSH support)</h5>
+      <form id="network_form">
+         <dl>
+           <dt><label for=connect_jid>Jabber ID:</label></dt>
+           <dd><input id='connect_jid' value="guest@xmppserver"></dd>
+           <dt><label for=connect_password>Password:</label></dt>
+           <dd><input id='connect_password' type=password value=""></dd>
+           <dt><label for=connect_url>BOSH url:</label></dt>
+           <dd><input name=url id='connect_url' value='http://xmppserver:7070/http-bind/'></dd>
+           <dt><label for=muc>MUC:</label></dt>
+           <dd><input id='muc' value="conference.xmppserver"></dd>
+        </dl>
+      </form>
+      </DIV>
+
+      <div id="network_status">
+	Waiting connection
+      </div>
+
+   </DIV>
+
+      <div id="join">
+      <H4>Select opponent:</H4>
+      <form id='join_form'>
+	<dl>
+	<dt>
+        <select id="users" name="users" size="15" cols="10" class="list">
+	</select>
+	</dt>
+	</dl>
+      </form>
+      </div>
+
+      <div id="join2">
+      <H4>Select game:</H4>
+      <form id='join2_form'>
+        <dl>
+        <dt>
+        <select id="requests" name="requests" size="15" cols="10" class="list">
+        </select>
+        </dt>
+        </dl>
+      </form>
+      </div>
+
+
+      <DIV id="controls">
+      <div id="start">
+      <form id='start_form'>
+         <input type=submit id='start_submit' value="Start game">
+      </form>
+      </div>
+
+      <div id="open_game">
+      <form id='open_game_form'>
+         <input type=submit id='open_game_submit' value="Open game">
+      </form>
+      </div>
+
+      <div id="list_games">
+      <form id='list_games_form'>
+         <input type=submit id='list_games_submit' value="Show games">
+      </form>
+      </div>
+
+      <div id="list_users">
+      <form id='list_users_form'>
+         <input type=submit id='list_users_submit' value="Show users">
+      </form>
+      </div>
+
+      <div id="connect">
+      <form id="connect_form">
+        <input type=submit id='connect_submit' value="Connect">
+      </form>
+      </div>
+
+      <div id="reject">
+      <form id='reject_form'>
+         <input type=submit id='reject_submit' value="Reject game">
+      </form>
+      </div>
+
+      <div id="disconnect">
+      <form id='disconnect_form'>
+        <input type=submit id='disconnect_submit' value="Disconnect">
+      </form>
+      </div>
+
+
+      </DIV>
+
+
+     </DIV>
+
+   <DIV id="messageBox">
+     <table border="0" width="100%" height="100%">
+     <tr>
+     <td valign="middle" align="center">
+     <div id="message">
+     Loading game...
+     </div>
+     </td>
+     </tr>
+     </table>
+   </DIV>
+
+</DIV>
+
+<audio id="move" src="resources/sounds/move.ogg" preload="auto">
+
+</BODY>
+</HTML>
