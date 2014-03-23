@@ -53,6 +53,7 @@ Wamp2.prototype = {
     },
     
     hello: function(realm) {
+        this.goodbyeRequested = false;
         this.serverSID = this.newid();
         var arr = [];
         arr[0] = 1;  // HELLO
@@ -365,14 +366,14 @@ Wamp2.prototype = {
                     
                 } else if (arr[0] == 3) {  // ABORT
                     var reason = arr[2];
-                    onstatechange(ConnectionState.DISCONNECTED, reason);
-                    client.close();
+                    onstatechange(ConnectionState.CONNECTED, reason);
+                    //client.close();
 
                 } else if (arr[0] == 6) {  // GOODBYE 
                     var reason = arr[2];
-                    onstatechange(ConnectionState.DISCONNECTED, reason);
-                    client.goodbye();
-                    client.close();
+                    onstatechange(ConnectionState.CONNECTED, reason);
+                    client.goodbye(reason, {});
+                    //client.close();
 
                 } else if (arr[0] == 7) {  // HEARTBEAT
                     client.incomingHeartbeatSeq = arr[2];
