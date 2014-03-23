@@ -282,14 +282,18 @@ $(document).ready(function(){
         var url = $("#server_url").val();
         var user = $("#user").val();
         var pass = $("#password").val();
-        $("#user").val("");
-        $("#password").val("");
-        //$("#user_picture").width(0).height(0);
+        if(user.length == 0 || pass.length == 0) {
+          alert("User and password must be entered.");
+        } else {
+          $("#user").val("");
+          $("#password").val("");
+          //$("#user_picture").width(0).height(0);
        
-        var wgsclient = Network.getWgsClient(url);
-        var realm = wgsclient.getDefaultRealm(); 
-        var email = prompt("Enter e-mail:");
-        if(email) wgsclient.registerUser(realm, user, pass, email, authentication);
+          var wgsclient = Network.getWgsClient(url);
+          var realm = wgsclient.getDefaultRealm(); 
+          var email = prompt("Enter e-mail:");
+          if(email) wgsclient.registerUser(realm, user, pass, email, authentication);
+        }
         return false;
   });
 
@@ -342,10 +346,13 @@ $(document).ready(function(){
 
                 var url = $("#server_url").val();
                 var user = $("#user").val();
-                var pass = $("#password").val();
-                $("#password").val("");  // clear credentials
-
-                Network.login(url, user, pass);
+                if(user.length == 0) {
+                  alert("Sorry. Anonymous players don't work fine, yet.");
+                } else {
+                  var pass = $("#password").val();
+                  $("#password").val("");  // clear credentials
+                  Network.login(url, user, pass);
+                }
                 return false;
             })
             .next()
