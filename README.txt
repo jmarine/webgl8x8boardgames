@@ -12,5 +12,7 @@ The source code of this game is licensed under GNU GPL v3 and uses the libraries
 - SpiderGL
 - Sylvester
 - jQuery
+- WGS
+- CryptoJS
 - Google Analytics
 
