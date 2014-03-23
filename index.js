@@ -330,8 +330,9 @@ $(document).ready(function(){
         return false;  
   });
 
-  $("#gameCanvas").click(function() {
+  $("#gameCanvas").mousedown(function() {
       hideOptions();
+      $('#credits').hide();
       return false;
   });
 
