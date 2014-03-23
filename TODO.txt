@@ -4,11 +4,13 @@ Common:
 - improve AI engine (speed optimizations, quiesence search, etc).
 - fix TouchScreen support? (pan gesture problems with iPad simulator)
 
+Chess960:
+- Ask user when a king move is ambigous (normal or castling).
+
 Shader: 
 - fix perspective shadows (problems on Mali 400 GPU and adjust glPolygonOffset parameters or fix calculation of bias to lower Moire's pattern).
 
 Network: 
-- improve observable network games (muc discovery&updates,show nick of players,auto-rejection of terminated games). 
+- replace BOSH protocol with "websockets" (wgs over wamp)
+- observable network games (muc discovery&updates,show nick of players,auto-rejection of terminated games). 
 - beforeunload event: networkDisconnection doesn't send unavailable type presence to MUC
-- replace BOSH protocol with "xmpp-over-websocket" (http://tools.ietf.org/html/draft-moffitt-xmpp-over-websocket-00)
-- avoid click event problem in Chrome with "select" input fields that are partially scrolled (it seems that item are selected after click event).

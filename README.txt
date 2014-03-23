@@ -11,7 +11,6 @@ It only works in browsers with WebGL support, and implements the following games
 The source code of this game is licensed under GNU GPL v3 and uses the libraries:
 - SpiderGL
 - Sylvester
-- Strophe.js
 - jQuery
 - Google Analytics
 

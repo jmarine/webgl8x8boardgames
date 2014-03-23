@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 2013-12-01:v20
+# 2014-03-23:v21
 
 # Explicitly cached entries
 CACHE:
@@ -37,20 +37,12 @@ themes/draughts/BoardCell.js
 themes/draughts/Board.js
 
 libs/jquery-1.5.min.js
-libs/sylvester-license.txt
-libs/glUtils.js
-libs/flXHR.swf
 libs/spidergl.js
-libs/strophe.flxhr.js
-libs/flXHR.js
-libs/updateplayer.swf
-libs/strophe.js
-libs/flensed.js
 libs/sylvester.js
-libs/checkplayer.js
-libs/swfobject.js
-libs/flXHR.vbs
+libs/wgs/wamp2.js
+libs/wgs/wgs-client-2.0.js
 
+resources/images/oic.png
 resources/images/cellValid1.png
 resources/images/cellSelected.png
 resources/images/cellHover.png
@@ -61,6 +53,7 @@ resources/images/white.jpg
 resources/images/black.jpg
 resources/images/board_alone.jpg
 resources/sounds/select.ogg
+resources/sounds/move.ogg
 resources/sounds/move.ogg
 
 # All other resources (e.g. sites) require the user to be online. 

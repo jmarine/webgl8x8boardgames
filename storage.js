@@ -16,26 +16,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var saved_games_form = 0;
+
 function deleteGames() {
   window.localStorage.clear();
   listGames();
 }
 
 function deleteGame() {
-  if(document.forms['saved_games_form'].saved_games.selectedIndex > 0) {
-    var key = document.forms['saved_games_form'].saved_games.options[document.forms['saved_games_form'].saved_games.selectedIndex].text;
+  if(document.forms[saved_games_form].saved_games.selectedIndex > 0) {
+    var key = document.forms[saved_games_form].saved_games.options[document.forms[saved_games_form].saved_games.selectedIndex].text;
     window.localStorage.removeItem(key); 
     listGames();
   }
 }
 
 function loadGame() {
-  if(document.forms['saved_games_form'].saved_games.selectedIndex > 0) {
+  if(document.forms[saved_games_form].saved_games.selectedIndex > 0) {
     var gameStr = game.toString();
     if($('#game_type').val() == gameStr.substring(0, gameStr.indexOf(':')).toLowerCase()) window.undoManager.add(gameStr);
-    var state = document.forms['saved_games_form'].saved_games.options[document.forms['saved_games_form'].saved_games.selectedIndex].value;
-    var player1 = game.getPlayer(PLAYER1);
-    var player2 = game.getPlayer(PLAYER2);
+    var state = document.forms[saved_games_form].saved_games.options[document.forms[saved_games_form].saved_games.selectedIndex].value;
+    var player1 = getPlayer(PLAYER1);
+    var player2 = getPlayer(PLAYER2);
     var type1 = player1.constructor.name;
     var type2 = player2.constructor.name;
     if(type1 == 'NetworkPlayer') player1.sendCommand(game, PLAYER1, 'LOAD', state);
@@ -56,22 +58,22 @@ function saveGame() {
 
 function hideGameStorage() {
   $("#storage").hide();
-  $("#save_submit").hide();
-  $("#retract_submit").hide();
+  $("#btnSaveGame").hide();
+  $("#btnRetractMove").hide();
 }
 
 function showGameStorage() {
-  $("#save_submit").show();
-  $('input[id=retract_submit]').each(function() {
+  $("#btnSaveGame").show();
+  $('#btnRetractMove').each(function() {
      this.disabled = true;
   });
-  $("#retract_submit").show();
+  $("#btnRetractMove").show();
   listGames();
 }
 
 function listGames() {
-  document.forms['saved_games_form'].saved_games.options.length = 0;
-  document.forms['saved_games_form'].saved_games.options[0] = new Option();
+  document.forms[saved_games_form].saved_games.options.length = 0;
+  document.forms[saved_games_form].saved_games.options[0] = new Option();
 
   var gameType = $('#game_type').val();
   var storage = window.localStorage;
@@ -81,17 +83,17 @@ function listGames() {
       option.value = storage.getItem(storage.key(index));
       option.text  = storage.key(index);
       if(gameType == option.value.substring(0, option.value.indexOf(':')).toLowerCase()) {
-        document.forms['saved_games_form'].saved_games.options[document.forms['saved_games_form'].saved_games.options.length] = option;
+        document.forms[saved_games_form].saved_games.options[document.forms[saved_games_form].saved_games.options.length] = option;
       }
     }
-    if(document.forms['saved_games_form'].saved_games.options.length > 1) {
+    if(document.forms[saved_games_form].saved_games.options.length > 1) {
       $("#storage").show();
     } else {
       $("#storage").hide();
     }
 
   } else {
-    $('input[id=save_submit]').each(function() {
+    $('#btnSaveGame').each(function() {
       this.disabled = true;
     });
   }
@@ -117,7 +119,7 @@ function UndoManager() {
 
 UndoManager.prototype.clearUndo = function() {
   this.length = 0;
-  $('input[id=retract_submit]').each(function() {
+  $('#btnRetractMove').each(function() {
     this.disabled = true;
   });
 }
@@ -132,7 +134,7 @@ UndoManager.prototype.add = function(value, title) {
     if(this.length > this.max) this.length = this.max;
   }
 
-  $('input[id=retract_submit]').each(function() {
+  $('#btnRetractMove').each(function() {
     this.disabled = false;
   });
 

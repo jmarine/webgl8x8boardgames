@@ -19,26 +19,27 @@
 
 
 function updateStartButtonState(list) {
-      $('input[id=start_submit]').each(function() { 
+      $('button.btnStartGame').each(function() { 
 	var c =  $("select[id=" + list + "] > option:selected").size();
 	this.disabled = (c == 0);
       });
 }
 
-
+/*
 $(window).error(function(err) {  
-    alert('Msg: ' + err.originalEvent.message + ' | Lno: ' + err.originalEvent.lineno + "|" + JSON.stringify(err));  
+    alert('Msg: ' + err.originalEvent.message + ' | line: ' + err.originalEvent.lineno );  
 });
-
+*/
 
 $(window).bind('beforeunload', function() {
-  if(Network) Network.disconnect();
+  if(Network) {
+    var wgsclient = Network.getWgsClient(null);
+    if(wgsclient) wgsclient.goodbye("wamp.close.normal");
+  }
 });
 
 
 $(document).ready(function(){
-
-  Strophe.log = function (level, msg) { console.log(msg); } 
 
   function swapPlayerTypes() {
     var player1 = $('select[id=player1]');
@@ -62,19 +63,21 @@ $(document).ready(function(){
 	    || ($('select[id=player2] > option:selected').attr('value') == REMOTE_USER ) ) {
 
 		if(Network && Network.getGameStatus() == Network.GameStatusEnum.GAME_UNDEFINED) {
-		  $('#start').hide();
-		  $('#connect').show();
+		  $('button.btnStartGame').hide();
+		  $('#connect_section').show();
 		  $('#network').fadeIn();
                 }
 	} else {
-		$('#connect').hide();
+		$('#connect_section').hide();
 		$('#network').hide();
-                if(Network) Network.disconnect();
-		$('#start').fadeIn();
-                $('input[id=start_submit]').each(function() { 
+		$('button.btnStartGame').fadeIn();
+                $('button.btnStartGame').each(function() { 
 	            this.disabled = false;
                 });
+
+                Network.disconnect();
 	}
+
 
         if( ($('select[id=player1] > option:selected').attr('value') == ENGINE )
             || ($('select[id=player2] > option:selected').attr('value') == ENGINE) ) {
@@ -100,7 +103,6 @@ $(document).ready(function(){
               $('#join2').hide();
               $('#network_status').hide();
               $('#join').fadeIn();
-              $('#start').fadeIn();
               $('#list_games').fadeIn();
               updateStartButtonState('users');
            }
@@ -118,7 +120,6 @@ $(document).ready(function(){
 		$('#join2').hide();
 		$('#network_status').hide();
 		$('#join').fadeIn();
-		$('#start').fadeIn();
 		$('#list_games').fadeIn();
 	 	updateStartButtonState('users');	
             }
@@ -134,7 +135,7 @@ $(document).ready(function(){
 	return false;
   });
 
-  $('#start_form').submit(function() {
+  $('button.btnStartGame').click(function() {
         showMessage(false);
 
         if( ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER )
@@ -177,14 +178,14 @@ $(document).ready(function(){
         return false;
   });
 
-  $('#promotion_form').hide();
+  $('#promotion_option').hide();
   $('#player1').change(onPlayerTypeChange);
   $('#player2').change(onPlayerTypeChange);
 
   $('#game_type').change(function() {
         window.undoManager.clearUndo();
         hideGameStorage();
-        $('#promotion_form').hide();
+        $('#promotion_option').hide();
 
         var gameType = UI.getGameType();
         var tmpGame = eval("new " + gameType + "()");
@@ -192,9 +193,8 @@ $(document).ready(function(){
         $('input[id=level]').val(level);
 
         if($(this).val() == 'chess') {
-          $('#promotion_form').show();
+          $('#promotion_option').show();
         }
-  	Network.disconnect();
   });
 
   $('#shadows').change(function() {
@@ -210,36 +210,43 @@ $(document).ready(function(){
 
   onPlayerTypeChange();
 
-
-  $('#load_form').submit(function() {
-        loadGame();
-	return false;
-  });
-
-  $('#delete_form').submit(function() {
-        deleteGame();
-	return false;
-  });
-
-  $('#delete_all_form').submit(function() {
-        deleteGames();
-	return false;
-  });
-
-
-  $('#save_form').submit(function() {
+  $('#btnSaveGame').click(function() {
 	saveGame();	
 	return false;
   });
 
-
-  $('input[id=retract_submit]').each(function() {
+  $('#btnRetractMove').each(function() {
      this.disabled = true;
   });
 
-  $('#retract_form').submit(function() {
+  $('#btnRetractMove').click(function() {
         stopEnginePlayer();
 	document.execCommand("undo");
+	return false;
+  });
+
+
+
+  $('#btnLoadGame').click(function() {
+        loadGame();
+	return false;
+  });
+
+  $('#btnDeleteGame').click(function() {
+        deleteGame();
+	return false;
+  });
+
+  $('#btnFinishGame').click(function() {
+        if(confirm("Do you really want to resign?")) {
+          Network.group_finished();
+          Network.exitGame();
+        }
+        return false;
+  });
+
+  $('#btnDeleteAllGames').click(function() {
+        deleteGames();
 	return false;
   });
 
@@ -263,37 +270,100 @@ $(document).ready(function(){
   });
 
 
-  $('#disconnect_form').submit(function() {
+  $('#btnDisconnect').click(function() {
 	try {
 	  showMessage(false);
-          Network.disconnect();
+          if(Network) Network.disconnect();
         } catch(e) { alert(e.message); }
 	return false;
   });
 
-  $('#connect_form').submit(function() {
+  $("#btnRegister").click(function() {
+        var url = $("#server_url").val();
+        var user = $("#user").val();
+        var pass = $("#password").val();
+        $("#user").val("");
+        $("#password").val("");
+        //$("#user_picture").width(0).height(0);
+       
+        var wgsclient = Network.getWgsClient(url);
+        var realm = wgsclient.getDefaultRealm(); 
+        var email = prompt("Enter e-mail:");
+        if(email) wgsclient.registerUser(realm, user, pass, email, authentication);
+        return false;
+  });
 
-    showMessage(false);
 
-    var userid = $("#connect_jid").val();
-    var password = $("#connect_password").val();
-    var bosh_url = $("#connect_url").val();
-    var muc = $("#muc").val();
-
-    Network.connect(bosh_url, muc, userid, password);
-
-    return false;                                                                                                                                                                   
-  });                                                                                                                                                                               
+  $("#btnCreateGame").click(function() {
+        Network.new_group();
+        return false;
+  });
 
 
-  // Network.disconnect();
+  $("#btnHideMatchingOptions").click(function() {
+        Network.exitGame(true);
+        return false;
+  });
 
-/* 
-  initBoard3D();
-  UI.createGame();
-  listGames();
-  preloadSounds();
-*/
-  
+  $("#btnShowMatchingOptions").click(function() {
+        $("#games_section").hide();
+        $("#btnShowMatchingOptions").hide();
+        $("#btnDeleteFinishedGames").hide();
+        $("#matching_options").show();
+        $("#btnCreateGame").show();
+        $("#btnHideMatchingOptions").show();
+
+        $("#new_grp_opponent > option[value!='']").remove();
+        if(Network.user.friends) {
+          Network.user.friends.forEach(function(item) {
+            var option = $('<option>').attr('value',item.user).text(item.name);
+            if(item.picture) option.attr("style","height:34px;background-repeat:no-repeat;background-image:url("+item.picture+");padding-left:35px;background-size: auto 30px;background-position:2px 2px;vertical-align: middle");
+            $("#new_grp_opponent").append(option);
+          });
+        }
+
+        return false;
+  });
+
+  $("#btnDeleteFinishedGames").click(function() {
+        Network.deleteFinishedGroups();
+        return false;  
+  });
+
+  $("#gameCanvas").click(function() {
+      hideOptions();
+      return false;
+  });
+
+  $("#btnConnect")
+            .click(function() {
+                showMessage(false);
+
+                var url = $("#server_url").val();
+                var user = $("#user").val();
+                var pass = $("#password").val();
+                $("#password").val("");  // clear credentials
+
+                Network.login(url, user, pass);
+                return false;
+            })
+            .next()
+                .button({
+                    text: false,
+                    icons: {
+                        primary: "ui-icon-triangle-1-s"
+                    }
+                })
+                .click(function() {
+                    openid_connect_menu(this);
+                    return false;
+                })
+                    .next()
+                    .next()
+		    .buttonset()
+                        .hide()
+                        .menu();  
+
+
 
 });

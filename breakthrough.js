@@ -87,7 +87,7 @@ Breakthrough.prototype.initFromStateStr = function(str) {
 
 
 
-Breakthrough.prototype.newGame = function(player1, player2) {
+Breakthrough.prototype.newGame = function() {
   var rows = 2;
 
   this.turn = PLAYER1;
@@ -95,10 +95,6 @@ Breakthrough.prototype.newGame = function(player1, player2) {
   this.pieceCount = Array();
   this.pieceCount[PLAYER1] = 0;
   this.pieceCount[PLAYER2] = 0;
-
-  this.players = Array();
-  this.players[PLAYER1] = player1;
-  this.players[PLAYER2] = player2;
 
   var x,y;
   for(y=0; y<8; y++) {
@@ -117,10 +113,6 @@ Breakthrough.prototype.newGame = function(player1, player2) {
   }
 
   this.movements = null;
-
-  acceptHumanMove(false);
-  this.players[PLAYER1].sendCommand(this, PLAYER1, 'STATE', null);
-  this.players[PLAYER2].sendCommand(this, PLAYER2, 'STATE', null);
 }
 
 

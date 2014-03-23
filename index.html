@@ -1,6 +1,6 @@
 <!--
     WebGL 8x8 board games
-    Copyright (C) 2011 by Jordi Mariné Fort
+    Copyright (C) 2011-2014 by Jordi Mariné Fort
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <HTML>
-<HEAD manifest="manifest.appcache">
+<HEAD>
 <META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"> 
 <TITLE>WebGL 8x8 board games</TITLE> 
 
@@ -40,6 +40,7 @@
 
 <SCRIPT language="javascript">
 var chessTheme = BlenderExport;
+var chess960Theme = BlenderExport;
 var breakthroughTheme = BlenderExport;
 </SCRIPT>
 
@@ -55,10 +56,14 @@ var checkersTheme = BlenderExport;
 </SCRIPT>
 
 
-<script src='libs/jquery-1.5.min.js'></script>
-<script src='libs/strophe.js'></script>
-<script src='libs/flXHR.js'></script>
-<script src='libs/strophe.flxhr.js'></script>
+<script type="text/javascript" src="libs/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="libs/jquery-ui-1.9.2.js"></script>
+<script type="text/javascript" src="libs/wgs/md5.js"></script>
+<script type="text/javascript" src="libs/wgs/hmac-sha256.js"></script>
+<script type="text/javascript" src="libs/wgs/pbkdf2.js"></script>
+<script type="text/javascript" src="libs/wgs/enc-base64-min.js"></script>
+<script type="text/javascript" src="libs/wgs/wamp2.js"></script>
+<script type="text/javascript" src="libs/wgs/wgs-client-2.0.js"></script>
 
 <SCRIPT type="text/javascript" src="ai.js"></SCRIPT>  
 <script type="text/javascript" src='ui.js'></script>
@@ -67,6 +72,7 @@ var checkersTheme = BlenderExport;
 <SCRIPT type="text/javascript" src="draughts.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="checkers.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="chess.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="chess960.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="breakthrough.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="players.js"></SCRIPT>  
 <script type="text/javascript" src='index.js'></script>
@@ -94,6 +100,7 @@ function playSound(id) {
 </script>
 
 <script type="text/javascript">
+/*
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-21265464-1']);
   _gaq.push(['_trackPageview']);
@@ -103,6 +110,7 @@ function playSound(id) {
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
+*/
 </script>
 
 <script id="SHADOW_PASS_VERTEX_SHADER" type="x-shader/x-vertex">
@@ -232,7 +240,6 @@ void main (void)
 
  
 <SCRIPT type="text/javascript"> 
-
 function showMessage(msg) {
   if(msg) {
 	$('#message').html(msg);
@@ -250,61 +257,272 @@ function toggleCredits() {
 
 
 function hideOptions() {
-  $('#options').hide();
-  $('#configure').show();
+  $('#config').hide();
+  $('#btnSetup').show();
+  $('#controls').show();
 }
 
 function showOptions() {
-  $('#configure').hide();
+  $('#btnSetup').hide();
+  $('#controls').hide();
+  $('#config').show();
   $('#options').show();
-
-/*
-  $('#config').hover(function() { 
-    hideOptions();
-  });
-*/
-
 }
 
+
+function adjustScrollTable(tableName){
+ 
+  var colCount = $('#' + tableName + 'Header .columnHeader').length; //get total number of column
+ 
+  var m = 0;
+  var n = 0;
+  var brow = 'mozilla';
+ 
+  jQuery.each(jQuery.browser, function(i, val) {
+    if(val == true){
+      brow = i.toString();
+    }
+  });
+ 
+ 
+  if($('#' + tableName + 'Table tr').size() <= 0) {
+    $('#' + tableName + 'Header table').width("100%");
+  } else {
+    $('#' + tableName + 'Header table').width("0");
+    $('#' + tableName + 'Header .columnHeader').each(function(i){
+      if (m < colCount){
+
+        if (brow == 'mozilla'){
+          $('#firstTd').css("width",$('.tableFirstCol').innerWidth());//for adjusting first td
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').innerWidth());//for assigning width to table Header div
+        }
+        else if (brow == 'msie'){
+          $('#firstTd').css("width",$('.tableFirstCol').width());
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').width()-2);//In IE there is difference of 2 px
+        }
+        else if (brow == 'safari'){
+          $('#firstTd').css("width",$('.tableFirstCol').width());
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').width());
+        }
+        else {
+          $('#firstTd').css("width",$('.tableFirstCol').width());
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').innerWidth());
+        }
+      }
+      m++;
+    });
+  }
+   
+}
+
+function fnScroll(tableName){
+  $('#' + tableName + 'Header').scrollLeft($('#' + tableName + 'Table').scrollLeft());
+  //$('#' + tableName + 'FirstRow').scrollTop($('#' + tableName + 'Table').scrollTop());
+}
+
+
+/*** WGS ***/
+
+var notificationChannel = null;
+
+function authentication(state, msg) {
+    console.log("authentication state: " + state);
+
+    if(state == ConnectionState.ERROR) {
+        alert(msg);
+        
+    } else if(state == ConnectionState.CONNECTED) {
+        $("#server_url").attr("disabled", "disabled");
+        $("#btnRegister").attr("disabled", "disabled");
+        
+        //Network.getWgsClient().heartbeat(5000, "*****DISCARDED HEARTBEAT PAYLOAD*******");
+        
+    } else if(state == ConnectionState.ANONYMOUS || state == ConnectionState.AUTHENTICATED) {
+        if(state == ConnectionState.AUTHENTICATED) {
+            $("#user").attr("disabled", "disabled");
+            $("#password").attr("disabled", "disabled");
+            
+            if(msg.name) $("#user").val(msg.name);
+            $("#lbl_password").hide();
+            $("#password").hide();
+            $("#btnConnect").hide();
+            $("#oic_connect").hide();
+            $("#btnRegister").hide();
+        } 
+
+        Network.onConnect(msg); 
+
+    } else if(state == ConnectionState.DISCONNECTED) {
+        if(Network) Network.disconnect();
+    }
+        
+}
+
+
+function openid_connect(redirectUri) {
+    if(!redirectUri) {
+        var redirectUri = get_openid_connect_callback_url();
+        var user = $("#user").val();
+        if(user.length == 0) {
+            alert("User name is empty");
+        } else {
+            var url = $("#server_url").val();
+            var wgsclient = Network.getWgsClient(url);
+            var realm = wgsclient.getDefaultRealm();
+            wgsclient.openIdConnectLoginUrl(realm, user, redirectUri, notificationChannel, authentication);
+        }
+        
+    } else {
+        var url = $("#server_url").val();
+        var code = get_url_param(redirectUri, "code");
+        if(code != null) {
+            var provider = get_url_param(redirectUri, "provider");
+            redirectUri = clear_openid_connect_params(redirectUri, false);
+            
+            var wgsclient = Network.getWgsClient(url);
+            var realm = wgsclient.getDefaultRealm();
+            wgsclient.openIdConnectAuthCode(realm, provider, redirectUri, code, notificationChannel, authentication);
+        } else {
+            var error = get_url_param(redirectUri, "error");
+            if(Network) {
+              var wgsclient = Network.getWgsClient(null);
+              if(wgsclient) wgsclient.goodbye(error);
+            }
+        }
+    }
+}
+
+function get_url_param(url, param) {
+    var value = null;
+    var pos = url.indexOf("&"+param+"=");
+    if(pos == -1) pos = url.indexOf("?"+param+"=");
+    if(pos != -1) {
+        value = url.substring(pos+param.length+2);
+        pos = value.indexOf("&");
+        if(pos != -1) value = value.substring(0, pos);
+    }
+    return value;
+}
+
+
+function get_openid_connect_callback_url() {
+    var url = document.location.href;
+    url = url.substring(0, url.lastIndexOf("/")) + "/oauth2callback.html";
+    return url;
+}
+
+
+function clear_openid_connect_params(url,clearProvider) {
+    // Clear OpenId Connect's parameters
+    var oicParams = ["code","state","error","error_description","authuser","prompt","session_state","num_sessions"];
+    if(clearProvider) oicParams = ["provider", "code","state","error","error_description","authuser","prompt","session_state","gcmChannelId","num_sessions"];
+    oicParams.forEach(function(param) {
+        var paramPos = url.indexOf("&"+param+"=");
+        if(paramPos == -1) paramPos = url.indexOf("?"+param+"=");
+        if(paramPos != -1) {
+            var paramEnd = url.indexOf("&", paramPos+1);
+            var otherParams = (paramEnd != -1)? url.substring(paramEnd+1) : "";
+            var offset = (otherParams.length==0)? 0 : 1;
+            url = url.substring(0, paramPos+offset) + otherParams;
+        }
+    });
+
+    return url;
+}
+
+
+function openid_connect_menu(self) {
+    var url = $("#server_url").val();
+    var redirectUri = get_openid_connect_callback_url();
+    
+    var url = $("#server_url").val();
+    var wgsclient = Network.getWgsClient(url);
+    var realm = wgsclient.getDefaultRealm();
+    wgsclient.openIdConnectProviders(realm, redirectUri, function(id,details,errorURI,result,resultKw) { 
+
+        var providers = $("#openid_providers_menu");
+        providers.find("li:gt(0)").each(function(){
+            $(this).remove();
+        });
+
+        if(!errorURI) {
+            resultKw.providers.forEach(function(provider) {
+                var link = $("<a>");
+                link.text(provider.name);
+                link.attr("class", "ui-corner-all")
+
+                if(provider.authEndpoint) link.attr("onclick", "javascript:window.open('" + provider.authEndpoint + "&state=" + escape(notificationChannel) + "','_blank')");
+                else link.attr("onclick", "javascript:Network.getWgsClient().openIdConnectLoginUrl('"+realm+"','"+provider.registrationEndpoint+"', get_openid_connect_callback_url(), notificationChannel, authentication);");
+
+                var item = $("<li>");
+                item.attr("class", "ui-menu-item").append(link)
+                providers.append(item);
+            });
+        }
+        
+        var menu = $( self ).next().next().show().position({
+                        my: "left top",
+                        at: "left bottom",
+                        offset: "0 2",
+                        of: "#btnConnect"
+                    });
+        $( document ).one( "click", function() {
+            menu.hide();
+        });
+
+    });
+}
+
+function initApp() {
+  initBoard3D(); 
+  UI.createGame(); 
+  listGames(); 
+  preloadSounds();
+}
 
 </SCRIPT> 
  
  
 </HEAD>
-<BODY onload="initBoard3D(); UI.createGame(); listGames(); preloadSounds();"> 
+<BODY onload="initApp();"> 
 <DIV id="main"> 
-   <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
+  <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
 
-   <DIV id="title">
+  <DIV id="title">
      <H1><a href="javascript:toggleCredits()">WebGL 8x8 board games</a></H1>
      <div id="credits">
      <a class="author" href="mailto:jmarine@tinet.org">Copyright &copy; 2011 Jordi Marin&eacute; Fort</a><br>
      The <a href="src/dames-20131201.tgz" target="_blank">source code</a> of this game is licensed<br>under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a> and uses the libraries:<br>
-     - <a href="http://www.spidergl.org" target="_blank">SpiderGL</a> <br>
-     - <a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester</a> <br>
-     - <a href="http://code.stanziq.com/strophe/" target="_blank">Strophe.js</a><br>
-     - <a href="http://jquery.com" target="_blank">jQuery</a><br>
+     - <a href="http://www.spidergl.org" target="_blank">SpiderGL v0.1.1</a> <br>
+     - <a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> <br>
+     - <a href="http://jquery.com" target="_blank">jQuery v1.8.3</a><br>
+     - <a href="https://github.com/jmarine/wgs" target="_blank">WGS v2</a><br>
+     - <a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a><br>
      - <a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a><br>
      </div>
-   </DIV>
+  </DIV>
 
-   <DIV id="config">
-    <DIV id="configure">
-    <form id="configure_form" onSubmit="javascript:showOptions(); return false;">
-      <input type="submit" value="Configuration">
-    </form>
-    </DIV>
-    <DIV id="options">
-      <H4><a href="javascript:hideOptions()">Game configuration</a></H4><br>
+
+  <DIV id="controls">
+        <button id="btnSetup" onclick="javascript:showOptions(); return false;" style="clear:both">Configuration</button>
+        <button class='btnStartGame' style="clear:both">Start game</button>
+  </DIV>
+ 
+  <DIV id="config">
+    <form>
+      <div id="options">
+      <H4><a href="javascript:hideOptions()">Game configuration</a></H4>
+      <button id="minimize_options" style="float: right" onclick="javascript:hideOptions(); return false">x</button>
+      <br>
 
       <DIV id="players">
-         <form id="players_form">
          <dl>
 	   <dt><label for="game_type">Type</label> <a id="help" href="#">(?)</a>:</dt>
 	   <dd><select id="game_type">
 		<option value="draughts">Draughts</option>
 		<option value="checkers">Checkers</option>
 		<option value="chess">Chess</option>
+		<option value="chess960">Chess960</option>
 		<option value="breakthrough">Breakthrough</option>
 	      </select>
            </dd>
@@ -326,10 +544,8 @@ function showOptions() {
 		</select>
 	   </dd>
 	 </dl>
-         </form>
 
-         <form id='promotion_form'>
-         <dl>
+         <dl id="promotion_option">
            <dt><label for="promotion_piece">Promote to:</label></dt>
            <dd><select id="promotion_piece">
                 <option value="Q">Queen</option>
@@ -339,43 +555,29 @@ function showOptions() {
               </select>
            </dd>
          </dl>
-         </form>
 
 
-         <form id='save_form'>
-           <input type=submit id='save_submit' value="Save game">
-         </form>
-
-         <form id='retract_form' style="float: left">
-           <input type=submit id='retract_submit' value="Retract move">
-         </form>
+         <button id='btnSaveGame' style="clear:left">Save game</button>
+         <button id='btnRetractMove'>Retract move</button>
 
       </DIV>
 
       <DIV id="storage" style="display: none">
       <H4>Storage configuration</H4>
-         <form id='saved_games_form' style="clear:both">
            <dl>
            <dt><label for="saved_games">Games:</label></dt>
            <dd><select name="saved_games"></select></dd>
            </dl>
-         </form>
-         <form id='load_form' style="float:left;clear:left">
-           <input type=submit id='load_submit' value="Load">
-         </form>
-         <form id='delete_form' style="float:left">
-           <input type=submit id='delete_submit' value='Delete'>
-         </form>
-         <form id='delete_all_form' style="float:left">
-           <input type=submit id='delete_all_submit' value='Delete all'>
-         </form>
+
+           <button id='btnLoadGame' style="clear:left">Load</button>
+           <button id='btnDeleteGame'>Delete</button>
+           <button id='btnDeleteAllGames'>Delete all</button>
 
       </DIV>
 
 
       <DIV id="ui">
       <H4>UI configuration</H4>
-      <form id="ui_form">
 	<dl>
 
            <dt><label for="shadows">Shadows:</label></dt>
@@ -384,23 +586,19 @@ function showOptions() {
            <dt><label for="reflections">Reflections:</label></dt>
            <dd><input id='reflections' type="checkbox" value="1"></dd>
 	</dl>
-      </form>
       </DIV>
 
       <DIV id="sound">
       <H4>Sound configuration</H4>
-      <form id="ui_form">
         <dl>
            <dt><label for="sounds">Effects:</label></dt>
            <dd><input id='sounds' type="checkbox" value="1"></dd>
 	</dl>
-      </form>
       </DIV>
 
 
       <DIV id="ai">
       <H4>AI engine configuration</H4>
-      <form id="ai_form" onSubmit="return false;">
 	<dl>
 	   <dt><label for="algorithm_name">Algorithm:</label></dt>
 	   <dd><select id="algorithm_name">
@@ -412,117 +610,133 @@ function showOptions() {
            <dt><label for="level">Level:</label></dt>
            <dd><input id='level' value="6" size="1" maxlength="1"></dd>
 	</dl>
-      </form>
       </DIV>
 
       <DIV id="network">
       <H4>Network configuration</H4>
-      <h5 style="clear:both;float:left;margin-bottom:3px;">(you need a XMPP server with BOSH support)</h5>
-      <form id="network_form">
          <dl>
-           <dt><label for=connect_jid>Jabber ID:</label></dt>
-           <dd><input id='connect_jid' value="guest@xmppserver"></dd>
-           <dt><label for=connect_password>Password:</label></dt>
-           <dd><input id='connect_password' type=password value=""></dd>
-           <dt><label for=connect_url>BOSH url:</label></dt>
-           <dd><input name=url id='connect_url' value='http://xmppserver:7070/http-bind/'></dd>
-           <dt><label for=muc>MUC:</label></dt>
-           <dd><input id='muc' value="conference.xmppserver"></dd>
+           <dt><label for="server_url">WGS url:</label></dt>
+           <dd><input name="server_url" id="server_url" name="server_url" value='wss://localhost:8181/wgs'></dd>
+
+           <dt><label for="user">User:</label></dt>
+           <dd><input id="user" name="user" value=""></dd>
+
+           <dt><label for="password" id="lbl_password">Password:</label></dt>
+           <dd><input id="password" type="password" value=""></dd>
         </dl>
-      </form>
+
+        <!-- img id="user_picture" width="0" height="0" -->
+
+
+      <!--<DIV id="extend_list" style="width:100%">-->
+      <button id="btnConnect" style="clear:left">Connect</button>
+      <button id="oic_connect">&nbsp;</button>
+      <button id="btnRegister">Register</button>
+
+      <ul id="openid_providers_menu" style="display: none;">
+        <li><a href="javascript:openid_connect();">OpenID Connect provider</a></li>
+      </ul>    
+      <!--</DIV>-->
+
+
+
       </DIV>
+
+
+
 
       <div id="network_status">
 	Waiting connection
       </div>
 
-   </DIV>
 
-      <div id="join">
-      <H4>Select opponent:</H4>
-      <form id='join_form'>
-	<dl>
-	<dt>
-        <select id="users" name="users" size="15" cols="10" class="list">
-	</select>
-	</dt>
-	</dl>
-      </form>
-      </div>
 
-      <div id="join2">
+      <div id="games_section" style="width: 100%; display: none">
       <H4>Select game:</H4>
-      <form id='join2_form'>
+      <div id="groupsHeader" class="scrollTableHeader" style="overflow:hidden;width:100%">
+        <table cellspacing="0" cellpadding="0" border="0" >
+          <tr id='firstTr'>
+            <td>
+              <div class="columnHeader">Game</div>
+            </td>
+            <td>
+              <div class="columnHeader">Status</div>
+            </td>
+            <td>
+              <div class="columnHeader">N/T&nbsp;</div>
+            </td>
+            <td>
+              <div class="columnHeader">Members</div>
+            </td>
+          </tr>
+        </table>
+      </div>  
+      <div id="groupsTable" class="scrollTableData" style="width:100%;position:relative" onscroll="fnScroll('groups')" >
+        <table cellspacing="0" cellpadding="0" border="0" width="100%">
+          <!--<tr>
+            <td>Chess</td>
+            <td>Open</td>
+            <td>2/2</td>
+            <td>Judith vs Irene</td>
+          </tr>-->
+        </table>
+      </div>
+      </div>
+
+      <div id="matching_options" style="display: none">
+      <H4>Create game</H4>
         <dl>
-        <dt>
-        <select id="requests" name="requests" size="15" cols="10" class="list">
-        </select>
-        </dt>
+          <dt><label for="new_grp_role">Role:</label></dt>
+          <dd><select id="new_grp_role" name="new_grp_role">
+                <option value="">Any</option>
+                <option value="White">White</option>
+                <option value="Black">Black</option></select></dd>
+
+          <dt><label for="new_grp_opponent">Opponent:</label></dt>
+          <dd><select name="new_grp_opponent" id="new_grp_opponent">
+                <option value="">Auto-match</option>
+              </select>
+          </dd>
+
+          <dt><label for="new_grp_observable">Observable</label></dt>
+          <dd><input type="checkbox" name="new_grp_observable" id="new_grp_observable" /></dd>
+
+          <dt><label for="new_grp_hidden">Hidden:</label></dt>
+          <dd><input type="checkbox" name="new_grp_hidden" id="new_grp_hidden" /></dd>
+
+          <dt><label for="new_grp_password">Password:</label></dt>
+          <dd><input type="password" name="new_grp_password" id="new_grp_password" /></dd>
+
         </dl>
-      </form>
       </div>
 
 
-      <DIV id="controls">
-      <div id="start">
-      <form id='start_form'>
-         <input type=submit id='start_submit' value="Start game">
-      </form>
-      </div>
+      <button id="btnHideMatchingOptions" style="clear:both">Back</button>
+      <button id="btnCreateGame">Create</button>
 
-      <div id="open_game">
-      <form id='open_game_form'>
-         <input type=submit id='open_game_submit' value="Open game">
-      </form>
-      </div>
+      <button id="btnShowMatchingOptions">New game</button>
+      <button id="btnDeleteFinishedGames">Delete finished</button>
 
-      <div id="list_games">
-      <form id='list_games_form'>
-         <input type=submit id='list_games_submit' value="Show games">
-      </form>
-      </div>
+      <button id="btnFinishGame">Resign</button>
+      <button id="btnDisconnect">Disconnect</button>
 
-      <div id="list_users">
-      <form id='list_users_form'>
-         <input type=submit id='list_users_submit' value="Show users">
-      </form>
-      </div>
+      <button class='btnStartGame' style="clear:both">Start game</button>
 
-      <div id="connect">
-      <form id="connect_form">
-        <input type=submit id='connect_submit' value="Connect">
-      </form>
-      </div>
+    </div>
+  </form>
+  </DIV>
 
-      <div id="reject">
-      <form id='reject_form'>
-         <input type=submit id='reject_submit' value="Reject game">
-      </form>
-      </div>
-
-      <div id="disconnect">
-      <form id='disconnect_form'>
-        <input type=submit id='disconnect_submit' value="Disconnect">
-      </form>
-      </div>
-
-
-      </DIV>
-
-
-     </DIV>
-
-   <DIV id="messageBox">
-     <table border="0" width="100%" height="100%">
-     <tr>
-     <td valign="middle" align="center">
-     <div id="message">
-     Loading game...
-     </div>
-     </td>
-     </tr>
-     </table>
-   </DIV>
+  <DIV id="messageBox">
+    <table border="0" width="100%" height="100%">
+    <tr>
+    <td valign="middle" align="center">
+    <div id="message">
+    Loading game...
+    </div>
+    </td>
+    </tr>
+    </table>
+  </DIV>
 
 </DIV>
 

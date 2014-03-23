@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>OpenID Connect response</title>
+
+<script type="text/javascript" src="libs/jquery-1.8.3.js"></script>
+<script type="text/javascript">
+function processOpenIdConnectCallback() {
+  var url = document.location.href;
+  try {
+    var code = window.opener.get_url_param(url, "code");
+    if(code) {
+      $("#message").html("Authentication code received");
+      window.opener.openid_connect(url);        
+      window.close();
+    } else {
+      var error = window.opener.get_url_param(url, "error");
+      $("#message").html("OpenID Connect error:" + error.toString());
+      $("#close").show();
+      window.opener.openid_connect(url);      
+    }
+  } catch(error) {
+    $("#message").html(error.toString());
+    $("#close").show();
+  }
+}
+</script>
+
+
+<style type="text/css">
+    
+body { font-family: Verdana; text-align: center }
+
+H1   { font-size: 1.5em; }
+
+#message { margin-bottom: 25 }
+#close   { display: none }
+
+</style>    
+
+</head>
+<body onload="processOpenIdConnectCallback()">
+    <H1>WGS authentication with OpenID Connect provider</H1>
+    <div id="message">
+        Redirecting to OpenID Connect provider...
+    </div>
+    <button id="close" style="display: none; margin-top: 10px" onclick="window.close()">Close</button>
+</body>
+</html>

@@ -114,19 +114,26 @@ function initBoard3D() {
     board.ui._manager.mouseOut = function(e) {
         return false;
     }
+
+    document.onmouseup = function(e)   {
+        board.ui._manager.mouseUp(e);
+    }
+
+    //document.onmousedown = function(e) { board.ui._manager.mouseDown(e); }  // commented to avoid repeated event
+
+    document.onmousemove = function(e) {
+        board.ui._manager.mouseMove(e);
+    }
+
+/*
     document.onkeydown = function(e)   {
         board.ui._manager.keyDown(e);
     }
     document.onkeyup = function(e)     {
         board.ui._manager.keyUp(e);
     }
-    document.onmouseup = function(e)   {
-        board.ui._manager.mouseUp(e);
-    }
-    //document.onmousedown = function(e) { board.ui._manager.mouseDown(e); }  // commented to avoid repeated event
-    document.onmousemove = function(e) {
-        board.ui._manager.mouseMove(e);
-    }
+*/
+
     window.onresize = function(e)      {
         board.ui._manager.resize(e);
     }
@@ -138,6 +145,7 @@ function checkGameStatus() {
         var winner = game.getWinner(); 
         if(winner) showMessage("Player " + winner + " won the game");
         else showMessage("The game is stalled");
+        if(Network) Network.group_finished();
     }
 }
 
@@ -154,14 +162,23 @@ function acceptHumanMove(ac) {
 }
 
 
-function movePieceOnBoard(move) {
-      playSound('move');
-      showMessage(false);
-      validMoves = null;
-      currentMove = move;
-      currentFirstMove = currentMove;
-      moveElapsedTime = 0;
-      moveStartTime = new Date().getTime();
+function movePieceOnBoard(move, isReplay) {
+
+    acceptHumanMove(false); 
+    if(!isReplay) {
+        var player = getPlayer(game.getOpponent());
+        player.sendCommand(game, game.getOpponent(), 'MOVE', move);
+        console.log("movePiceOnBoard: sentMoveToOpponent");
+    }
+
+    playSound('move');
+    showMessage(false);
+    validMoves = null;
+    currentMove = move;
+    currentFirstMove = currentMove;
+    moveElapsedTime = 0;
+    moveStartTime = new Date().getTime();
+
 }
 
 
@@ -1079,13 +1096,11 @@ Board3D.prototype =
 
     	    checkGameStatus();
 
-            //sendMoveToOpponent();
 	    var firstMove = currentFirstMove;
-	    var player = game.getPlayer(game.getTurn());
+	    var player = getPlayer(game.getTurn());
 	    currentFirstMove = null;
-	    player.sendCommand(game, game.getTurn(), 'MOVE', firstMove);
+	    player.sendCommand(game, game.getTurn(), 'MOVED', firstMove);
 
-            console.log("CompletePieceMovement: sentMoveToOpponent");
             return true;
         }
     },

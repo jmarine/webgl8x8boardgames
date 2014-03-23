@@ -21,6 +21,7 @@ importScripts('game.js');
 importScripts('draughts.js');
 importScripts('checkers.js');
 importScripts('chess.js');
+importScripts('chess960.js');
 importScripts('breakthrough.js');
 importScripts('move.js');
 importScripts('ai.js');

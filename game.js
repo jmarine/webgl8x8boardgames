@@ -37,9 +37,6 @@ function Game() {
   return this;
 }
 
-Game.prototype.getPlayer = function(turn) {
-  return this.players[turn];
-}
 
 Game.prototype.getTurn = function() {
   return this.turn;
@@ -138,14 +135,6 @@ Game.prototype.clone = function() {
   var copy = new this.constructor();
   copy.turn = this.turn;
   copy.pieces = this.pieces.slice(0);
-
-  /* manual clone
-  copy.pieces = Array();
-  for(var index = 0; index < this.pieces.length; index++) {
-    copy.pieces.push(this.pieces[index]); 
-  }
-  */
-
   return copy;
 }
 
@@ -164,8 +153,9 @@ Game.prototype.getMoveString = function(move) {
   return "null";
 }
 
-Game.prototype.isValidMove = function(m) {
-  return null;
+Game.prototype.isValidMove = function(str) {
+  var move = this.parseMoveString(str);
+  return (move != null);
 }
 
 Game.prototype.makeStep = function(player, move) {

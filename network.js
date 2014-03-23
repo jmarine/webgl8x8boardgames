@@ -18,7 +18,7 @@
 
 var Network = {
 
-xmppConnection: null, 
+wgsclient: null, 
 nick: null, 
 mucService: null, 
 gameRoom: null, 
@@ -87,7 +87,7 @@ onPresence: function(presence) {
      } else {
 	// handle disconnections
 
-	    if(resource != Network.nick) $("select[id=requests] > option[value='" + from + "']").remove(); 
+	    //if(resource != Network.nick) $("select[id=games] > option[value='" + from + "']").remove(); 
 
 	    console.log("JOINED REMOTE USER SESSION " + Network.joinedRemoteUserSession);
 	    if(resource == Network.joinedRemoteUserSession) {
@@ -117,12 +117,10 @@ onMessage: function(message) {
 	    if( (!Network.gameRoom) && (resource != Network.nick) ) {
 		Network.joinState = Network.GameStatusEnum.GAME_CREATED;
                 Network.joinedRemoteUserSession = resource;
-		$('select[id=requests]').append($("<option></option>").text(resource + " as " + role).val(from)); 
+		//$('select[id=games]').append($("<option></option>").text(resource + " as " + role).val(from)); 
 
-		$('#join').hide();
-                $('#list_games').hide();
+		$('#games_section').hide();
 		$('#network_status').hide();
-	    	$('#join2').fadeIn();
 		showMessage("Select game request");
 
 	    	$('#reject').fadeIn();
@@ -146,7 +144,7 @@ onMessage: function(message) {
             }
 	    if( (Network.gameRoom) && (resource == Network.joinedRemoteUserSession) ) {
               var player = parseInt(cmdNode.attr('player'));
-              var answer = game.getPlayer(player).sendCommand(game, player, 'LOAD', {data: state});
+              var answer = getPlayer(player).sendCommand(game, player, 'LOAD', {data: state});
               if(answer) {
                  UI.setGameState(state);
                  //UI.openNetworkGame(state);
@@ -161,7 +159,7 @@ onMessage: function(message) {
             if(answer == 'true') {
               var player = parseInt(cmdNode.attr('player'));
               if( (Network.gameRoom) && (resource == Network.joinedRemoteUserSession) ) {
-                game.getPlayer(player).loadConfirmed = true;
+                getPlayer(player).loadConfirmed = true;
               }
               UI.setGameState(state);
             }
@@ -171,7 +169,7 @@ onMessage: function(message) {
               var previousGameTurn = game.getTurn();
               var state = cmdNode.attr('state');
               var player = parseInt(cmdNode.attr('player')); 
-              var answer = game.getPlayer(player).sendCommand(game, player, 'RETRACT', {data: state});
+              var answer = getPlayer(player).sendCommand(game, player, 'RETRACT', {data: state});
               if(answer) {
                 if(player != previousGameTurn) {
                    setNumUndosToIgnore(1);
@@ -188,7 +186,7 @@ onMessage: function(message) {
             if(answer == 'true') {
               var player = parseInt(cmdNode.attr('player')); 
 	      if( (Network.gameRoom) && (resource == Network.joinedRemoteUserSession) ) {
-                game.getPlayer(player).retractConfirmed = true;
+                getPlayer(player).retractConfirmed = true;
                 document.execCommand("undo");
               } else {  // observers
                 UI.setGameState(state);
@@ -209,8 +207,7 @@ onMessage: function(message) {
 	    	console.log("ACK received for room: " + Network.gameRoom);
 
 	        $('#start').hide();
-	        $('#join').hide();
-	        $('#join2').hide();
+	        $('#games_section').hide();
 
 	        $('#reject').fadeIn();
                 $('input[id=reject_submit]').each(function() {
@@ -250,9 +247,8 @@ sendGameRequest: function(remoteUser, localUserRole) {
 
     console.log("User session: " + remoteUser);
     $('#start').hide();
-    $('#join').hide();
-    $('#join2').hide();
-    $('#list_games').hide();
+    $('#games_section').hide();
+    $('#games_section').hide();
     showMessage("Waiting confirmation from " + Network.getUserNick(Strophe.getResourceFromJid(remoteUser)));
 
     $('#reject').fadeIn();
@@ -272,7 +268,7 @@ rejectGameRequest: function(remoteUser, pendingGameRequests) {
 },
 
 onGameRejected: function(from) {
-   $("select[id=requests] > option[value='" + from + "']").remove(); 
+   //$("select[id=games] > option[value='" + from + "']").remove(); 
 
    var role = ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER) ? "player2" : "player1";
    Network.xmppConnection.send($pres({to: Network.getGameType() + "@" + Network.mucService + "/" + Network.nick}).c("PLAYER",{xmlns: Network.getGameNamespace(), role: role, status: "waiting opponent"})); 
@@ -282,20 +278,19 @@ onGameRejected: function(from) {
    Network.joinedRemoteUserSession = null;
    Network.gameRoom = null;
 
-   var req = $("select[id=requests] > option[value='" + from + "']");
+   /*var req = $("select[id=games] > option[value='" + from + "']");
    if(req.size() > 0) {
      req.remove();
-     updateStartButtonState('requests');
+     updateStartButtonState('games');
    }
+   */
 
-   req = $("select[id=requests] > option");
+   req = $("select[id=games] > option");
    if(req.size() <= 0) {
      $('#reject').hide();
      $('#network_status').hide();
-     $('#join2').hide();
-     $('#join').fadeIn();
+     $('#games_section').fadeIn();
      $('#start').fadeIn();
-     $('#list_games').fadeIn();
      updateStartButtonState('users');
    }
    showMessage("User " + from + " has rejected the game.");
@@ -328,8 +323,7 @@ acceptGameRequest: function(user_session, my_role) {
     this.clearGameRequests();
 
     $('#start').hide();
-    $('#join').hide();
-    $('#join2').hide();
+    $('#games_section').hide();
 
     $('#reject').fadeIn();
     $('input[id=reject_submit]').each(function() {
@@ -340,83 +334,74 @@ acceptGameRequest: function(user_session, my_role) {
     showMessage(false);
 },
 
+getWgsClient: function(url) {
+    if(url) {
+      if(!this.wgsclient || (url != this.wgsclient.url)) {
+        if(this.wgsclient) {
+            try { this.wgsclient.close(); }
+            catch(e) { }
+        }
+        this.wgsclient = new WgsClient(url);
+      }
+    }
+    return this.wgsclient;
+},
 
-connect: function(bosh_url, muc, userid, password) {
+
+login: function(url, user, pass) {
     showMessage("Connecting...");
 
-    this.mucService = muc;
-    this.xmppConnection = new Strophe.Connection(bosh_url);
-
-    this.xmppConnection.connect(userid, password, function (status) {
-        switch(status) {
-        case Strophe.Status.CONNECTED:
-            Network.onConnect();
-            break;
-            
-        case Strophe.Status.DISCONNECTED:
-            this.disconnect();
-            break;
-	
-        case Strophe.Status.AUTHFAIL:
-            showMessage("Authentication error.");
-            break;
-
-        case Strophe.Status.ERROR:
-        case Strophe.Status.CONNFAIL:
-	    showMessage("Connection error.");
-            break;
-        }
-    });
-
+    this.wgsclient = this.getWgsClient(url);
+    var realm = this.wgsclient.getDefaultRealm();
+    if(user.length > 0) {
+            this.wgsclient.login(realm, user, pass, authentication);
+    } else {
+            this.wgsclient.login(realm, null, null, authentication);
+    }
 }, 
 
 
-onConnect: function() {
+isConnected: function() {
+  return (Network.wgsclient && Network.wgsclient.getState() != ConnectionState.DISCONNECTED);
+},
+
+
+onConnect: function(msg) {
     console.log("connected");
-    $('#connect').hide();
-    $('#join2').hide();
+    $('#connect_section').hide();
     $('#network_status').hide();
+    $('#matching_options').hide();
+    $('#btnCreateGame').hide();
     $('#reject').hide();
-    $('#list_games').fadeIn();
-    $('#disconnect').fadeIn();
+    $('#btnShowMatchingOptions').fadeIn();
+    $('#btnDeleteFinishedGames').fadeIn();
+    $('#btnDisconnect').fadeIn();
 
-
-    updateStartButtonState('users');
-    $('select[id=users]').click(function() {
-        $('input[id=start_submit]').each(function() {
-          var c =  $("select[id=users] > option:selected").size();
-          this.disabled = (c==0);
-        });
-    });
-    $('select[id=requests]').click(function() {
-        var c =  $("select[id=requests] > option:selected").size();
-        $('input[id=start_submit]').each(function() {
-          this.disabled = (c==0);
-        });
-        $('input[id=reject_submit]').each(function() {
-          this.disabled = (c==0);
-        });
-        $('input[id=open_game_submit]').each(function() {
-          this.disabled = (c==0);
-        });
-    });
 
     $('#start').fadeIn();
-    $('#join').fadeIn();
-    $('select[id=users]').empty();
-    $('select[id=requests]').empty();
-    showMessage("Select opponent");
+    $('select[id=games]').empty();
+    showMessage(false);
 
-    this.joinState = Network.GameStatusEnum.GAME_UNDEFINED;
-    this.joinedRemoteUserSession = null;
+    Network.wgsclient.subscribe("wgs.apps_event", Network.update_groups, null, {"match": "exact"} );
 
-    this.xmppConnection.addHandler(Network.onMessage, null, "message");
-    this.xmppConnection.addHandler(Network.onPresence, null, "presence");
+    /*
+        if(msg && msg.picture) {
+            $("#user_picture").attr("src", msg.picture).width(48).height(48);
+        } else if(state == ConnectionState.ANONYMOUS) {
+            $("#user_picture").attr("src", "images/anonymous.png").width(48).height(48);
+        } else {
+            $("#user_picture").width(0).height(0);
+        }
+    */
 
-    this.nick = this.xmppConnection.jid.split("@")[0] + "_" + (new Date()).getTime();
+    if(msg) {
+      this.joinState = Network.GameStatusEnum.GAME_UNDEFINED;
+      this.joinedRemoteUserSession = null;
 
-    var role = ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER) ? "player2" : "player1";
-    this.xmppConnection.send($pres({to: this.getGameType() + "@" + this.mucService + "/" + this.nick}).c("PLAYER",{xmlns: this.getGameNamespace(), role: role, status: "waiting opponent"})); 
+      this.user = msg;
+      this.nick = msg.user;
+      this.listGames();
+    }
 },
 
 
@@ -429,17 +414,30 @@ sendLoadRequest: function(game, state, toPlayerNumber)
 
 sendMoveRequest: function(game, move, toPlayerNumber)
 {
-  if(this.joinedRemoteUserSession) {  // When player is not an observer
-    var str = game.getMoveString(move);
-    this.xmppConnection.send($msg({to: this.gameRoom, type: 'groupchat'}).c("MOVE", {xmlns: this.getGameNamespace(), path: str, player: toPlayerNumber}));
+  var group = Network.gameRoom;
+  if(group && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
+    var slot = game.getTurn()-1;
+    var data = {};
+    data.path = game.getMoveString(move);
+    data.oldstate = game.toString();
+    this.wgsclient.addAction(group.gid, slot, "MOVE", JSON.stringify(data));
   }
 },
 
-sendRetractMoveRequest: function(game, state, fromPlayerNumber)
+sendRetractMoveRequest: function(game, state, toPlayerNumber)
 {
-  if(this.joinedRemoteUserSession) {  // When player is not an observer
-    this.xmppConnection.send($msg({to: this.gameRoom, type: 'groupchat'}).c("RETRACT", {xmlns: this.getGameNamespace(), state: state, player: fromPlayerNumber}));
+  var group = Network.gameRoom;
+  if(group && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
+    var data = {};
+    var slot = group.slotJoinedByClient;
+    data.oldstate = game.toString();
+    data.newstate = state;
+    this.wgsclient.addAction(group.gid, slot, "RETRACT_QUESTION", JSON.stringify(data));
   }
+},
+
+deleteFinishedGroups: function() {
+  this.wgsclient.deleteFinishedGroups();
 },
 
 getUserNick: function(user_session)
@@ -451,47 +449,46 @@ getUserNick: function(user_session)
 
 getOpponentNick: function()
 {
-  return this.getUserNick(this.joinedRemoteUserSession);
+  return "opponent";
+  //return this.getUserNick(this.joinedRemoteUserSession);
 },
 
 exitGame: function(waitNewGame)
 {
-    $('#reject').hide();
-    $('#network_status').hide();
+    acceptHumanMove(false);
 
-    if(this.joinState >= Network.GameStatusEnum.GAME_PROPOSED) {
-        this.xmppConnection.send($pres({to: this.gameRoom + "/" + this.nick, type: 'unavailable'}));
+    $('#network_status').hide();
+    $("#btnFinishGame").hide();
+
+    $("#matching_options").hide();
+    $("#btnCreateGame").hide();
+    $("#btnHideMatchingOptions").hide();
+    $("#games_section").show();
+    $("#btnShowMatchingOptions").show();
+    $("#btnDeleteFinishedGames").show();
+
+    if(this.gameRoom) {
+      var gid = this.gameRoom.gid;
+      this.wgsclient.exitGroup(gid, function(id,details,errorURI,result,resultKw) {});
     }
 
     this.gameRoom = null;
     this.joinState = Network.GameStatusEnum.GAME_UNDEFINED;
     this.joinedRemoteUserSession = null;
     this.networkGameType = null;
-
-
-    if(waitNewGame) {
-        var role = ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER) ? "player2" : "player1";
-        this.xmppConnection.send($pres({to: this.getGameType() + "@" + this.mucService + "/" + this.nick}).c("PLAYER",{xmlns: this.getGameNamespace(), role: role, status: "waiting opponent"}));
-        $('#join').fadeIn();
-        $('#start').fadeIn();
-        $('#list_games').fadeIn();
-        showMessage("Select opponent");
-        updateStartButtonState('users');
-    }
-
 },
 
 clearGameRequests: function()
 {
-/** Other game requests are cleared on playing presence
-    req = $("select[id=requests] > option");
+/** Other game games are cleared on playing presence
+    req = $("select[id=games] > option");
     req.each(function() {
       var user_session = $(this).attr('value');
       Network.xmppConnection.send($msg({to: user_session, type: 'chat'}).c("NACK", {xmlns: Network.getGameNamespace()}));
       //this.remove();
     });
 */
-    $('select[id=requests]').empty();
+    $('select[id=games]').empty();
 },
 
 listUsers: function()
@@ -499,43 +496,317 @@ listUsers: function()
     var role = ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER) ? "player2" : "player1";
     this.xmppConnection.send($pres({to: this.getGameType() + "@" + this.mucService + "/" + this.nick}).c("PLAYER",{xmlns: this.getGameNamespace(), role: role, status: "waiting opponent"})); 
 
-    $('select[id=requests]').empty();
+    $('select[id=games]').empty();
 
     $('#open_game').hide();
-    $('#list_users').hide();
     $('#join2').hide();
     $('#join').fadeIn();
     $('#start').fadeIn();
-    $('#list_games').fadeIn();
     showMessage("Select opponent");
 },
 
-listGames: function()
-{
-    $('select[id=requests]').empty();
-    $('#start').hide();
-    $('#list_games').hide();
-    $('#join').hide();
+view_group: function(appId,gid) {
+    var options = new Object();
+    options.spectator = true;
+    try {
+      Network.open_group(appId, gid, options);
+    } catch(e) {
+      console.debug(e.stack);
+    }
+},
 
-    $('input[id=open_game_submit]').each(function() {
-               this.disabled = true;
+reserve_group_slot: function(appId,gid,slot) {
+    //var gid = $('#groups option:selected').attr('value');
+    var options = new Object();
+    options.slot = slot;
+    try {
+      Network.open_group(appId, gid, options);
+    } catch(e) {
+      console.debug(e.stack);
+    }
+},
+
+new_group: function() {
+    var appId = $("#game_type").val();
+    var gid = $("#new_grp_automatch").is(":checked") ? "automatch" : "";
+    var opponent = $("#new_grp_opponent").val();
+    var options = new Object();
+    options.automatch = (opponent.length == 0);
+    options.opponents = [];
+    options.opponents[0] = {}; 
+    options.opponents[0].user = opponent; 
+    options.observable = $("#new_grp_observable").is(":checked");
+    options.hidden = $("#new_grp_hidden").is(":checked");
+    options.password = $("#new_grp_password").val();
+    options.role = $("#new_grp_role option:selected").val();
+    if(options.role != "") options.slot = (options.role == "Black") ? 1 : 0;
+    Network.open_group(appId, gid, options);
+    return false;
+},
+
+group_finished: function() {
+  var group = Network.gameRoom;
+  if(this.wgsclient && group && group.state != "FINISHED") {
+    var newState = "FINISHED";
+    this.wgsclient.updateGroup(group.appId, group.gid, newState, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
+       if(errorURI) alert(errorURI);
+    });
+  }
+},
+
+group_opened: function(group) {
+    console.log("group change received: " + JSON.stringify(group));
+    if(this.wgsclient.isMemberOfGroup(group.gid) && this.wgsclient.user != group.admin && group.state == "OPEN") {
+        var newState = group.state;
+        if(confirm("Accept game request?")) {
+          newState = "STARTED";
+        } else {
+          newState = "FINISHED";
+        }
+
+        this.wgsclient.updateGroup(group.appId, group.gid, newState, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
+           if(errorURI) alert(errorURI);
+        });
+
+        group.state = newState;
+
+    }
+
+    $('#start').hide();
+    $('#games_section').hide();
+    $("#matching_options").hide();
+    $("#matching_options").hide();
+    $("#btnCreateGame").hide();
+    $("#btnShowMatchingOptions").hide();
+    $("#btnHideMatchingOptions").show();
+    $("#btnDeleteFinishedGames").hide();
+    if(this.wgsclient.isMemberOfGroup(group.gid) && group.state != "FINISHED") $("#btnFinishGame").show();
+
+    $("select[id=game_type]").val(group.appName);
+
+    group.members.forEach(function(item) {
+      $("select[id=player" + (item.slot+1) + "]").val((Network.wgsclient.sid == item.sid)? LOCAL_USER : REMOTE_USER);
     });
 
-    $('#join2').fadeIn();
-    $('#open_game').fadeIn();
-    $('#list_users').fadeIn();
-    showMessage("Select and open the game to observe");
-    var muc = $("#muc").val();
 
-    Network.xmppConnection.send($pres({to: Network.getGameType() + "@" + Network.mucService + "/" + Network.nick}).c("PLAYER",{xmlns: Network.getGameNamespace(), status: "observer"}));
+    //$('#network_status').text("Playing " + group.members[0].name + " with " + group.members[1].name);
+    showMessage(false);
+    //alert("ACK: unsubscribe from MUC");
 
-    this.xmppConnection.sendIQ(
-            $iq({to: muc, type: "get"})
-                .c("query", {xmlns:
-                             "http://jabber.org/protocol/disco#items"}),
-            function (iq) {
-                Network.onListItem(iq);
-            });
+    UI.createGame();
+    if(group.actions && group.actions.length > 0) {
+      var lastAction = null;
+      group.actions.forEach(function(action, index) {
+        var actionValue = JSON.parse(action.value);
+        if(action.type == "MOVE") {
+          game.initFromStateStr(actionValue.oldstate);
+          if(action.slot == Network.gameRoom.slotJoinedByClient) window.undoManager.add(actionValue.oldstate);
+        } else if(action.type == "RETRACT_ANSWER" && actionValue.answer) {
+          game.initFromStateStr(actionValue.newstate);
+          if(index+1 < group.actions.length && Network.gameRoom.slotJoinedByClient >= 0) { // member
+            setNumUndosToIgnore(1);
+            document.execCommand("undo");
+            setNumUndosToIgnore(0);
+          }
+        }
+        lastAction = action;
+      });
+      group.action = lastAction;
+    }
+},
+
+group_changed: function(group) {
+    var opened = false;
+    if(!Network.gameRoom) {
+        Network.gameRoom = group;
+        Network.group_opened(group);
+        opened = true;
+    } 
+
+    var action = group.action;
+    if(action) {
+      group.action = null;
+      var currentSlot = Network.gameRoom.slotJoinedByClient;
+      var actionValue = JSON.parse(action.value);
+      if(action.type == "MOVE" && (opened || action.slot != currentSlot) ) {
+        var move = game.parseMoveString(actionValue.path);
+        if(move) movePieceOnBoard(move, true);
+
+      } else if(action.type == "RETRACT_ANSWER") {
+        showMessage("");
+        if(!actionValue.answer) {
+          UI.setGameState(actionValue.oldstate);
+          if(isFinite(currentSlot) && action.slot != currentSlot) {
+            showMessage("Move retraction has been rejected");
+          }
+        } else if(this.wgsclient.isMemberOfGroup(group.gid) && (isFinite(currentSlot) && action.slot != currentSlot) ) {
+          showMessage("Move retraction has been accepted");
+          getPlayer(1+action.slot).retractConfirmed = true;
+          document.execCommand("undo");
+        } else {
+          UI.setGameState(actionValue.newstate);
+          if(this.wgsclient.isMemberOfGroup(group.gid) && (isFinite(currentSlot) && action.slot == currentSlot) ) {
+                   setNumUndosToIgnore(1);
+                   document.execCommand("undo");
+                   setNumUndosToIgnore(0);
+          }
+        }
+
+      } else if(action.type == "RETRACT_QUESTION") {
+        if(isFinite(currentSlot) && action.slot == currentSlot) {
+          UI.setGameState(actionValue.oldstate);
+          showMessage("Waiting retract confirmation from opponent");
+          acceptHumanMove(false);
+        } else {
+          UI.setGameState(actionValue.oldstate);
+          var player = 1+(1-action.slot);
+          var answer = getPlayer(player).sendCommand(game, player, 'RETRACT', {data: actionValue.newstate});
+
+/*
+          if(answer) {
+           if(player != game.getTurn()) {
+              setNumUndosToIgnore(1);
+              document.execCommand("undo");
+              setNumUndosToIgnore(0);
+            }
+          }
+*/
+
+          var data = {};
+          data.oldstate = actionValue.oldstate;
+          data.newstate = actionValue.newstate;
+          data.answer = answer;
+          this.wgsclient.addAction(group.gid, currentSlot, "RETRACT_ANSWER", JSON.stringify(data));
+        }
+      }
+    }
+},
+
+
+open_group: function(appId, gid, options) {
+    Network.wgsclient.openGroup(appId, gid, options, function(id,details,errorURI,result,resultKw) {
+       if(!errorURI) {
+            Network.group_changed(resultKw); 
+       } else if(errorURI == "wgs.incorrectpassword") {
+            var password = prompt("Introduce the password to access the group:");
+            if(password) {
+                if(!options) options = {};
+                options.password = password;
+                Network.open_group(appId, gid, options);
+            }
+       } else {
+           alert(errorURI);
+       }
+    });
+    return false;
+},
+
+getGroupDescription: function(group) {
+    return group.state + " (" + group.num + "/" + group.max + "): " + group.description;
+},
+
+getGroupListItem: function(group) {
+   var opt = $('<tr>');
+   opt.attr("gid", group.gid);
+   opt.attr('observable', group.observable);   
+   opt.attr('class', "scrollTableRow");
+
+
+   var viewButton = "";
+   if(group.observable) viewButton = "<br><button onclick=\"javascript:Network.view_group('" + group.appId + "','" + group.gid + "'); return false;\">View</button>";
+   
+   opt.append('<td>' + group.appName + '</td>');
+   opt.append('<td>' + group.state + (group.password? "<br>(password)" : "" ) + '</td>');
+   opt.append('<td>' + group.num + "/" + group.max + viewButton + "</td>");
+   
+   
+   var memberCol = $('<td>');
+   var members = $('<table>');
+
+   var count = 0;
+   var members = $('<table>');
+   group.members.forEach(function(member) {
+       count++;
+       var row = $("<tr>");
+       
+       var playerLabel = "Player " + count + (member.role? " ("+ member.role +")" : "");
+       row.append("<td>" + playerLabel + ":</td>");
+       
+       if(isFinite(member.sid) && (member.user == "" || member.user == Network.wgsclient.user) ) {
+           row.append("<td><button onclick=\"javascript:Network.reserve_group_slot('" + group.appId + "','" + group.gid + "'," + member.slot + "); return false;\">Play</button></td>");
+       } else {
+           row.append("<td>" + member.name + "</td>");       
+       }
+        
+       members.append(row);
+   }); 
+
+   memberCol.append(members);
+   opt.append(memberCol);
+
+   return opt;
+},
+
+update_groups: function(id,details,errorURI,payload,payloadKw) {
+      if(payloadKw.groups) {
+        //$("#groups option").remove();
+        $("#groupsTable>table>tbody>tr").remove();
+        
+        payloadKw.groups.forEach(function(item) {
+            /*
+            var opt = $('<option>')
+            opt.attr('value',item.gid).text(Network.getGroupDescription(item));
+            opt.attr('observable', item.observable);
+            $("#groups").append(opt);
+            */
+            var opt = Network.getGroupListItem(item);
+            $("#groupsTable>table").append(opt);
+        });
+        
+      } else if(payloadKw.cmd == "group_deleted") {
+       
+        $("#groupsTable>table>tbody>tr[gid='"+payloadKw.gid+"']").remove();
+        
+      } else {  // "group_created" || "group_updated" || user_joined || user_exit || user_updated
+        
+        if(payloadKw.hidden) {
+            //$("#groups option[value='"+response.gid+"']").remove();
+            $("#groupsTable>table>tbody>tr[gid='"+payloadKw.gid+"']").remove();
+        } else {
+            // if($("#groups option[value='"+response.gid+"']").size() <= 0) {  // insert group
+            //   $("#groups").append($("<option>").attr("value", response.gid));
+            // }
+            //$("#groups option[value='"+response.gid+"']").text(Network.getGroupDescription(response));
+            //$("#groups option[value='"+response.gid+"']").attr("observable", response.observable);
+            
+            if($("#groupsTable>table>tbody>tr[gid='"+payloadKw.gid+"']").size() <= 0) {
+                $("#groupsTable>table").append(Network.getGroupListItem(payloadKw));
+            } else {
+                $("#groupsTable>table>tbody>tr[gid='"+payloadKw.gid+"']").replaceWith(Network.getGroupListItem(payloadKw));
+            }
+        }
+        
+      }
+    
+      adjustScrollTable("groups");
+},
+
+
+listGames: function()
+{
+    $('#start').hide();
+    $('#games_section').fadeIn();
+    $("#groupsTable>table>tbody>tr").remove();
+    this.wgsclient.listGroups(null, null, null, function(id,details,errorURI,result,resultKw) {
+        if(!errorURI) {
+            Network.update_groups(id,details,errorURI,result,resultKw);
+            $("#app_list").hide();
+            $("#group_list").slideDown(500);
+        } else {
+            showMessage("Error: " + errorURI);
+        }
+    });
+
 },
 
 onListItem: function (iq) {
@@ -549,7 +820,7 @@ onListItem: function (iq) {
                     var player1 = parts[1];
                     var player2 = parts[2];
                     var desc = player1 + " vs " + player2;
-                    $('select[id=requests]').append($("<option></option>").text(desc).val(from));
+                    //$('select[id=games]').append($("<option></option>").text(desc).val(from));
                 }
             });
         }
@@ -557,8 +828,7 @@ onListItem: function (iq) {
 
 openGame: function(gameRoom, gameDescription) {
     $('#open_game').hide();
-    $('#list_users').hide();
-    $('#join2').hide();
+    $('#games_section').hide();
     $('#reject').fadeIn();
     Network.gameRoom = gameRoom;
     Network.joinState = Network.GameStatusEnum.GAME_CREATED;
@@ -573,35 +843,50 @@ openGame: function(gameRoom, gameDescription) {
 
 disconnect: function() {
     console.log("Disconnecting.");
-    if(this.xmppConnection) {
-        this.xmppConnection.deleteHandler(Network.onMessage);
-        this.xmppConnection.deleteHandler(Network.onPresence);
-
-        this.xmppConnection.sync = true;
+    if(this.wgsclient) {
+        //Network.wgsclient.unsubscribe("wgs.apps_event", Network.update_groups, null, {});
         this.exitGame(false);
+        this.wgsclient.close();
+        this.wgsclient = null;
 
-        this.xmppConnection.send($pres({to: this.getGameType() + "@" + this.mucService + "/" + this.nick, type: "unavailable"}));
-        this.xmppConnection.flush();
+        $("#server_url").removeAttr("disabled");
+        $("#user").removeAttr("disabled");
+        $("#user").val("");
+        $("#password").removeAttr("disabled");
+        $("#password").val("");
+        $("#password").show();
+        $("#lbl_password").show();
+        //$("#user_picture").width(0).height(0);
 
-        this.xmppConnection.disconnect();
+        $("#btnRegister").removeAttr("disabled");
+        $("#oic_connect").removeAttr("disabled");
+        $("#btnConnect").show();
+        $("#oic_connect").show();
+        $("#btnRegister").show();
+        //$("#participants").html("");
 
         $('#start').hide();
         $('#open_game').hide();
-        $('#list_games').hide();
-        $('#list_users').hide();
         $('#reject').hide();
-        $('#disconnect').hide();
-        $('#join').hide();
-        $('#join2').hide();
+        $('#btnDisconnect').hide();
+        $('#matching_options').hide();
+        $('#btnCreateGame').hide();
+        $('#btnShowMatchingOptions').hide();
+        $('#btnHideMatchingOptions').hide();
+        $('#btnDeleteFinishedGames').hide();
+        $("#btnFinishGame").hide();
+        $('#games_section').hide();
         $('#network_status').hide();
-        $('#connect').fadeIn();
+        $('#connect_section').fadeIn();
+
+        $("#groupsTable>table>tbody>tr").remove();
 
 	//wait sending of unavailable presence stanzas
 	showMessage("User disconnected.");
         console.log("Disconnected");
+        //enable_network();
     }
-
-    this.xmppConnection = null;
+    this.wgsclient = null;
 }
 
 }

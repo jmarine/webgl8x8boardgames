@@ -119,15 +119,11 @@ Chess.prototype.initFromStateStr = function(str) {
 
 
 
-Chess.prototype.newGame = function(player1, player2) {
+Chess.prototype.newGame = function() {
   var rows = 3;
 
   this.turn = PLAYER1;
   this.pieces = Array();
-
-  this.players = Array();
-  this.players[PLAYER1] = player1;
-  this.players[PLAYER2] = player2;
 
   this.lastPawnLargeMoveCol = 9;
 
@@ -171,10 +167,6 @@ Chess.prototype.newGame = function(player1, player2) {
   }
 
   this.movements = null;
-
-  acceptHumanMove(false);
-  this.players[PLAYER1].sendCommand(this, PLAYER1, 'STATE', null);
-  this.players[PLAYER2].sendCommand(this, PLAYER2, 'STATE', null);
 }
 
 Chess.prototype.parseMoveString = function(str) {

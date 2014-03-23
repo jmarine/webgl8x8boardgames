@@ -21,6 +21,7 @@ var REMOTE_USER = 2;
 var ENGINE = 3;
 
 var worker = null;
+var players = Array();
 
 function stopEnginePlayer() {
     if(worker) {
@@ -49,11 +50,15 @@ function runEnginePlayer(args) {
     worker.postMessage(args);
 }
 
-function getPlayerController(playerNumber) {
+function getPlayer(turn) {
+  return players[turn];
+}
+
+function createPlayer(playerNumber) {
     var retval = null;
     var playerType = $('select[id=player'+playerNumber+'] > option:selected').attr('value');
 
-    if( (playerType == REMOTE_USER) && (!Network.xmppConnection) ) {
+    if( (playerType == REMOTE_USER) && (!Network.isConnected()) ) {
         playerType = LOCAL_USER;
     }
 
@@ -69,6 +74,7 @@ function getPlayerController(playerNumber) {
             break;
     }
 
+    players[playerNumber] = retval;
     return retval;
 }
 
@@ -95,7 +101,7 @@ LocalPlayer.prototype.sendCommand = function(game, player, cmd, args) {
         case 'STATE':
             if(player != game.getTurn()) break;
 
-        case 'MOVE':
+        case 'MOVED':
             acceptHumanMove(true);
             break;
 
@@ -125,7 +131,7 @@ EnginePlayer.prototype.sendCommand = function(game, player, cmd, args) {
        case 'STATE':
            if(player != game.getTurn()) break;
 
-       case 'MOVE': 
+       case 'MOVED': 
            var alg = $('select[id=algorithm_name] > option:selected').val();
            var level = $('input[id=level]').val();
 
@@ -178,25 +184,28 @@ NetworkPlayer.prototype.sendCommand = function(game, player, cmd, args) {
             return false;
             break;
 
-	case 'STATE':
-            if(game.getTurn() == player) {
-		var opponent = Network.getOpponentNick();
-                if(opponent) showMessage("Waiting move from " + opponent);
-            }
-            break;
-
 	case 'MOVE':
             try {
                 var move = args;
-                if(!game.isOver()) {
-		    var opponent = Network.getOpponentNick();
-                    if(opponent) showMessage("Waiting move from " + opponent);
-                } 
-
                 Network.sendMoveRequest(game, move, this.playerNumber);
-
             } catch(e) {
                 alert(e.message);
+            }
+            break;
+
+        case 'MOVED':
+            if(!game.isOver() && player == game.getTurn()) {
+                var opponent = Network.getOpponentNick();
+                if(opponent) showMessage("Waiting move from " + opponent);
+            } else {
+                //showMessage("");
+            }
+            break;
+
+        case 'STATE':
+            if(!game.isOver() && player == game.getTurn()) {
+                var opponent = Network.getOpponentNick();
+                if(opponent) showMessage("Waiting move from " + opponent);
             }
             break;
 
