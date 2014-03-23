@@ -333,7 +333,6 @@ function authentication(state, msg) {
         
     } else if(state == ConnectionState.CONNECTED) {
         $("#server_url").attr("disabled", "disabled");
-        $("#btnRegister").attr("disabled", "disabled");
         
         //Network.getWgsClient().heartbeat(5000, "*****DISCARDED HEARTBEAT PAYLOAD*******");
         
