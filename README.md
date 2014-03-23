@@ -12,7 +12,7 @@ It only works in browsers with WebGL support, and implements the following games
 - Chess / Chess960
 - Breakthrough
 
-Click [http://wgs-jmarine.rhcloud.com/webgl8x8boardgames/](HERE) to play the games.
+Click (http://wgs-jmarine.rhcloud.com/webgl8x8boardgames/)[HERE] to play the games.
 
 
 Credits
