@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>OpenID Connect response</title>
+<title>Auth provider response</title>
 
 <script type="text/javascript" src="libs/jquery-1.8.3.js"></script>
 <script type="text/javascript">
@@ -14,7 +14,7 @@ function processOpenIdConnectCallback() {
       window.close();
     } else {
       var error = window.opener.get_url_param(url, "error");
-      $("#message").html("OpenID Connect error:" + error.toString());
+      $("#message").html("Error:" + error.toString());
       $("#close").show();
       window.opener.openid_connect(url);      
     }
@@ -39,9 +39,9 @@ H1   { font-size: 1.5em; }
 
 </head>
 <body onload="processOpenIdConnectCallback()">
-    <H1>WGS authentication with OpenID Connect provider</H1>
+    <H1>WGS authentication with external provider</H1>
     <div id="message">
-        Redirecting to OpenID Connect provider...
+        Redirecting to external authentication provider...
     </div>
     <button id="close" style="display: none; margin-top: 10px" onclick="window.close()">Close</button>
 </body>
