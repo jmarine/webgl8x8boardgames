@@ -417,10 +417,8 @@ sendMoveRequest: function(game, move, toPlayerNumber)
   var group = Network.gameRoom;
   if(group && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
     var slot = game.getTurn()-1;
-    var data = {};
-    data.path = game.getMoveString(move);
-    data.oldstate = game.toString();
-    this.wgsclient.addAction(group.gid, slot, "MOVE", JSON.stringify(data));
+    var data = game.getMoveString(move);
+    this.wgsclient.addAction(group.gid, slot, "MOVE", data);
   }
 },
 
@@ -428,11 +426,8 @@ sendRetractMoveRequest: function(game, state, toPlayerNumber)
 {
   var group = Network.gameRoom;
   if(group && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
-    var data = {};
     var slot = group.slotJoinedByClient;
-    data.oldstate = game.toString();
-    data.newstate = state;
-    this.wgsclient.addAction(group.gid, slot, "RETRACT_QUESTION", JSON.stringify(data));
+    this.wgsclient.addAction(group.gid, slot, "RETRACT_QUESTION", state);
   }
 },
 
@@ -527,6 +522,7 @@ reserve_group_slot: function(appId,gid,slot) {
 },
 
 new_group: function() {
+    UI.createGame();
     var appId = $("#game_type").val();
     var gid = $("#new_grp_automatch").is(":checked") ? "automatch" : "";
     var opponent = $("#new_grp_opponent").val();
@@ -536,6 +532,7 @@ new_group: function() {
     options.opponents[0] = {}; 
     options.opponents[0].user = opponent; 
     options.observable = $("#new_grp_observable").is(":checked");
+    options.data = game.toString();
     options.hidden = $("#new_grp_hidden").is(":checked");
     options.password = $("#new_grp_password").val();
     options.role = $("#new_grp_role option:selected").val();
@@ -594,22 +591,29 @@ group_opened: function(group) {
     //alert("ACK: unsubscribe from MUC");
 
     UI.createGame();
+    if(group.data && group.data.length > 0) game.initFromStateStr(group.data);
+
     if(group.actions && group.actions.length > 0) {
+      var sim = game.clone();
       var lastAction = null;
       group.actions.forEach(function(action, index) {
-        var actionValue = JSON.parse(action.value);
+        game.initFromStateStr(sim.toString());
         if(action.type == "MOVE") {
-          game.initFromStateStr(actionValue.oldstate);
-          if(action.slot == Network.gameRoom.slotJoinedByClient) window.undoManager.add(actionValue.oldstate);
-        } else if(action.type == "RETRACT_ANSWER" && actionValue.answer) {
-          game.initFromStateStr(actionValue.newstate);
-          if(index+1 < group.actions.length && Network.gameRoom.slotJoinedByClient >= 0) { // member
+          if(action.slot == Network.gameRoom.slotJoinedByClient) window.undoManager.add(sim.toString());
+          var move = sim.parseMoveString(action.value);
+          sim.makeMove(move);
+
+        } else if(action.type == "RETRACT_ACCEPTED") {
+          sim.initFromStateStr(action.value);
+          if(index+1 < group.actions.length && Network.gameRoom.slotJoinedByClient >= 0 
+             && (action.slot != Network.gameRoom.slotJoinedByClient || (1+action.slot)!=game.getTurn()) ) { // member
             setNumUndosToIgnore(1);
             document.execCommand("undo");
             setNumUndosToIgnore(0);
           }
         }
         lastAction = action;
+        //UI.setGameState(game.toString());
       });
       group.action = lastAction;
     }
@@ -627,56 +631,48 @@ group_changed: function(group) {
     if(action) {
       group.action = null;
       var currentSlot = Network.gameRoom.slotJoinedByClient;
-      var actionValue = JSON.parse(action.value);
       if(action.type == "MOVE" && (opened || action.slot != currentSlot) ) {
-        var move = game.parseMoveString(actionValue.path);
+        UI.setGameState(game.toString());
+        var move = game.parseMoveString(action.value);
         if(move) movePieceOnBoard(move, true);
 
-      } else if(action.type == "RETRACT_ANSWER") {
-        showMessage("");
-        if(!actionValue.answer) {
-          UI.setGameState(actionValue.oldstate);
+      } else if(action.type == "RETRACT_REJECTED") {
+          UI.setGameState(action.value);
           if(isFinite(currentSlot) && action.slot != currentSlot) {
             showMessage("Move retraction has been rejected");
           }
-        } else if(this.wgsclient.isMemberOfGroup(group.gid) && (isFinite(currentSlot) && action.slot != currentSlot) ) {
+
+      } else if(action.type == "RETRACT_ACCEPTED") {
+        showMessage("");
+        if(this.wgsclient.isMemberOfGroup(group.gid) && (isFinite(currentSlot) && action.slot != currentSlot) ) {
           showMessage("Move retraction has been accepted");
           getPlayer(1+action.slot).retractConfirmed = true;
           document.execCommand("undo");
         } else {
-          UI.setGameState(actionValue.newstate);
-          if(this.wgsclient.isMemberOfGroup(group.gid) && (isFinite(currentSlot) && action.slot == currentSlot) ) {
-                   setNumUndosToIgnore(1);
-                   document.execCommand("undo");
-                   setNumUndosToIgnore(0);
+          if(this.wgsclient.isMemberOfGroup(group.gid) && (isFinite(currentSlot) && (1+action.slot) != game.getTurn()) ) {
+            setNumUndosToIgnore(1);
+            document.execCommand("undo");
+            setNumUndosToIgnore(0);
           }
+          UI.setGameState(action.value);
         }
 
       } else if(action.type == "RETRACT_QUESTION") {
+        var currentState = game.toString();
         if(isFinite(currentSlot) && action.slot == currentSlot) {
-          UI.setGameState(actionValue.oldstate);
           showMessage("Waiting retract confirmation from opponent");
           acceptHumanMove(false);
+          //setNumUndosToIgnore(1);
+          //document.execCommand("undo");
+          //setNumUndosToIgnore(0);
         } else {
-          UI.setGameState(actionValue.oldstate);
+
           var player = 1+(1-action.slot);
-          var answer = getPlayer(player).sendCommand(game, player, 'RETRACT', {data: actionValue.newstate});
+          var answer = getPlayer(player).sendCommand(game, player, 'RETRACT', {data: action.value});
 
-/*
-          if(answer) {
-           if(player != game.getTurn()) {
-              setNumUndosToIgnore(1);
-              document.execCommand("undo");
-              setNumUndosToIgnore(0);
-            }
-          }
-*/
-
-          var data = {};
-          data.oldstate = actionValue.oldstate;
-          data.newstate = actionValue.newstate;
-          data.answer = answer;
-          this.wgsclient.addAction(group.gid, currentSlot, "RETRACT_ANSWER", JSON.stringify(data));
+          var response = answer? "RETRACT_ACCEPTED" : "RETRACT_REJECTED";
+          var data = answer? action.value : currentState;
+          this.wgsclient.addAction(group.gid, currentSlot, response, data);
         }
       }
     }

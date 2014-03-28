@@ -243,7 +243,7 @@ void main (void)
 function showMessage(msg) {
   if(msg) {
 	$('#message').html(msg);
-	$('#messageBox').slideDown();
+	$('#messageBox').show();
   } else {
         $('#messageBox').hide();
   }
@@ -521,7 +521,7 @@ function initApp() {
 		<option value="draughts">Draughts</option>
 		<option value="checkers">Checkers</option>
 		<option value="chess">Chess</option>
-		<!--option value="chess960">Chess960</option-->
+		<option value="chess960">Chess960</option>
 		<option value="breakthrough">Breakthrough</option>
 	      </select>
            </dd>
