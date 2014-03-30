@@ -7395,6 +7395,7 @@ function sglGetCanvasContext(canvasID) {
 	if (!canvas) return null;
 
 	var gl = canvas.getContext("experimental-webgl", {stencil: true});
+	if (!gl) gl = canvas.getContext("webgl", {stencil: true});
 	if (!gl) return null;
 
 	if (gl.FALSE == undefined) gl.FALSE = 0;
