@@ -23,6 +23,8 @@ var CHESS_PIECE_VALUES = [ 0, 30, 165, 10000, 80, 80, 90 ];
 
 Chess.prototype = new Game();
 Chess.prototype.constructor = Chess;
+Chess.prototype.constructor.name = "Chess";
+
 function Chess() {
   return this;
 }
