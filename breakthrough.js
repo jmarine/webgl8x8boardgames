@@ -22,6 +22,8 @@ Breakthrough was designed by William Daniel 'Dan' Troyka in 2000 and originally 
 
 Breakthrough.prototype = new Game();
 Breakthrough.prototype.constructor = Breakthrough;
+Breakthrough.prototype.constructor.name = "Breakthrough";
+
 function Breakthrough() {
   return this;
 }
