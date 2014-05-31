@@ -2,11 +2,12 @@
 
 var ConnectionState = {
   DISCONNECTED: 0,
-  ERROR: 1,
-  CONNECTED: 2,
-  WELCOMED: 3,
-  ANONYMOUS: 4,  
-  AUTHENTICATED: 5
+  ERROR: 1,  
+  CLOSED: 2,  
+  CONNECTED: 3,
+  CHALLENGED: 4,
+  WELCOMED: 5,
+  AUTHENTICATED: 6
 };
 
 function Wamp2(u) {
@@ -17,6 +18,7 @@ function Wamp2(u) {
 Wamp2.prototype = {
     ws: null,
     sid: null,
+    authmethod: null,
     state: ConnectionState.DISCONNECTED,
     goodbyeRequested: false,
     incomingHeartbeatSeq: 0,
@@ -30,10 +32,6 @@ Wamp2.prototype = {
     subscriptionsByTopicAndOptions: new Array(),
     eventHandlers: new Array(),
     metaeventHandlers: new Array(),
-
-    debug: function(str) {
-      console.log(str);
-    },
 
     setState: function(state) {
         this.state = state;
@@ -52,13 +50,13 @@ Wamp2.prototype = {
         return "wamp2-client";
     },
     
-    hello: function(realm) {
+    hello: function(realm, details) {
         this.goodbyeRequested = false;
         this.serverSID = this.newid();
         var arr = [];
         arr[0] = 1;  // HELLO
         arr[1] = realm;
-        arr[2] = {};  // HelloDetails
+        arr[2] = details || {};  // HelloDetails
         arr[2].agent = this.getAgent();
         arr[2].roles = {};
         arr[2].roles.publisher = {};
@@ -250,50 +248,47 @@ Wamp2.prototype = {
 
     auth: function(signature, callback) {
         this.call("wamp.cra.authenticate", signature).then(callback,callback);      
-    },          
-
+    },         
+    
+    authenticate: function(signature, extra) {
+        var arr = [];
+        arr[0] = 5;  // AUTHENTICATE
+        arr[1] = signature;
+        arr[2] = extra || {};  // HelloDetails
+        this.send(JSON.stringify(arr));
+    },
 
     // Connection API
     login: function(realm, user, password, onstatechange) {
         var client = this;
-        client.connect(realm, function(state, msg) {
+        var details = {};
+        details.authmethods = [ "wampcra", "anonymous" ];
+        details.authkey = user;
+
+        client.connect(realm, details, function(state, msg) {
             onstatechange(state, msg);
-            if(state == ConnectionState.WELCOMED) {
-                if(user == null || user.length == 0) {
-                    client.state = ConnectionState.ANONYMOUS;
-                    onstatechange(ConnectionState.ANONYMOUS);              
-                } else {
-                    var authExtra = null; // { salt: "RANDOMTEXT", keylen: 32, iterations: 4096 };
-                    client.authreq(user, authExtra, function(id,details,errorURI,result,resultKw) {
-                        if(result && result.length > 0 && typeof(result[0]) == "string") {
-                            var challenge = JSON.parse(result[0]);
-                            client.authid = challenge.authkey;                            
-                            password = CryptoJS.MD5(password).toString();
-                            if(challenge.extra && challenge.extra.salt) {
-                                var key = CryptoJS.PBKDF2(password, challenge.extra.salt, { keySize: challenge.extra.keylen / 4, iterations: challenge.extra.iterations, hasher: CryptoJS.algo.SHA256 });
-                                password = key.toString(CryptoJS.enc.Base64);                        
-                            }
-                            var signature = CryptoJS.HmacSHA256(result[0], password).toString(CryptoJS.enc.Base64);
-                            client.auth(signature, function(id,details,errorURI,result,resultKw) {
-                                if(!errorURI) {
-                                    client.state = ConnectionState.AUTHENTICATED;
-                                    onstatechange(ConnectionState.AUTHENTICATED, resultKw);
-                                } else {
-                                    onstatechange(ConnectionState.ERROR, errorURI);
-                                }
-                            });
-                        } else {
-                            onstatechange(ConnectionState.ERROR, errorURI);
-                        }
-                    });
+            if(state == ConnectionState.CHALLENGED) {
+                var challenge = msg.authchallenge;
+                password = CryptoJS.MD5(password).toString();
+                if(challenge.extra && challenge.extra.salt) {
+                    var key = CryptoJS.PBKDF2(password, challenge.extra.salt, { keySize: challenge.extra.keylen / 4, iterations: challenge.extra.iterations, hasher: CryptoJS.algo.SHA256 });
+                    password = key.toString(CryptoJS.enc.Base64);                        
                 }
-            }
+                var signature = CryptoJS.HmacSHA256(challenge, password).toString(CryptoJS.enc.Base64);
+                client.authenticate(signature, {});
+                
+            } else if(state == ConnectionState.WELCOMED) {
+                client.authid = msg.authid;
+                client.authrole = msg.authrole;
+                client.authmethod = msg.authmethod;
+                client.authprovider = msg.authprovider;
+            } 
         });
     },
 
     send: function(msg) {
         if(!this.ws || this.ws.readyState != 1) {
-           this.debug("Websocket is not available for writing");
+           console.log("Websocket is not available for writing");
         } else {
            this.ws.send(msg);
         }
@@ -311,17 +306,18 @@ Wamp2.prototype = {
         this.state = ConnectionState.DISCONNECTED;
     },
     
-    connect: function(realm, onstatechange) {
+    connect: function(realm, extra, onstatechange) {
         var client = this;
         this.user = null;
-        this.debug("Connecting to url: " + this.url);
+        console.log("Connecting to url: " + this.url);
 
-        if(this.state >= ConnectionState.WELCOMED) {
-            // REAUTHENTICATION
-            onstatechange(ConnectionState.WELCOMED);
-
-        } else {
+        if(this.ws) {
             // RESET CONNECTION:
+            try { this.ws.close(); }
+            catch(e) { }
+        }
+        
+        
             var ws = null; 
             this.ws = null;
 
@@ -330,50 +326,58 @@ Wamp2.prototype = {
             } else if ("MozWebSocket" in window) {
                 ws = new MozWebSocket(this.url, "wamp.2.json");
             } else {
-                this.debug("This Browser does not support WebSockets");
+                console.log("This Browser does not support WebSockets");
                 onstatechange(ConnectionState.ERROR, "browser.websockets_not_supported");
                 return;
             }
 
             ws.onopen = function(e) {
-                client.debug("A connection to "+this.url+" has been opened.");
+                console.log("A connection to "+this.url+" has been opened.");
                 client.ws = ws;
                 this.state = ConnectionState.CONNECTED;
                 onstatechange(ConnectionState.CONNECTED);
-                client.hello(realm);
+                client.hello(realm, extra);
             };
 
             ws.onclose = function(e) {
-                client.debug("The connection to "+this.url+" was closed.");
+                console.log("The connection to "+this.url+" was closed.");
                 onstatechange(ConnectionState.DISCONNECTED);    
                 client.close();
             };
 
             ws.onerror = function(e) {
-                client.debug("WebSocket error: " + e);
+                console.log("WebSocket error: " + e);
                 onstatechange(ConnectionState.ERROR, "wgs.websocket.error");
                 client.close();
             };
 
             ws.onmessage = function(e) {
-                client.debug("ws.onmessage: " + e.data);
+                console.log("ws.onmessage: " + e.data);
                 var arr = JSON.parse(e.data);
 
                 if (arr[0] == 2) {  // WELCOME
+                    var details = (arr.length > 2)? arr[2] : {};
                     client.sid = arr[1];
+                    client.authmethod = details.authmethod;
                     client.state = ConnectionState.WELCOMED;
-                    onstatechange(ConnectionState.WELCOMED);
+                    onstatechange(ConnectionState.WELCOMED, details);
                     
                 } else if (arr[0] == 3) {  // ABORT
                     var reason = arr[2];
-                    onstatechange(ConnectionState.CONNECTED, reason);
-                    //client.close();
+                    client.state = ConnectionState.ERROR;
+                    onstatechange(ConnectionState.ERROR, reason);
+
+                } else if (arr[0] == 4) {  // CHALLENGE
+                    var extra = arr[2] || {};
+                    client.authmethod = arr[1];
+                    extra.authmethod = arr[1];
+                    onstatechange(ConnectionState.CHALLENGED, extra);
 
                 } else if (arr[0] == 6) {  // GOODBYE 
                     var reason = arr[2];
-                    onstatechange(ConnectionState.CONNECTED, reason);
+                    client.state = ConnectionState.CLOSED;
+                    onstatechange(ConnectionState.CLOSED, reason);
                     client.goodbye(reason, {});
-                    //client.close();
 
                 } else if (arr[0] == 7) {  // HEARTBEAT
                     client.incomingHeartbeatSeq = arr[2];
@@ -406,7 +410,7 @@ Wamp2.prototype = {
                             delete client.pendingRequests[requestId];
                         }
                     } else {
-                        client.debug("call not found: " + requestId);
+                        console.log("call not found: " + requestId);
                     }
 
                 } else if(arr[0] == 33) {  // SUBSCRIBED
@@ -562,11 +566,11 @@ Wamp2.prototype = {
                     }
 
                 } else {
-                    client.debug("Server message not recognized: " + e.data);
+                    console.log("Server message not recognized: " + e.data);
                 }
 
             };
-        }
+        
 
     }
   

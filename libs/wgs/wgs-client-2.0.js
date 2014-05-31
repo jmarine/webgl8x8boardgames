@@ -21,18 +21,17 @@ WgsClient.prototype.getUserInfo = function(callback) {
 WgsClient.prototype.login = function(realm, user, password, onstatechange) {
     var client = this;
     Wamp2.prototype.login.call(this, realm, user, password, function(state, msg) {
-      if(state == ConnectionState.AUTHENTICATED || state == ConnectionState.ANONYMOUS) {
-          client.getUserInfo(function(id,details,errorURI,result,resultKw) {
-              if(errorURI) {
-                  onstatechange(ConnectionState.ERROR, errorURI);
-              } else {
-                  client.user = resultKw.user;
-                  onstatechange(state, resultKw);
-              }
-          });
-       } else {
-          onstatechange(state, msg);
-       }
+        onstatechange(state, msg);
+        if(state == ConnectionState.WELCOMED) {
+            client.getUserInfo(function(id,details,errorURI,result,resultKw) {
+                if(errorURI) {
+                    onstatechange(ConnectionState.ERROR, errorURI);
+                } else {
+                    client.user = resultKw.user;
+                    onstatechange(ConnectionState.AUTHENTICATED, resultKw);
+                }
+            });
+        }
     });
 
 }
@@ -43,7 +42,8 @@ WgsClient.prototype.getDefaultRealm = function() {
 
 WgsClient.prototype.registerUser = function(realm, user, password, email, onstatechange) {
     var client = this;
-    client.connect(realm, function(state, msg) {
+    var details = { "authmethods": ["anonymous"] };
+    client.connect(realm, details, function(state, msg) {
         onstatechange(state, msg);
         if(state == ConnectionState.WELCOMED) {
             var msg = Object();
@@ -52,6 +52,10 @@ WgsClient.prototype.registerUser = function(realm, user, password, email, onstat
             msg.email = email;
             client.call("wgs.register", msg).then(
                 function(id,details,errorURI,result,resultKw) {
+                    client.authid = resultKw.authid;
+                    client.authrole = resultKw.authrole;
+                    client.authmethod = resultKw.authmethod;
+                    client.authprovider= resultKw.authprovider;
                     client.user = resultKw.user;
                     client.state = ConnectionState.AUTHENTICATED;
                     onstatechange(ConnectionState.AUTHENTICATED, resultKw);
@@ -64,69 +68,62 @@ WgsClient.prototype.registerUser = function(realm, user, password, email, onstat
 }
 
 
-WgsClient.prototype.openIdConnectProviders = function(realm, redirectUri, callback) {
+WgsClient.prototype.openIdConnectProviders = function(realm, redirectUri, onstatechange) {
     var client = this;
-    client.connect(realm, function(state, msg) {
-        if(state == ConnectionState.WELCOMED) {
-            var msg = Object();
-            msg.redirect_uri = redirectUri;
-            client.call("wgs.openid_connect_providers", msg).then(
-                function(id,details,errorURI,result,resultKw) {
-                    //client.close();
-                    callback(id,details,errorURI,result,resultKw);
-                }, 
-                function(id,details,errorURI,result,resultKw) {
-                    client.close();
-                    callback(id,details,errorURI,result,resultKw);
-                });
-        } 
-    });
+    var details = { "authmethods": ["oauth2-providers-list"], "_oauth2_redirect_uri": redirectUri };
+    client.connect(realm, details, function(state, msg) {
+            onstatechange(state, msg);          
+            if(state == ConnectionState.WELCOMED) {
+                client.getUserInfo(function(id,details,errorURI,result,resultKw) {
+                      if(errorURI) {
+                          onstatechange(ConnectionState.ERROR, errorURI);
+                      } else {
+                          client.user = resultKw.user;
+                          onstatechange(ConnectionState.AUTHENTICATED, resultKw);
+                      }
+                  });                
+            }
+        });
 }
 
-WgsClient.prototype.openIdConnectLoginUrl = function(realm, principal, redirectUri, notificationChannel, onstatechange) {
+WgsClient.prototype.openIdConnectFromSubject = function(realm, subject, redirectUri, notificationChannel, onstatechange) {
     var client = this;
-    client.connect(realm, function(state, msg) {
-        if(state == ConnectionState.WELCOMED) {
-            var msg = Object();
-            msg.principal = principal;
-            msg.redirect_uri = redirectUri;
-            msg.state = notificationChannel;
-            client.call("wgs.openid_connect_login_url", msg).then(
-                function(id,details,errorURI,result,resultKw) {
-                    client.close();
-                    //document.location.href = result[0];
-                    window.open(result[0], "_blank");  // + "&nonce=" + escape(client.sid)
-                }, 
-                function(id,details,errorURI,result,resultKw) {
-                    onstatechange(ConnectionState.ERROR, errorURI);
-                });
-        }
-    });
+    
+    var details = { "authmethods": ["oauth2"], "_oauth2_redirect_uri": redirectUri, "_oauth2_subject": subject };    
+    client.abort();
+    client.hello(realm, details);
 }
 
 
 WgsClient.prototype.openIdConnectAuthCode = function(realm, provider, redirectUri, code, notificationChannel, onstatechange) {
     var client = this;
-    client.connect(realm, function(state, msg) {
-        onstatechange(state, msg);          
-        if(state == ConnectionState.WELCOMED) {
-            var msg = Object();
-            msg.provider = provider;
-            msg.code = code;
-            msg.redirect_uri = redirectUri;
-            if(notificationChannel) msg.notification_channel = notificationChannel;
-
-            client.call("wgs.openid_connect_auth", msg).then(
-                function(id,details,errorURI,result,resultKw) {
-                    client.user = resultKw.user;
-                    client.state = ConnectionState.AUTHENTICATED;
-                    onstatechange(ConnectionState.AUTHENTICATED, resultKw);
-                }, 
-                function(id,details,errorURI,result,resultKw) {
-                    onstatechange(ConnectionState.ERROR, errorURI);
-                });
-        }
-    });
+    var details = { }
+    details.authprovider = provider;
+    details._oauth2_redirect_uri = redirectUri;
+    
+    // TODO: check client.url
+    if(client.authmethod.indexOf("oauth2") != -1) {
+        client.authenticate(code, details);
+        
+    } else {
+        details.authmethods = ["oauth2"];
+        client.close();
+        client.connect(realm, details, function(state, msg) {
+            onstatechange(state, msg);          
+            if(state == ConnectionState.CHALLENGED) {
+                client.authenticate(code, details);
+            } else if(state == ConnectionState.WELCOMED) {
+                client.getUserInfo(function(id,details,errorURI,result,resultKw) {
+                      if(errorURI) {
+                          onstatechange(ConnectionState.ERROR, errorURI);
+                      } else {
+                          client.user = resultKw.user;
+                          onstatechange(ConnectionState.AUTHENTICATED, resultKw);
+                      }
+                  });                
+            }
+        });
+    }
 }
 
 
