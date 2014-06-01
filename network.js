@@ -854,9 +854,9 @@ disconnect: function() {
         $("#lbl_password").show();
         //$("#user_picture").width(0).height(0);
 
+        $("#btnConnect").removeAttr("disabled");
         $("#btnRegister").removeAttr("disabled");
         $("#oic_connect").removeAttr("disabled");
-        $("#btnConnect").html("Connect");
         $("#btnConnect").show();
         $("#oic_connect").show();
         $("#btnRegister").show();

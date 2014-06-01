@@ -311,13 +311,6 @@ Wamp2.prototype = {
         this.user = null;
         console.log("Connecting to url: " + this.url);
 
-        if(this.ws) {
-            // RESET CONNECTION:
-            try { this.ws.close(); }
-            catch(e) { }
-        }
-        
-        
             var ws = null; 
             this.ws = null;
 
