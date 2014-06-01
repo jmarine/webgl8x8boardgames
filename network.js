@@ -856,6 +856,7 @@ disconnect: function() {
 
         $("#btnRegister").removeAttr("disabled");
         $("#oic_connect").removeAttr("disabled");
+        $("#btnConnect").html("Connect");
         $("#btnConnect").show();
         $("#oic_connect").show();
         $("#btnRegister").show();
