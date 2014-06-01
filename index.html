@@ -376,7 +376,6 @@ function authentication(state, msg) {
 
         $("#btnRegister").attr("disabled", "disabled");
         $("#oic_connect").attr("disabled", "disabled");
-        $("#btnConnect").html("Disconnect");
 
         if(msg && msg.picture) {
             $("#user_picture").attr("src", msg.picture).width(48).height(48);
