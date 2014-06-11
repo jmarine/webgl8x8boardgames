@@ -721,11 +721,12 @@ getGroupListItem: function(group) {
 
    var count = 0;
    var members = $('<table>');
-   group.members.forEach(function(member) {
+   group.members.forEach(function(member,index) {
        count++;
        var row = $("<tr>");
        
        var playerLabel = "Player " + count + (member.role? " ("+ member.role +")" : "");
+       if(index == group.turn && group.members[group.turn].user == Network.wgsclient.authid) playerLabel = "<b>" + playerLabel + "</b>";  // remark current turn
        row.append("<td>" + playerLabel + ":</td>");
        
        if(isFinite(member.sid) && (member.user == "" || member.user == Network.wgsclient.user) ) {

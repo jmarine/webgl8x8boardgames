@@ -290,11 +290,11 @@ function adjustScrollTable(tableName){
 
         if (brow == 'mozilla'){
           $('#firstTd').css("width",$('.tableFirstCol').innerWidth());//for adjusting first td
-          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').innerWidth());//for assigning width to table Header div
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').innerWidth()-2);  //there is a a difference of 2px
         }
         else if (brow == 'msie'){
           $('#firstTd').css("width",$('.tableFirstCol').width());
-          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').width()-2);//In IE there is difference of 2 px
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').width()-2);  //there is a difference of 2px
         }
         else if (brow == 'safari'){
           $('#firstTd').css("width",$('.tableFirstCol').width());
