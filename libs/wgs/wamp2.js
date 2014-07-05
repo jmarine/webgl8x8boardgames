@@ -149,7 +149,7 @@ Wamp2.prototype = {
     },
 
     unregisterRPC: function(options, procedureURI, callback) {
-        var registrationId = this.rpcRegistrationsByURI[procedureURI];
+        var registrationId = this.rpcRegistrationsByURI[procedureURI];  // TODO: search with options
         var dfd = $.Deferred();            
         var arr = [];
         arr[0] = 66;  // UNREGISTER
@@ -237,19 +237,6 @@ Wamp2.prototype = {
     },
     
 
-    // WAMP-CRA API
-    authreq: function(authKey, authExtra, callback) {
-        if(!authExtra) authExtra = {};
-        var args = []
-        args[0] = authKey;
-        args[1] = authExtra;
-        this.call("wamp.cra.request", args).then(callback,callback);      
-    },
-
-    auth: function(signature, callback) {
-        this.call("wamp.cra.authenticate", signature).then(callback,callback);      
-    },         
-    
     authenticate: function(signature, extra) {
         var arr = [];
         arr[0] = 5;  // AUTHENTICATE
@@ -263,7 +250,7 @@ Wamp2.prototype = {
         var client = this;
         var details = {};
         details.authmethods = [ "wampcra", "anonymous" ];
-        details.authkey = user;
+        details.authid = user;
 
         client.connect(realm, details, function(state, msg) {
             onstatechange(state, msg);
