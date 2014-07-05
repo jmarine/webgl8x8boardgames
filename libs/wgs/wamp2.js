@@ -255,13 +255,12 @@ Wamp2.prototype = {
         client.connect(realm, details, function(state, msg) {
             onstatechange(state, msg);
             if(state == ConnectionState.CHALLENGED) {
-                var challenge = msg.authchallenge;
                 password = CryptoJS.MD5(password).toString();
-                if(challenge.extra && challenge.extra.salt) {
-                    var key = CryptoJS.PBKDF2(password, challenge.extra.salt, { keySize: challenge.extra.keylen / 4, iterations: challenge.extra.iterations, hasher: CryptoJS.algo.SHA256 });
+                if(msg.salt) {
+                    var key = CryptoJS.PBKDF2(password, msg.salt, { keySize: msg.keylen / 4, iterations: msg.iterations, hasher: CryptoJS.algo.SHA256 });
                     password = key.toString(CryptoJS.enc.Base64);                        
                 }
-                var signature = CryptoJS.HmacSHA256(challenge, password).toString(CryptoJS.enc.Base64);
+                var signature = CryptoJS.HmacSHA256(msg.authchallenge, password).toString(CryptoJS.enc.Base64);
                 client.authenticate(signature, {});
                 
             } else if(state == ConnectionState.WELCOMED) {
