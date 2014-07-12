@@ -161,26 +161,22 @@ Wamp2.prototype = {
     },
 
     // PubSub API
-    subscribe: function(topicURI, event_cb, metaevent_cb, options) {
+    subscribe: function(topic, event_cb, metaevent_cb, options) {
         if(!options) options = {};
         if(event_cb==null && metaevent_cb!=null) options.metaonly = 1;
-
-        if(!options.match && topicURI.indexOf("..") != -1) {
+        
+        if(!options.match && topic.indexOf("..") != -1) {
             options.match = "wildcard";
-        }
-
-        if(options.match && options.match.toLowerCase() == "prefix") {
-            topicURI = topicURI + "..";
-        }
+        }        
 
         var dfd = $.Deferred();            
         var arr = [];
         arr[0] = 32;  // SUBSCRIBE
         arr[1] = this.newid();
         arr[2] = options;
-        arr[3] = topicURI;      
-        var topicAndOptionsKey = this._getTopicAndOptionsKey(topicURI,options);
-        this.pendingRequests[arr[1]] = [dfd, topicURI, event_cb, metaevent_cb, options];
+        arr[3] = topic;      
+        var topicAndOptionsKey = this._getTopicAndOptionsKey(topic,options);
+        this.pendingRequests[arr[1]] = [dfd, topicAndOptionsKey, event_cb, metaevent_cb, options];
         this.send(JSON.stringify(arr));
         return dfd.promise();
     },
@@ -192,10 +188,6 @@ Wamp2.prototype = {
 
         if(!options.match && topic.indexOf("..") != -1) {
             options.match = "wildcard";
-        }
-
-        if(options.match && options.match.toLowerCase() == "prefix") {
-            topic = topic + "..";
         }
 
         var dfd = $.Deferred();            
@@ -397,10 +389,9 @@ Wamp2.prototype = {
                     if(requestId && client.pendingRequests[requestId]) {
                         var subscriptionId = arr[2];
                         var promise = client.pendingRequests[requestId][0];
-                        var topicURI = client.pendingRequests[requestId][1];
+                        var topicAndOptionsKey = client.pendingRequests[requestId][1];
                         var options = client.pendingRequests[requestId][4];
-                        var topicAndOptionsKey = client._getTopicAndOptionsKey(topicURI,options);
-                        client.subscriptionsById[subscriptionId] = topicURI;
+                        client.subscriptionsById[subscriptionId] = topicAndOptionsKey;
                         client.subscriptionsByTopicAndOptions[topicAndOptionsKey] = subscriptionId;
                         if(client.pendingRequests[requestId][2]) {
                           if(!client.eventHandlers[subscriptionId]) client.eventHandlers[subscriptionId] = [];
