@@ -252,7 +252,7 @@ Wamp2.prototype = {
                     var key = CryptoJS.PBKDF2(password, msg.salt, { keySize: msg.keylen / 4, iterations: msg.iterations, hasher: CryptoJS.algo.SHA256 });
                     password = key.toString(CryptoJS.enc.Base64);                        
                 }
-                var signature = CryptoJS.HmacSHA256(msg.authchallenge, password).toString(CryptoJS.enc.Base64);
+                var signature = CryptoJS.HmacSHA256(msg.challenge, password).toString(CryptoJS.enc.Base64);
                 client.authenticate(signature, {});
                 
             } else if(state == ConnectionState.WELCOMED) {
