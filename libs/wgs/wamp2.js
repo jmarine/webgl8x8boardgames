@@ -21,6 +21,7 @@ Wamp2.prototype = {
     authmethod: null,
     state: ConnectionState.DISCONNECTED,
     goodbyeRequested: false,
+    sessionScopeId: 0,
     incomingHeartbeatSeq: 0,
     outgoingHeartbeatSeq: 0,
     heartbeatIntervalHandler: null,
@@ -41,9 +42,13 @@ Wamp2.prototype = {
       return this.state;  
     },
 
-    newid: function() {
+    newGlobalScopeId: function() {
         var r = Math.random()*131072.0*131072.0*131072.0 + Math.random()*131072.0*131072.0 + Math.random()*131072.0;
         return Math.floor(r);
+    },
+    
+    newSessionScopeId: function() {
+        return ++this.sessionScopeId;
     },
     
     getAgent: function() {
@@ -52,7 +57,6 @@ Wamp2.prototype = {
     
     hello: function(realm, details) {
         this.goodbyeRequested = false;
-        this.serverSID = this.newid();
         var arr = [];
         arr[0] = 1;  // HELLO
         arr[1] = realm;
@@ -116,7 +120,7 @@ Wamp2.prototype = {
         var dfd = $.Deferred();
         var msg = [];
         msg[0] = 48;
-        msg[1] = this.newid();
+        msg[1] = this.newSessionScopeId();
         msg[2] = (wampOptions!=null) ? wampOptions : {};
         msg[3] = cmd;
         if(args != null || argsKw != null) msg[4] = (args!=null)? ((args instanceof Array)? args : [args] ) : [];
@@ -140,7 +144,7 @@ Wamp2.prototype = {
         var dfd = $.Deferred();            
         var arr = [];
         arr[0] = 64;  // REGISTER
-        arr[1] = this.newid();
+        arr[1] = this.newSessionScopeId();
         arr[2] = options;
         arr[3] = procedureURI;      
         this.pendingRequests[arr[1]] = [dfd, procedureURI, callback];
@@ -153,7 +157,7 @@ Wamp2.prototype = {
         var dfd = $.Deferred();            
         var arr = [];
         arr[0] = 66;  // UNREGISTER
-        arr[1] = this.newid();
+        arr[1] = this.newSessionScopeId();
         arr[2] = registrationId;
         this.pendingRequests[arr[1]] = [dfd, procedureURI, callback];
         this.send(JSON.stringify(arr));
@@ -172,7 +176,7 @@ Wamp2.prototype = {
         var dfd = $.Deferred();            
         var arr = [];
         arr[0] = 32;  // SUBSCRIBE
-        arr[1] = this.newid();
+        arr[1] = this.newSessionScopeId();
         arr[2] = options;
         arr[3] = topic;      
         var topicAndOptionsKey = this._getTopicAndOptionsKey(topic,options);
@@ -193,7 +197,7 @@ Wamp2.prototype = {
         var dfd = $.Deferred();            
         var arr = [];
         arr[0] = 34;  // UNSUBSCRIBE
-        arr[1] = this.newid();
+        arr[1] = this.newSessionScopeId();
         arr[2] = this._getSubscriptionIdByTopicAndOptions(topic,options);
         var topicAndOptionsKey = this._getTopicAndOptionsKey(topic,options);
         this.pendingRequests[arr[1]] = [dfd, arr[2], topicAndOptionsKey, event_cb, metaevent_cb];
@@ -206,7 +210,7 @@ Wamp2.prototype = {
         var dfd = $.Deferred();
         var arr = [];
         arr[0] = 16;  // PUBLISH
-        arr[1] = this.newid();
+        arr[1] = this.newSessionScopeId();
         arr[2] = (options) ? options : {};      
         arr[3] = topic;
         arr[4] = payload;
