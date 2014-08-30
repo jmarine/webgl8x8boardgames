@@ -64,6 +64,8 @@ var yRot = 0;
 var zRot = 0;
 var z = 8;
 
+var nullcolor = sglV4C(0.0, 0.0, 0.0, 0.0);
+
 
 /**********************/
 //sglRegisterCanvas("gameCanvas", new Board3D(), 25.0);
@@ -231,6 +233,9 @@ Board3D.prototype =
 
 
         /*************************************************************/
+        this.color1 = sglV4C(0.92, 0.69, 0.24, 1.0);
+        this.color2 = sglV4C(0.55, 0.33, 0.18, 1.0);
+        this.setCustomPieceColors(true);
         this.initTextures(gl);
         this.loadModels(gl, draughtsTheme);
         this.loadModels(gl, chessTheme);
@@ -325,12 +330,32 @@ Board3D.prototype =
 
     setShadows : function(enabled) {
         this.withShadows = enabled;
+        this.invalidate();
     },
 
 
     setReflections : function(enabled) {
         this.withReflections = enabled;
+        this.invalidate();
     },
+
+    setCustomPieceColors : function(a) {
+       var alpha = a? 1.0 : 0.0
+       this.color1[3] = alpha;
+       this.color2[3] = alpha;
+       this.invalidate();
+    },
+
+    setPlayer1PieceColor : function(r,g,b,a) {
+       this.color1 = sglV4C(r, g, b, this.color1[3]);
+       this.invalidate();
+    },
+
+    setPlayer2PieceColor : function(r,g,b,a) {
+       this.color2 = sglV4C(r, g, b, this.color2[3]);
+       this.invalidate();
+    },
+
 
 
     keyDown : function(gl, keyCode, keyString) {
@@ -732,7 +757,7 @@ Board3D.prototype =
     },
 
 
-    drawMeshShadowPass : function(gl, m, nulltex, shininess, opacity, t) {
+    drawMeshShadowPass : function(gl, m, nullcolor, nulltex, shininess, opacity, t) {
         if (!m) return;
 
         var uniforms = {
@@ -743,7 +768,7 @@ Board3D.prototype =
     },
 
 
-    drawMeshLightPass : function(gl, m, tex, shininess, opacity, t) {
+    drawMeshLightPass : function(gl, m, color, tex, shininess, opacity, t) {
         if (!m) return;
 
         var shadowMat = sglMulM4(t.shadowMatrix, t.xform.modelMatrix);
@@ -760,6 +785,7 @@ Board3D.prototype =
             u_specularLightColor  : t.specularLightColor,
             u_materialShininess   : shininess,
             u_opacity	          : opacity,
+            u_color               : color,
             u_biasToLowerMoirePattern : t.biasToLowerMoirePattern
         };
 
@@ -772,9 +798,9 @@ Board3D.prototype =
     },
 
 
-    drawModel : function(gl, func, mesh, tex, shininess, opacity, t) {
+    drawModel : function(gl, func, mesh, color, tex, shininess, opacity, t) {
         this.xform.model.push();
-        func(gl, mesh, tex, shininess, opacity, t);
+        func(gl, mesh, color, tex, shininess, opacity, t);
         this.xform.model.pop();
     },
 
@@ -792,7 +818,7 @@ Board3D.prototype =
 		    if(game.getPieceType(piece) == KNIGHT) this.xform.model.rotate((game.getPieceOwner(piece) == PLAYER1) ? PI/2 : -PI/2, 0, 0, 1);
                     this.xform.model.scale(0.3, 0.3, 0.3);
                     if(func == this.drawMeshShadowPass) {
-                        this.drawModel(gl, func, model.mesh, 0, 0.0, 1.0, this);
+                        this.drawModel(gl, func, model.mesh, nullcolor, 0, 0.0, 1.0, this);
                     } else {
                         if( (moveGen) && ( (x == moveGen.x1) && (y == moveGen.y1) ) ) {
 	 		    this.xform.model.translate(0.0, 0.0, 0.25);
@@ -805,7 +831,9 @@ Board3D.prototype =
                         }
                         */
 
-                        this.drawModel(gl, func, model.mesh, this.textures[game.getPieceOwner(piece) == PLAYER1 ? PLAYER1_TEXTURE : PLAYER2_TEXTURE], this.pieceShininess, 1.0, this);
+                        var player = game.getPieceOwner(piece);
+                        var color = (player == PLAYER1) ? this.color1 : this.color2;
+                        this.drawModel(gl, func, model.mesh, color, this.textures[player == PLAYER1 ? PLAYER1_TEXTURE : PLAYER2_TEXTURE], this.pieceShininess, 1.0, this);
                         // gl.disable(gl.BLEND);
                     }
                     this.xform.model.pop();
@@ -830,7 +858,7 @@ Board3D.prototype =
         this.xform.model.scale(1.0/8.0, 1.0/8.0, 1.0/8.0);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
-        this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, this.textures[texIndex], 0.0, 0.0, this);
+        this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, nullcolor, this.textures[texIndex], 0.0, 0.0, this);
         gl.disable(gl.BLEND);
         this.xform.model.pop();
     },
@@ -869,7 +897,7 @@ Board3D.prototype =
     drawFloor : function(gl, opacity) {
         this.xform.model.push();
         this.xform.model.rotate(sglDegToRad(game.getBoardRotationDegrees()), 0.0,0.0,1.0);
-        this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, this.textures[GRID_TEXTURE], 0.0, opacity, this);
+        this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, nullcolor, this.textures[GRID_TEXTURE], 0.0, opacity, this);
         this.xform.model.pop();
     },
 
@@ -946,13 +974,13 @@ Board3D.prototype =
 
         //debugShadowBuffer = true;
         if(debugShadowBuffer) {
-            this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, this.fb.colorTargets[0], 0.0, 1.0, this);
+            this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, nullcolor, this.fb.colorTargets[0], 0.0, 1.0, this);
 
         } else {
 
             this.xform.model.push();
             this.xform.model.rotate(sglDegToRad(game.getBoardRotationDegrees()), 0.0,0.0,1.0);
-            this.drawModel(gl, this.drawMeshLightPass, BlenderExport.Board.mesh, this.textures[BOARD_TEXTURE], 0.0, 1.0, this);
+            this.drawModel(gl, this.drawMeshLightPass, BlenderExport.Board.mesh, nullcolor, this.textures[BOARD_TEXTURE], 0.0, 1.0, this);
             this.xform.model.pop();
 
             if(waitingHumanMove) {
@@ -1201,6 +1229,7 @@ Board3D.prototype =
         gl.disable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);
     },
+
 
 
     draw : function(gl)

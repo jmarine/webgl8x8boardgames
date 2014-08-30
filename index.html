@@ -175,6 +175,7 @@ precision mediump float;
 
 uniform float     u_opacity;
 uniform float     u_materialShininess;
+uniform vec4      u_color;
 uniform sampler2D u_texture;
 uniform sampler2D u_shadowMap;
 uniform float     u_biasToLowerMoirePattern;
@@ -220,11 +221,12 @@ void main (void)
         + u_diffuseLightColor * diffuseLightWeighting
         + u_specularLightColor * specularLightWeighting;
 
-      vec4 textureColor = texture2D(u_texture, vec2(v_texCoord.s, v_texCoord.t));
-      vec3 color = vec3(textureColor.rgb * lightWeighting * visibility);
+      vec4 baseColor = u_color; 
+      if(baseColor.a == 0.0) baseColor = texture2D(u_texture, vec2(v_texCoord.s, v_texCoord.t));
+      vec3 color = vec3(baseColor.rgb * lightWeighting * visibility);
 
       if(u_opacity == 0.0) {
-        gl_FragData[0] = vec4(color, textureColor.a);
+        gl_FragData[0] = vec4(color, baseColor.a);
       } else {
         gl_FragData[0] = vec4(color, u_opacity);
       }
@@ -377,6 +379,7 @@ function authentication(state, msg) {
         $("#btnRegister").attr("disabled", "disabled");
         $("#oic_connect").attr("disabled", "disabled");
 
+
         if(msg && msg.picture) {
             $("#user_picture").attr("src", msg.picture).width(48).height(48);
         } else {
@@ -390,6 +393,7 @@ function authentication(state, msg) {
             if(msg.name) $("#user").val(msg.name);
             $("#lbl_password").hide();
             $("#password").hide();
+
             $("#btnConnect").hide();
             $("#oic_connect").hide();
             $("#btnRegister").hide();
@@ -598,6 +602,13 @@ function initApp() {
 
            <dt><label for="reflections">Reflections:</label></dt>
            <dd><input id='reflections' type="checkbox" value="1"></dd>
+
+           <dt><label for="color1">White color:</label></dt>
+	   <dd><input type="color" id="color1" name="color1" value="#EAB13D"></dd>
+
+           <dt><label for="color2">Black color:</label></dt>
+	   <dd><input type="color" id="color2" name="color2" value="#8C532D"></dd>
+
 	</dl>
       </DIV>
 

@@ -208,6 +208,27 @@ $(document).ready(function(){
   });
 
 
+  $('#color1').change(function(evt) {
+    var hexString = $(this).val().substr(1);
+    var r = parseInt(hexString.substr(0, 2), 16) / 255.0;
+    var g = parseInt(hexString.substr(2, 2), 16) / 255.0;
+    var b = parseInt(hexString.substr(4, 2), 16) / 255.0;
+    board.setPlayer1PieceColor(r,g,b);
+    board.setCustomPieceColors(true);
+  });
+
+  $('#color2').change(function(evt) {
+    var hexString = $(this).val().substr(1);
+    var r = parseInt(hexString.substr(0, 2), 16) / 255.0;
+    var g = parseInt(hexString.substr(2, 2), 16) / 255.0;
+    var b = parseInt(hexString.substr(4, 2), 16) / 255.0;
+    board.setPlayer2PieceColor(r,g,b);
+    board.setCustomPieceColors(true);
+  });
+
+
+
+
   onPlayerTypeChange();
 
   $('#btnSaveGame').click(function() {
