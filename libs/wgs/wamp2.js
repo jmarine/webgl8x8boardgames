@@ -54,6 +54,9 @@ Wamp2.prototype = {
     getAgent: function() {
         return "wamp2-client";
     },
+
+    
+    // WAMPv2 REQUESTS
     
     hello: function(realm, details) {
         this.goodbyeRequested = false;
@@ -241,7 +244,7 @@ Wamp2.prototype = {
         this.send(JSON.stringify(arr));
     },
 
-    // Connection API
+
     login: function(realm, user, password, onstatechange) {
         var client = this;
         var details = {};
@@ -268,7 +271,68 @@ Wamp2.prototype = {
         });
     },
 
-    send: function(msg) {
+    // WEBSOCKETS transport
+    connect: function(realm, extra, onstatechange) {
+        if(this.url.indexOf("ws") == 0) {
+            this.connectWS(realm, extra, onstatechange);
+        } else {
+            this.connectLP(realm, extra, onstatechange);
+        }
+    },
+    
+
+    connectWS: function(realm, extra, onstatechange) {
+        var client = this;
+        this.user = null;
+        console.log("Websocket connection to url: " + this.url);
+
+        var ws = null; 
+        this.ws = null;
+
+        if ("WebSocket" in window) {
+            ws = new WebSocket(this.url, "wamp.2.json");
+        } else if ("MozWebSocket" in window) {
+            ws = new MozWebSocket(this.url, "wamp.2.json");
+        } else {
+            console.log("This Browser does not support WebSockets");
+            this.connectLP(realm, extra, onstatechange);
+            //onstatechange(ConnectionState.ERROR, "browser.websockets_not_supported");
+            return;
+        }
+
+        ws.onopen = function(e) {
+            console.log("A connection to "+this.url+" has been opened.");
+            client.ws = ws;
+            client.send = client.sendWS;
+            client.close = client.closeWS;
+            this.state = ConnectionState.CONNECTED;
+            onstatechange(ConnectionState.CONNECTED);
+            client.hello(realm, extra);
+        };
+
+        ws.onclose = function(e) {
+            console.log("The connection to "+this.url+" was closed.");
+            onstatechange(ConnectionState.DISCONNECTED);    
+            client.close();
+        };
+
+        ws.onerror = function(e) {
+            console.log("WebSocket error: " + e);
+            onstatechange(ConnectionState.ERROR, "wgs.websocket.error");
+            client.close();
+        };
+
+        ws.onmessage = function(e) {
+            console.log("ws.onmessage: " + e.data);
+            var arr = JSON.parse(e.data);
+
+            client.onWampMessage(arr, onstatechange);
+        };
+
+    },
+
+    
+    sendWS: function(msg) {
         if(!this.ws || this.ws.readyState != 1) {
            console.log("Websocket is not available for writing");
         } else {
@@ -276,7 +340,8 @@ Wamp2.prototype = {
         }
     },
 
-    close: function() {
+
+    closeWS: function() {
         if(this.heartbeatIntervalHandler != null) {
             clearInterval(this.heartbeatIntervalHandler);
             this.heartbeatIntervalHandler = null;
@@ -287,265 +352,278 @@ Wamp2.prototype = {
         }
         this.state = ConnectionState.DISCONNECTED;
     },
-    
-    connect: function(realm, extra, onstatechange) {
+
+
+    // LONG-POLLING transport
+    connectLP: function(realm, extra, onstatechange) {    
         var client = this;
-        this.user = null;
-        console.log("Connecting to url: " + this.url);
+                
+        this.url = this.url;
+        if(this.url.indexOf("ws://") == 0) this.url = "http://" + his.url.substring(5) + "/longpoll";
+        else if(this.url.indexOf("wss://") == 0) this.url = "https://" + his.url.substring(6) + "/longpoll";
 
-            var ws = null; 
-            this.ws = null;
+        var lpOnOpen = function(response) {
+           console.log(response);
+           client.open = true;
+           client.transport = response.transport;
+           client.send = client.sendLP;
+           client.close = client.closeLP;
+           client.state = ConnectionState.CONNECTED;
+           onstatechange(ConnectionState.CONNECTED);
+           client.hello(realm, extra);           
+           lpReceive();
+        };
 
-            if ("WebSocket" in window) {
-                ws = new WebSocket(this.url, "wamp.2.json");
-            } else if ("MozWebSocket" in window) {
-                ws = new MozWebSocket(this.url, "wamp.2.json");
-            } else {
-                console.log("This Browser does not support WebSockets");
-                onstatechange(ConnectionState.ERROR, "browser.websockets_not_supported");
-                return;
-            }
 
-            ws.onopen = function(e) {
-                console.log("A connection to "+this.url+" has been opened.");
-                client.ws = ws;
-                this.state = ConnectionState.CONNECTED;
-                onstatechange(ConnectionState.CONNECTED);
-                client.hello(realm, extra);
-            };
+        var lpReceive = function() {
+           var url = client.url + '/'+client.transport+'/receive?x=' + client.newGlobalScopeId();
+           $.post(url, {}, lpOnReceive, 'json')
+            .fail(function() { alert( "receive error" ); });;
+        };
 
-            ws.onclose = function(e) {
-                console.log("The connection to "+this.url+" was closed.");
-                onstatechange(ConnectionState.DISCONNECTED);    
-                client.close();
-            };
 
-            ws.onerror = function(e) {
-                console.log("WebSocket error: " + e);
-                onstatechange(ConnectionState.ERROR, "wgs.websocket.error");
-                client.close();
-            };
-
-            ws.onmessage = function(e) {
-                console.log("ws.onmessage: " + e.data);
-                var arr = JSON.parse(e.data);
-
-                if (arr[0] == 2) {  // WELCOME
-                    var details = (arr.length > 2)? arr[2] : {};
-                    client.sid = arr[1];
-                    client.authmethod = details.authmethod;
-                    client.state = ConnectionState.WELCOMED;
-                    onstatechange(ConnectionState.WELCOMED, details);
-                    
-                } else if (arr[0] == 3) {  // ABORT
-                    var reason = arr[2];
-                    client.state = ConnectionState.ERROR;
-                    onstatechange(ConnectionState.ERROR, reason);
-
-                } else if (arr[0] == 4) {  // CHALLENGE
-                    var extra = arr[2] || {};
-                    client.authmethod = arr[1];
-                    extra.authmethod = arr[1];
-                    onstatechange(ConnectionState.CHALLENGED, extra);
-
-                } else if (arr[0] == 6) {  // GOODBYE 
-                    var reason = arr[2];
-                    client.state = ConnectionState.CLOSED;
-                    onstatechange(ConnectionState.CLOSED, reason);
-                    client.goodbye(reason, {});
-
-                } else if (arr[0] == 7) {  // HEARTBEAT
-                    client.incomingHeartbeatSeq = arr[2];
-                    // TODO: request unreceived EVENTs ?
-
-                } else if (arr[0] == 8) {  // ERROR
-                    var requestType = arr[1];
-                    var requestId = arr[2];
-                    if(client.pendingRequests[requestId]) {
-                        var details = arr[3];
-                        var errorURI = arr[4];
-                        var args = (arr.length>5)? arr[5] : [];
-                        var argsKw = (arr.length>6)? arr[6] : {};
-                        var promise = client.pendingRequests[requestId][0];
-                        promise.reject(requestId, details, errorURI, args, argsKw);
-                        delete client.pendingRequests[requestId];     
-                    }
-
-                } else if (arr[0] == 50) {  // RESULT
-                    var requestId = arr[1];
-                    if(client.pendingRequests[requestId]) {      
-                        var promise = client.pendingRequests[requestId][0];
-                        var details = arr[2];
-                        var result = (arr && arr.length > 2)? arr[3] : [];
-                        var resultKw = (arr && arr.length > 3)? arr[4] : {};
-                        if(details && details.progress) {
-                            promise.notify(requestId, details, null, result, resultKw);
-                        } else {
-                            promise.resolve(requestId, details, null, result, resultKw);
-                            delete client.pendingRequests[requestId];
-                        }
-                    } else {
-                        console.log("call not found: " + requestId);
-                    }
-
-                } else if(arr[0] == 33) {  // SUBSCRIBED
-                    var requestId = arr[1];
-                    if(requestId && client.pendingRequests[requestId]) {
-                        var subscriptionId = arr[2];
-                        var promise = client.pendingRequests[requestId][0];
-                        var topicAndOptionsKey = client.pendingRequests[requestId][1];
-                        var options = client.pendingRequests[requestId][4];
-                        client.subscriptionsById[subscriptionId] = topicAndOptionsKey;
-                        client.subscriptionsByTopicAndOptions[topicAndOptionsKey] = subscriptionId;
-                        if(client.pendingRequests[requestId][2]) {
-                          if(!client.eventHandlers[subscriptionId]) client.eventHandlers[subscriptionId] = [];
-                          client.eventHandlers[subscriptionId].push(client.pendingRequests[requestId][2]);
-                        }
-                        if(client.pendingRequests[requestId][3]) {                  
-                          if(!client.metaeventHandlers[subscriptionId]) client.metaeventHandlers[subscriptionId] = [];
-                          client.metaeventHandlers[subscriptionId].push(client.pendingRequests[requestId][3]);
-                        }
-                        promise.resolve(requestId,subscriptionId);
-                        delete client.pendingRequests[requestId];
-                    }
-
-                } else if(arr[0] == 35) {  // UNSUBSCRIBED
-                    var requestId = arr[1];
-                    if(requestId && client.pendingRequests[requestId]) {
-                        var promise = client.pendingRequests[requestId][0];
-                        var subscriptionId = client.pendingRequests[requestId][1];
-                        var topicAndOptionsKey = client.pendingRequests[requestId][2];
-
-                        var event_cb = client.pendingRequests[requestId][3];
-                        var metaevent_cb = client.pendingRequests[requestId][4];
-                        var callbacks = client.eventHandlers[subscriptionId];
-                        if(callbacks && callbacks.length>0) {
-                            var indexOfEventHandlerToClear = callbacks.indexOf(event_cb);
-                            if(event_cb && callbacks && callbacks.length<=1 && indexOfEventHandlerToClear!=-1) delete client.eventHandlers[subscriptionId];
-                            else if(indexOfEventHandlerToClear != -1) client.eventHandlers[subscriptionId].splice(indexOfEventHandlerToClear,1);
-                        }
-
-                        callbacks = client.metaeventHandlers[subscriptionId];
-                        if(callbacks && callbacks.length>0) {
-                            var indexOfMetaHandlerToClear = callbacks.indexOf(metaevent_cb);
-                            if(metaevent_cb && callbacks && callbacks.length<=1 && indexOfMetaHandlerToClear != -1) delete client.metaeventHandlers[subscriptionId];
-                            else if(indexOfMetaHandlerToClear != -1) client.metaeventHandlers[subscriptionId].splice(indexOfMetaHandlerToClear,1);
-                        }
-
-                        promise.resolve(requestId,subscriptionId);
-                        delete client.pendingRequests[requestId];
-                        //delete client.subscriptionsById[subscriptionId];
-                        //delete client.subscriptionsByTopicAndOptions[topicAndOptionsKey];              
-                    }
-
-                } else if(arr[0] == 17) {  // PUBLISHED
-                    var requestId = arr[1];
-                    var publicationId = arr[2];
-                    var promise = client.pendingRequests[requestId];
-                    promise.resolve(requestId, publicationId);
-                    delete client.pendingRequests[requestId];
-
-                } else if(arr[0] == 36) {  // EVENT
-                    var subscriptionId = arr[1];
-                    var publicationId = arr[2];
-                    var details = arr[3];
-                    var payload   = (arr.length>4)? arr[4] : null;
-                    var payloadKw = (arr.length>5)? arr[5] : null;
-                    var topicURI = client.subscriptionsById[subscriptionId];
-                    if(details && details.topic) topicURI = details.topic;
-
-                    if(details && details.metatopic) {
-                        var metatopic = details.metatopic;
-                        var metaevent = details;
-
-                        if(client.metaeventHandlers[subscriptionId]) {
-                            client.metaeventHandlers[subscriptionId].forEach(function(callback) {
-                                callback.call(client, topicURI, metatopic, metaevent);
-                            });
-                        } 
-
-                    } else {
-                        if(client.eventHandlers[subscriptionId]) {
-                            client.eventHandlers[subscriptionId].forEach(function(callback) {
-                                callback.call(client, publicationId, details, null, payload, payloadKw, topicURI);                
-                            });
-                        } 
-                    }
-
-                } else if(arr[0] == 65) {  // REGISTERED
-                    var requestId = arr[1];
-                    var registrationId = arr[2];
-                    if(requestId && client.pendingRequests[requestId]) {
-                        var promise = client.pendingRequests[requestId][0];
-                        var procedureURI = client.pendingRequests[requestId][1];
-                        var callback = client.pendingRequests[requestId][2];
-                        client.rpcRegistrationsById[registrationId] = procedureURI;
-                        client.rpcRegistrationsByURI[procedureURI] = registrationId;
-                        client.rpcHandlers[registrationId] = callback;
-                        promise.resolve(requestId, registrationId);
-                    }
-
-                } else if(arr[0] == 67) {  // UNREGISTERED                
-                    var requestId = arr[1];
-                    if(requestId && client.pendingRequests[requestId]) {
-                        var registrationId = arr[2];
-                        var promise = client.pendingRequests[requestId][0];
-                        var procedureURI = client.pendingRequests[requestId][1];
-                        promise.resolve(requestId,registrationId);
-                        delete client.rpcHandlers[registrationId];
-                        delete client.pendingRequests[requestId];                  
-                        //delete client.rpcRegistrationsById[registrationId];
-                        //delete client.rpcRegistrationsByURI[procedureURI];              
-                    }
-
-                } else if(arr[0] == 68) {  // INVOCATION
-                    var requestId = arr[1];
-                    try {
-                        var registrationId = arr[2];
-                        var details = arr[3];
-                        var arguments = arr[4];
-                        var argumentsKw = arr[5];
-                        if(requestId && client.rpcHandlers[registrationId]) {
-                            var callback = client.rpcHandlers[registrationId];
-
-                            var resultKw = {};
-                            var result = callback(arguments, argumentsKw, details);
-                            if(isFinite(result)) {
-                                result = [result];
-                            } else if(typeof(result) == "string") {
-                                result = [result];
-                            } else if(!(result instanceof Array)) {
-                                resultKw = result;
-                                result = [];
-                            }
-
-                            var arr = [];
-                            arr[0] = 70;  // YIELD (=INVOCATION_RESULT)
-                            arr[1] = requestId;
-                            arr[2] = {};  // options
-                            arr[3] = result;
-                            arr[4] = resultKw;
-                            client.send(JSON.stringify(arr)); 
-                        }
-
-                    } catch(e) {
-                        var arr = [];
-                        arr[0] = 4;  // ERROR
-                        arr[1] = requestId;
-                        arr[2] = {}; // details
-                        arr[3] = "wamp.error.invalid_argument";
-                        arr[4] = [];
-                        arr[5] = e;
-                        client.send(JSON.stringify(arr)); 
-                    }
-
-                } else {
-                    console.log("Server message not recognized: " + e.data);
-                }
-
-            };
+        var lpOnReceive = function(response) {
+            console.log("lp.onmessage: " + response);
+            client.onWampMessage(response, onstatechange);
+            if(client.open) lpReceive();
+        };
         
 
+        var url = client.url + '/open?x=' + client.newGlobalScopeId();
+        console.log("Connecting to URL " + url);
+        $.post(url, {}, lpOnOpen, 'json')
+         .fail(function() { alert( "connect error" ); });
+    },
+
+    sendLP: function(msg) {
+        var client = this;
+        var url = client.url + '/'+client.transport+'/send?x=' + client.newGlobalScopeId();
+        $.post(url, msg);
+    },
+
+    closeLP: function() {
+        var client = this;
+        client.open = false;
+        $.post(client.url + '/'+client.transport+'/close?x=' + client.newGlobalScopeId(), []);
+    },
+        
+    
+    // WAMPv2 RESPONSES
+    onWampMessage: function(arr, onstatechange) {
+        var client = this;
+        if (arr[0] == 2) {  // WELCOME
+            var details = (arr.length > 2)? arr[2] : {};
+            client.sid = arr[1];
+            client.authmethod = details.authmethod;
+            client.state = ConnectionState.WELCOMED;
+            onstatechange(ConnectionState.WELCOMED, details);
+
+        } else if (arr[0] == 3) {  // ABORT
+            var reason = arr[2];
+            client.state = ConnectionState.ERROR;
+            onstatechange(ConnectionState.ERROR, reason);
+
+        } else if (arr[0] == 4) {  // CHALLENGE
+            var extra = arr[2] || {};
+            client.authmethod = arr[1];
+            extra.authmethod = arr[1];
+            onstatechange(ConnectionState.CHALLENGED, extra);
+
+        } else if (arr[0] == 6) {  // GOODBYE 
+            var reason = arr[2];
+            client.state = ConnectionState.CLOSED;
+            onstatechange(ConnectionState.CLOSED, reason);
+            client.goodbye(reason, {});
+
+        } else if (arr[0] == 7) {  // HEARTBEAT
+            client.incomingHeartbeatSeq = arr[2];
+            // TODO: request unreceived EVENTs ?
+
+        } else if (arr[0] == 8) {  // ERROR
+            var requestType = arr[1];
+            var requestId = arr[2];
+            if(client.pendingRequests[requestId]) {
+                var details = arr[3];
+                var errorURI = arr[4];
+                var args = (arr.length>5)? arr[5] : [];
+                var argsKw = (arr.length>6)? arr[6] : {};
+                var promise = client.pendingRequests[requestId][0];
+                promise.reject(requestId, details, errorURI, args, argsKw);
+                delete client.pendingRequests[requestId];     
+            }
+
+        } else if (arr[0] == 50) {  // RESULT
+            var requestId = arr[1];
+            if(client.pendingRequests[requestId]) {      
+                var promise = client.pendingRequests[requestId][0];
+                var details = arr[2];
+                var result = (arr && arr.length > 2)? arr[3] : [];
+                var resultKw = (arr && arr.length > 3)? arr[4] : {};
+                if(details && details.progress) {
+                    promise.notify(requestId, details, null, result, resultKw);
+                } else {
+                    promise.resolve(requestId, details, null, result, resultKw);
+                    delete client.pendingRequests[requestId];
+                }
+            } else {
+                console.log("call not found: " + requestId);
+            }
+
+        } else if(arr[0] == 33) {  // SUBSCRIBED
+            var requestId = arr[1];
+            if(requestId && client.pendingRequests[requestId]) {
+                var subscriptionId = arr[2];
+                var promise = client.pendingRequests[requestId][0];
+                var topicAndOptionsKey = client.pendingRequests[requestId][1];
+                var options = client.pendingRequests[requestId][4];
+                client.subscriptionsById[subscriptionId] = topicAndOptionsKey;
+                client.subscriptionsByTopicAndOptions[topicAndOptionsKey] = subscriptionId;
+                if(client.pendingRequests[requestId][2]) {
+                  if(!client.eventHandlers[subscriptionId]) client.eventHandlers[subscriptionId] = [];
+                  client.eventHandlers[subscriptionId].push(client.pendingRequests[requestId][2]);
+                }
+                if(client.pendingRequests[requestId][3]) {                  
+                  if(!client.metaeventHandlers[subscriptionId]) client.metaeventHandlers[subscriptionId] = [];
+                  client.metaeventHandlers[subscriptionId].push(client.pendingRequests[requestId][3]);
+                }
+                promise.resolve(requestId,subscriptionId);
+                delete client.pendingRequests[requestId];
+            }
+
+        } else if(arr[0] == 35) {  // UNSUBSCRIBED
+            var requestId = arr[1];
+            if(requestId && client.pendingRequests[requestId]) {
+                var promise = client.pendingRequests[requestId][0];
+                var subscriptionId = client.pendingRequests[requestId][1];
+                var topicAndOptionsKey = client.pendingRequests[requestId][2];
+
+                var event_cb = client.pendingRequests[requestId][3];
+                var metaevent_cb = client.pendingRequests[requestId][4];
+                var callbacks = client.eventHandlers[subscriptionId];
+                if(callbacks && callbacks.length>0) {
+                    var indexOfEventHandlerToClear = callbacks.indexOf(event_cb);
+                    if(event_cb && callbacks && callbacks.length<=1 && indexOfEventHandlerToClear!=-1) delete client.eventHandlers[subscriptionId];
+                    else if(indexOfEventHandlerToClear != -1) client.eventHandlers[subscriptionId].splice(indexOfEventHandlerToClear,1);
+                }
+
+                callbacks = client.metaeventHandlers[subscriptionId];
+                if(callbacks && callbacks.length>0) {
+                    var indexOfMetaHandlerToClear = callbacks.indexOf(metaevent_cb);
+                    if(metaevent_cb && callbacks && callbacks.length<=1 && indexOfMetaHandlerToClear != -1) delete client.metaeventHandlers[subscriptionId];
+                    else if(indexOfMetaHandlerToClear != -1) client.metaeventHandlers[subscriptionId].splice(indexOfMetaHandlerToClear,1);
+                }
+
+                promise.resolve(requestId,subscriptionId);
+                delete client.pendingRequests[requestId];
+                //delete client.subscriptionsById[subscriptionId];
+                //delete client.subscriptionsByTopicAndOptions[topicAndOptionsKey];              
+            }
+
+        } else if(arr[0] == 17) {  // PUBLISHED
+            var requestId = arr[1];
+            var publicationId = arr[2];
+            var promise = client.pendingRequests[requestId];
+            promise.resolve(requestId, publicationId);
+            delete client.pendingRequests[requestId];
+
+        } else if(arr[0] == 36) {  // EVENT
+            var subscriptionId = arr[1];
+            var publicationId = arr[2];
+            var details = arr[3];
+            var payload   = (arr.length>4)? arr[4] : null;
+            var payloadKw = (arr.length>5)? arr[5] : null;
+            var topicURI = client.subscriptionsById[subscriptionId];
+            if(details && details.topic) topicURI = details.topic;
+
+            if(details && details.metatopic) {
+                var metatopic = details.metatopic;
+                var metaevent = details;
+
+                if(client.metaeventHandlers[subscriptionId]) {
+                    client.metaeventHandlers[subscriptionId].forEach(function(callback) {
+                        callback.call(client, topicURI, metatopic, metaevent);
+                    });
+                } 
+
+            } else {
+                if(client.eventHandlers[subscriptionId]) {
+                    client.eventHandlers[subscriptionId].forEach(function(callback) {
+                        callback.call(client, publicationId, details, null, payload, payloadKw, topicURI);                
+                    });
+                } 
+            }
+
+        } else if(arr[0] == 65) {  // REGISTERED
+            var requestId = arr[1];
+            var registrationId = arr[2];
+            if(requestId && client.pendingRequests[requestId]) {
+                var promise = client.pendingRequests[requestId][0];
+                var procedureURI = client.pendingRequests[requestId][1];
+                var callback = client.pendingRequests[requestId][2];
+                client.rpcRegistrationsById[registrationId] = procedureURI;
+                client.rpcRegistrationsByURI[procedureURI] = registrationId;
+                client.rpcHandlers[registrationId] = callback;
+                promise.resolve(requestId, registrationId);
+            }
+
+        } else if(arr[0] == 67) {  // UNREGISTERED                
+            var requestId = arr[1];
+            if(requestId && client.pendingRequests[requestId]) {
+                var registrationId = arr[2];
+                var promise = client.pendingRequests[requestId][0];
+                var procedureURI = client.pendingRequests[requestId][1];
+                promise.resolve(requestId,registrationId);
+                delete client.rpcHandlers[registrationId];
+                delete client.pendingRequests[requestId];                  
+                //delete client.rpcRegistrationsById[registrationId];
+                //delete client.rpcRegistrationsByURI[procedureURI];              
+            }
+
+        } else if(arr[0] == 68) {  // INVOCATION
+            var requestId = arr[1];
+            try {
+                var registrationId = arr[2];
+                var details = arr[3];
+                var arguments = arr[4];
+                var argumentsKw = arr[5];
+                if(requestId && client.rpcHandlers[registrationId]) {
+                    var callback = client.rpcHandlers[registrationId];
+
+                    var resultKw = {};
+                    var result = callback(arguments, argumentsKw, details);
+                    if(isFinite(result)) {
+                        result = [result];
+                    } else if(typeof(result) == "string") {
+                        result = [result];
+                    } else if(!(result instanceof Array)) {
+                        resultKw = result;
+                        result = [];
+                    }
+
+                    var arr = [];
+                    arr[0] = 70;  // YIELD (=INVOCATION_RESULT)
+                    arr[1] = requestId;
+                    arr[2] = {};  // options
+                    arr[3] = result;
+                    arr[4] = resultKw;
+                    client.send(JSON.stringify(arr)); 
+                }
+
+            } catch(e) {
+                var arr = [];
+                arr[0] = 4;  // ERROR
+                arr[1] = requestId;
+                arr[2] = {}; // details
+                arr[3] = "wamp.error.invalid_argument";
+                arr[4] = [];
+                arr[5] = e;
+                client.send(JSON.stringify(arr)); 
+            }
+
+        } else {
+            console.log("Server message not recognized: " + e.data);
+        }
+        
     }
   
 }
