@@ -1,8 +1,5 @@
 var UI = UI || {};
 
-UI.getGameType = function() {
-  return $('select[id=promotion_piece] > option:selected').val();
-}
 
 UI.getGameType = function() {
   return $('select[id=game_type] > option:selected').text();

@@ -18,12 +18,6 @@
 
 
 
-function updateStartButtonState(list) {
-      $('button.btnStartGame').each(function() { 
-	var c =  $("select[id=" + list + "] > option:selected").size();
-	this.disabled = (c == 0);
-      });
-}
 
 /*
 $(window).error(function(err) {  
@@ -59,14 +53,13 @@ $(document).ready(function(){
 
 
   var onPlayerTypeChange = function() {
-	if( ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER )
+        if( ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER )
 	    || ($('select[id=player2] > option:selected').attr('value') == REMOTE_USER ) ) {
 
-		if(Network && Network.getGameStatus() == Network.GameStatusEnum.GAME_UNDEFINED) {
-		  $('button.btnStartGame').hide();
-		  $('#connect_section').show();
-		  $('#network').fadeIn();
-                }
+		$('button.btnStartGame').hide();
+		$('#connect_section').show();
+		$('#network').fadeIn();
+
 	} else {
 		$('#connect_section').hide();
 		$('#network').hide();
@@ -87,46 +80,6 @@ $(document).ready(function(){
 	}
   };
 
-  $('#reject_form').submit(function() {
-     if(Network.gameRoom != null) {
-	Network.exitGame(true);	
-        return false;
-     } else {
-
-	var req = $("select[id=requests] > option:selected");
-
-	showMessage(false);
-	if(req.size() <= 0) {
-           if(Network.joinedRemoteUserSession != null) {
-              Network.rejectGameRequest(Network.getGameType() + "@" + Network.mucService + "/" + Network.joinedRemoteUserSession, req.size());
-              $('#reject').hide();
-              $('#join2').hide();
-              $('#network_status').hide();
-              $('#join').fadeIn();
-              $('#list_games').fadeIn();
-              updateStartButtonState('users');
-           }
-        } else {
-            var remoteUser = req.val();
-            req.remove();
-            Network.rejectGameRequest(remoteUser, req.size());
-            $('input[id=reject_submit]').each(function() {
-               this.disabled = true;
-            });
-
-            req = $("select[id=requests] > option");
-	    if(req.size() <= 0) {
-		$('#reject').hide();
-		$('#join2').hide();
-		$('#network_status').hide();
-		$('#join').fadeIn();
-		$('#list_games').fadeIn();
-	 	updateStartButtonState('users');	
-            }
-	}
-	return false;
-     }
-  });
 
   $('#help').click(function() {
         var game = $('#game_type')[0].selectedIndex;
@@ -135,48 +88,6 @@ $(document).ready(function(){
 	return false;
   });
 
-  $('button.btnStartGame').click(function() {
-        showMessage(false);
-
-        if( ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER )
-            && ($('select[id=player2] > option:selected').attr('value') == REMOTE_USER ) ) {
-
-          showMessage("Only 1 remote player is allowed");
-          return false;
-        }
-
-	if( ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER )
-	    || ($('select[id=player2] > option:selected').attr('value') == REMOTE_USER ) ) {
-
- 		var my_role = ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER) ? "player2" : "player1";
-		if(Network.getGameStatus() == Network.GameStatusEnum.GAME_UNDEFINED) {	// users
-			var req = $('select[id=users] > option:selected');
-			var user_session = req.val();
-                        Network.sendGameRequest(user_session, my_role);
-
-		} else if(Network.getGameStatus() == Network.GameStatusEnum.GAME_CREATED) {   // requests
-			var req = $('select[id=requests] > option:selected');
-			var user_info = req.text();
-			var user_role = user_info.split(' ')[2];
-			var user_session = req.val();
-
-			if( ( (user_role == 'player1') && ($('select[id=player1] > option:selected').attr('value') != REMOTE_USER) )
-			   || ( (user_role == 'player2') && ($('select[id=player2] > option:selected').attr('value') != REMOTE_USER) ) ) {
-				swapPlayerTypes();	
- 				my_role = ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER) ? "player2" : "player1";
-			}
-
-        	        req.remove();
-                        Network.acceptGameRequest(user_session, my_role);
-		        UI.createGame();
-		}
-
-	} else {
-
-		UI.createGame();
-	}
-        return false;
-  });
 
   $('#promotion_option').hide();
   $('#player1').change(onPlayerTypeChange);
@@ -272,25 +183,6 @@ $(document).ready(function(){
   });
 
 
-  $('#list_users_form').submit(function() {
-    Network.listUsers();
-    return false;
-  });
-
-  $('#list_games_form').submit(function() {
-    Network.listGames();
-    return false;
-  });
-
-
-  $('#open_game_form').submit(function() {
-    var gameRoom = $("select[id=requests] > option:selected").attr('value');
-    var gameDescription = $("select[id=requests] > option:selected").text();
-    Network.openGame(gameRoom, gameDescription);
-    return false;
-  });
-
-
   $('#btnDisconnect').click(function() {
 	try {
 	  showMessage(false);
@@ -319,7 +211,25 @@ $(document).ready(function(){
   });
 
 
+  $('button.btnStartGame').click(function() {
+        // Quick access button
+        showMessage(false);
+	UI.createGame();
+        return false;
+  });
+
+
   $("#btnCreateGame").click(function() {
+
+        // Network game creation
+        showMessage(false);
+        if( ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER )
+            && ($('select[id=player2] > option:selected').attr('value') == REMOTE_USER ) ) {
+
+          showMessage("Only 1 remote player is allowed");
+          return false;
+        }
+
         Network.new_group();
         return false;
   });
