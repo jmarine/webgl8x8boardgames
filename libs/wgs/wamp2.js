@@ -361,7 +361,7 @@ Wamp2.prototype = {
         else if(this.url.indexOf("wss://") == 0) this.url = "https://" + this.url.substring(6) + "-longpoll";
 
         var lpOnOpen = function(response) {
-           console.log(response);
+           console.log("lp.open: " + JSON.stringify(response));
            client.open = true;
            client.transport = response.transport;
            client.send = client.sendLP;
@@ -381,7 +381,7 @@ Wamp2.prototype = {
 
 
         var lpOnReceive = function(response) {
-            console.log("lp.onmessage: " + response);
+            console.log("lp.onmessage: " + JSON.stringify(response));
             client.onWampMessage(response, onstatechange);
             if(client.open) lpReceive();
         };
