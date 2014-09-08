@@ -356,6 +356,7 @@ Wamp2.prototype = {
     // LONG-POLLING transport
     connectLP: function(realm, extra, onstatechange) {    
         var client = this;
+        var lpID = client.newGlobalScopeId();
                 
         if(this.url.indexOf("ws://") == 0) this.url = "http://" + this.url.substring(5) + "-longpoll";
         else if(this.url.indexOf("wss://") == 0) this.url = "https://" + this.url.substring(6) + "-longpoll";
@@ -363,6 +364,7 @@ Wamp2.prototype = {
         var lpOnOpen = function(response) {
            console.log("lp.open: " + JSON.stringify(response));
            client.open = true;
+           client.lpID = lpID;
            client.transport = response.transport;
            client.send = client.sendLP;
            client.close = client.closeLP;
@@ -383,7 +385,7 @@ Wamp2.prototype = {
         var lpOnReceive = function(response) {
             console.log("lp.onmessage: " + JSON.stringify(response));
             client.onWampMessage(response, onstatechange);
-            if(client.open) lpReceive();
+            if(client.open && lpID == client.lpID) lpReceive();
         };
         
 
