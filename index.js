@@ -103,7 +103,7 @@ $(document).ready(function(){
         var level = tmpGame.getPreferedLevelAI(); 
         $('input[id=level]').val(level);
 
-        if($(this).val() == 'chess') {
+        if($(this).val().indexOf('chess') == 0) {
           $('#promotion_option').show();
         }
   });
