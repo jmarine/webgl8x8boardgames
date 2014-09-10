@@ -184,17 +184,18 @@ WgsClient.prototype._update_group_users = function(id,details,errorURI,payload, 
         });
     } else if(payloadKw.cmd == "user_joined" || payloadKw.cmd == "group_updated") {
         var gid = payloadKw.gid;
+        if(client.groups[gid]) {
+            if(isFinite(payloadKw.slot)) payloadKw.members = [ payloadKw ];
+            //else if(payloadKw.members) client.groups[gid].members = new Array();
 
-        if(isFinite(payloadKw.slot)) payloadKw.members = [ payloadKw ];
-        else if(payloadKw.members) client.groups[gid].members = new Array();
+            if(payloadKw.cmd == "user_joined") client.groups[gid].connections[payloadKw.sid] = payloadKw;
 
-        if(payloadKw.cmd == "user_joined") client.groups[gid].connections[payloadKw.sid] = payloadKw;
-
-        if(payloadKw.members) {
-            payloadKw.members.forEach(function(item) {
-                if(isFinite(item.sid) > 0) client.groups[gid].connections[item.sid] = item;
-                if(isFinite(item.slot)) client.groups[gid].members[item.slot] = item;
-            });
+            if(payloadKw.members) {
+                payloadKw.members.forEach(function(item) {
+                    if(isFinite(item.sid) > 0) client.groups[gid].connections[item.sid] = item;
+                    if(isFinite(item.slot)) client.groups[gid].members[item.slot] = item;
+                });
+            }
         }
     } else if(payloadKw.cmd == "user_detached") {
         delete client.groups[payloadKw.gid].connections[payloadKw.sid];
@@ -211,7 +212,7 @@ WgsClient.prototype._update_group_users = function(id,details,errorURI,payload, 
         group_change_callback(id,details,errorURI,payload,payloadKw);
     }
     
-    if(client.groups[payloadKw.gid].group_change_callback) {
+    if(client.groups[payloadKw.gid] && client.groups[payloadKw.gid].group_change_callback) {
         client.groups[payloadKw.gid].group_change_callback(id,details,errorURI,payload,payloadKw);
     }        
 
