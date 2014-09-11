@@ -233,6 +233,7 @@ Board3D.prototype =
 
 
         /*************************************************************/
+        this.bgcolor = sglV4C(0.8, 0.65, 0.33, 1.0);
         this.color1 = sglV4C(0.92, 0.69, 0.24, 1.0);
         this.color2 = sglV4C(0.55, 0.33, 0.18, 1.0);
         this.setCustomPieceColors(true);
@@ -343,6 +344,11 @@ Board3D.prototype =
        var alpha = a? 1.0 : 0.0
        this.color1[3] = alpha;
        this.color2[3] = alpha;
+       this.invalidate();
+    },
+
+    setBackgroundColor : function(r,g,b,a) {
+       this.bgcolor = sglV4C(r, g, b, this.bgcolor[3]);
        this.invalidate();
     },
 
@@ -1215,7 +1221,7 @@ Board3D.prototype =
         else gl.clearColor(0.8, 0.65, 0.33, 1.0);
         */
 
-        gl.clearColor(0.8, 0.65, 0.33, 1.0);
+        gl.clearColor(this.bgcolor[0], this.bgcolor[1], this.bgcolor[2], this.bgcolor[3]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
         gl.viewport(0, 0, w, h);
