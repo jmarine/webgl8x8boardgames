@@ -19,13 +19,12 @@
 * {
   margin: 0;
   padding: 0;
-  font-size: 12px;
   color: #402b2a; 
+  font-size: 12px;
+  font-family: Helvetica, Verdana, Arial, sans-serif;
 }
 
 body {
-  font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, sans-serif;
-  padding: 0px;
   overflow:hidden;
 }
 
@@ -40,10 +39,10 @@ body {
   left: 0px; 
   width: 260px; 
   padding: 5px; 
-  border: 3px groove #402b2a; 
   background-color: #f7e3a4; 
-  -webkit-user-select: none; -moz-user-select: none; user-select: none;
-  -webkit-border-bottom-right-radius: 10px; -khtml-border-bottom-right-radius: 10px; border-bottom-right-radius: 10px
+  border: 3px groove #402b2a; 
+  border-bottom-right-radius: 10px; -webkit-border-bottom-right-radius: 10px; -khtml-border-bottom-right-radius: 10px; 
+  user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
 
 #board {
@@ -54,7 +53,6 @@ body {
 }
 
 #credits {
-  font-size: 12px;
 }
 
 #help {
@@ -62,18 +60,16 @@ body {
 }
 
 #controls {
-  font-size: 12px;
   position: absolute; 
   right: 0px; 
   background-color: #f7e3a4; 
-  border: 3px groove #402b2a; 
   padding: 5px; 
-  -webkit-user-select: none; -moz-user-select: none; user-select: none;
-  -webkit-border-bottom-left-radius: 10px; -khtml-border-bottom-left-radius: 10px; border-bottom-left-radius: 10px;
+  border: 3px groove #402b2a; 
+  border-bottom-left-radius: 10px;-webkit-border-bottom-left-radius: 10px; -khtml-border-bottom-left-radius: 10px;
+  user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
 
 #config {
-  font-size: 12px;
   position: absolute; 
   right: 0px; 
   background-color: #f7e3a4; 
@@ -110,12 +106,12 @@ body {
   margin-left: -262px; 
   width: 500px; 
   height: 60px; 
-  border: 3px groove #402b2a; 
   background-color: #f7e3a4; 
   padding: 10px; 
   text-align: center;
+  border: 3px groove #402b2a; 
+  border-radius: 10px; -webkit-border-radius: 10px; -khtml-border-radius: 10px;
   -webkit-user-select: none; -moz-user-select: none; user-select: none;
-  -webkit-border-radius: 10px; -khtml-border-radius: 10px; border-radius: 10px; 
 }
 
 #join, #join2, #network_status {
@@ -136,9 +132,7 @@ select.list {
   float: left;
 }
 
-button {
-  float: left;
-}
+
 
 #connect_section, #list_games, #btnDisconnect, #btnFinishGame, #btnShowMatchingOptions, #btnHideMatchingOptions, #btnCreateGame, #btnDeleteFinishedGames, #matching_options {
   display: none;
@@ -190,12 +184,22 @@ form input {
 
 /*********************/
 
+button {
+  float: left;
+}
+
 button, input[type=submit] {
+  padding: 2px 4px 2px 4px;
   border: 1px #6c3000 solid;
-  margin-bottom: 2px;
   border-radius: 6px;
   margin-top: 5px;
+  margin-bottom: 2px;
   margin-right: 4px;
+}
+
+button::-moz-focus-inner { 
+  border: 0;
+  padding: 0;
 }
 
 button:active {
@@ -257,7 +261,6 @@ option:active {
 .scrollTableData {
   clear:both;
   border: 1px #6c3000 solid;
-  font-size: 12px;
 }
 
 .scrollTableRow > td {
