@@ -4,12 +4,12 @@ CACHE MANIFEST
 # Explicitly cached entries
 CACHE:
 
-index.html
+app.html
+app.js
 board3d.js
 move.js
 googleAnalyticsTOS.html
 network.js
-index.js
 storage.js
 players.js
 ai-worker.js
