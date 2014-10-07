@@ -1,0 +1,773 @@
+<!--
+    WebGL 8x8 board games
+    Copyright (C) 2011-2014 by Jordi Mariné Fort
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"> 
+<TITLE>WebGL 8x8 board games</TITLE> 
+
+<meta name="author" content="Jordi Mariné Fort <jmarine@tinet.org>">
+<meta name="description" content="Play draughts/checkers, chess or breakthrough games against your computer, or with a local/remote friend. It only works in browsers with WebGL support.">
+
+<link rel="stylesheet" href="styles.css" />
+
+<script src='libs/spidergl.js'></script>
+<SCRIPT type="text/javascript" src="libs/sylvester.js"></SCRIPT>
+
+<SCRIPT type="text/javascript" src="theme.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Board.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/BoardCell.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Pawn.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Queen.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/King.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Bishop.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Knight.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/chess/Rook.js"></SCRIPT>  
+
+<SCRIPT language="javascript">
+var chessTheme = BlenderExport;
+var chess960Theme = BlenderExport;
+var breakthroughTheme = BlenderExport;
+</SCRIPT>
+
+<SCRIPT type="text/javascript" src="theme.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="themes/draughts/Board.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="themes/draughts/BoardCell.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="themes/draughts/Pawn.js"></SCRIPT>
+<SCRIPT type="text/javascript" src="themes/draughts/Queen.js"></SCRIPT>
+
+<SCRIPT language="javascript">
+var draughtsTheme = BlenderExport;
+var checkersTheme = BlenderExport;
+</SCRIPT>
+
+
+<script type="text/javascript" src="libs/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="libs/jquery-ui-1.9.2.js"></script>
+<script type="text/javascript" src="libs/wgs/md5.js"></script>
+<script type="text/javascript" src="libs/wgs/hmac-sha256.js"></script>
+<script type="text/javascript" src="libs/wgs/pbkdf2.js"></script>
+<script type="text/javascript" src="libs/wgs/enc-base64-min.js"></script>
+<script type="text/javascript" src="libs/wgs/wamp2.js"></script>
+<script type="text/javascript" src="libs/wgs/wgs-client-2.0.js"></script>
+
+<SCRIPT type="text/javascript" src="ai.js"></SCRIPT>  
+<script type="text/javascript" src='ui.js'></script>
+<SCRIPT type="text/javascript" src="game.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="move.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="draughts.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="checkers.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="chess.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="chess960.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="breakthrough.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="players.js"></SCRIPT>  
+<script type="text/javascript" src='index.js'></script>
+<script type="text/javascript" src='board3d.js'></script>
+<script type="text/javascript" src='storage.js'></script>
+<script type="text/javascript" src='network.js'></script>
+
+<script language="javascript">
+function preloadSounds() {
+  var audio = document.getElementById('move');
+  if(audio) audio.load();
+  audio = document.getElementById('select');
+  if(audio) audio.load(); 
+}
+
+function playSound(id) {
+   if($('#sounds')[0].checked) {
+     var audio = document.getElementById(id);
+     if(audio) { 
+       audio.load(); 
+       audio.play(); 
+     }
+   }
+}
+</script>
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-21265464-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+<script id="SHADOW_PASS_VERTEX_SHADER" type="x-shader/x-vertex">
+precision mediump float;
+
+uniform   mat4 u_mvp;
+attribute vec4 a_position;
+void main(void)
+{
+        gl_Position = u_mvp * a_position;
+}
+</script>
+
+<script id="SHADOW_PASS_FRAGMENT_SHADER" type="x-shader/x-fragment">
+precision mediump float;
+
+
+vec4 pack_depth(const in float depth)
+{
+        const vec4 bit_shift = vec4(256.0*256.0*256.0, 256.0*256.0, 256.0, 1.0);
+        const vec4 bit_mask  = vec4(0.0, 1.0/256.0, 1.0/256.0, 1.0/256.0);
+        vec4 res = fract(depth * bit_shift);
+        res -= res.xxyz * bit_mask;
+        return res;
+}
+
+
+void main(void)
+{
+        gl_FragData[0] = pack_depth(gl_FragCoord.z);
+}
+</script>
+
+
+<script id="LIGHT_PASS_VERTEX_SHADER" type="x-shader/x-vertex">
+precision mediump float;
+
+uniform   mat4 u_mv;
+uniform   mat4 u_mvp;
+uniform   mat4 u_shadowMatrix;
+uniform   mat3 u_worldNormalMatrix;
+
+attribute vec3 a_position;
+attribute vec3 a_normal;
+attribute vec2 a_texCoord;
+
+varying   vec3 v_normal;
+varying   vec4 v_shadowCoord;
+varying   vec2 v_texCoord;
+varying   vec4 v_position;
+
+
+void main (void)
+{
+	v_texCoord    = a_texCoord;
+	v_normal      = u_worldNormalMatrix * a_normal;
+	v_position    = u_mv * vec4(a_position, 1.0);
+	v_shadowCoord = u_shadowMatrix * vec4(a_position, 1.0);
+	gl_Position   = u_mvp * vec4(a_position, 1.0);
+}
+
+</script>
+
+<script id="LIGHT_PASS_FRAGMENT_SHADER" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform float     u_opacity;
+uniform float     u_materialShininess;
+uniform vec4      u_color;
+uniform sampler2D u_texture;
+uniform sampler2D u_shadowMap;
+uniform float     u_biasToLowerMoirePattern;
+
+uniform vec3 u_worldLightPos;
+uniform vec3 u_ambientColor;
+uniform vec3 u_diffuseLightColor;
+uniform vec3 u_specularLightColor;
+
+varying vec4 v_shadowCoord;
+varying vec2 v_texCoord;
+
+varying vec3 v_normal;
+varying vec4 v_position;
+
+float unpack_depth(const in vec4 rgba_depth)
+{
+      const vec4 bit_shift = vec4(1.0/(256.0*256.0*256.0), 1.0/(256.0*256.0), 1.0/256.0, 1.0);
+      float depth = dot(rgba_depth, bit_shift);
+      return depth;
+}
+
+void main (void)
+{
+      vec3  shadow_coord = v_shadowCoord.xyz / v_shadowCoord.w;
+      float depth = unpack_depth(texture2D(u_shadowMap, shadow_coord.xy));
+      float visibility = (depth > shadow_coord.z-u_biasToLowerMoirePattern) ? (1.0) : (0.75);
+
+      vec3 lightDirection = normalize(u_worldLightPos - v_position.xyz);
+      vec3 normal = normalize(v_normal.xyz);
+
+      vec3 eyeDirection = normalize(-v_position.xyz);
+      vec3 reflectionDirection = reflect(-lightDirection, normal);
+
+      float specularLightWeighting = 0.0;
+      if(u_materialShininess > 0.0) {
+        specularLightWeighting = pow(clamp(dot(reflectionDirection, eyeDirection), 0.0, 1.0), u_materialShininess);
+      }
+
+      float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+
+      vec3 lightWeighting = u_ambientColor
+        + u_diffuseLightColor * diffuseLightWeighting
+        + u_specularLightColor * specularLightWeighting;
+
+      vec4 baseColor = u_color; 
+      if(baseColor.a == 0.0) baseColor = texture2D(u_texture, vec2(v_texCoord.s, v_texCoord.t));
+      vec3 color = vec3(baseColor.rgb * lightWeighting * visibility);
+
+      if(u_opacity == 0.0) {
+        gl_FragData[0] = vec4(color, baseColor.a);
+      } else {
+        gl_FragData[0] = vec4(color, u_opacity);
+      }
+
+}
+
+</script>
+
+
+ 
+<SCRIPT type="text/javascript"> 
+function showMessage(msg) {
+  if(msg) {
+	$('#message').html(msg);
+	$('#messageBox').show();
+  } else {
+        $('#messageBox').hide();
+  }
+}
+
+
+function toggleCredits() {
+  $('#credits').toggle();
+  //showMessage("Test message");
+}
+
+
+function hideOptions() {
+  $('#config').hide();
+  $('#btnSetup').show();
+  $('#controls').show();
+}
+
+function showOptions() {
+  $('#btnSetup').hide();
+  $('#controls').hide();
+  $('#config').show();
+  $('#options').show();
+}
+
+
+function adjustScrollTable(tableName){
+ 
+  var colCount = $('#' + tableName + 'Header .columnHeader').length; //get total number of column
+ 
+  var m = 0;
+  var n = 0;
+  var brow = 'mozilla';
+ 
+  jQuery.each(jQuery.browser, function(i, val) {
+    if(val == true){
+      brow = i.toString();
+    }
+  });
+ 
+ 
+  if($('#' + tableName + 'Table tr').size() <= 0) {
+    $('#' + tableName + 'Header table').width("100%");
+  } else {
+    $('#' + tableName + 'Header table').width("0");
+    $('#' + tableName + 'Header .columnHeader').each(function(i){
+      if (m < colCount-1){
+
+        if (brow == 'mozilla'){
+          $('#firstTd').css("width",$('.tableFirstCol').innerWidth());//for adjusting first td
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').innerWidth());  //for assigning width to table Header div
+        }
+        else if (brow == 'msie'){
+          $('#firstTd').css("width",$('.tableFirstCol').width());
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').width()-2);  //In IE there is difference of 2 px
+        }
+        else if (brow == 'safari'){
+          $('#firstTd').css("width",$('.tableFirstCol').width());
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').width());
+        }
+        else {
+          $('#firstTd').css("width",$('.tableFirstCol').width());
+          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').innerWidth());
+        }
+      }
+      m++;
+    });
+  }
+   
+}
+
+function fnScroll(tableName){
+  $('#' + tableName + 'Header').scrollLeft($('#' + tableName + 'Table').scrollLeft());
+  //$('#' + tableName + 'FirstRow').scrollTop($('#' + tableName + 'Table').scrollTop());
+}
+
+
+/*** WGS ***/
+
+var notificationChannel = null;
+
+function authentication(state, msg) {
+    console.log("authentication state: " + state);
+
+    if(state == ConnectionState.ERROR) {
+        alert(msg);
+        
+    } else if(state == ConnectionState.CONNECTED) {
+        $("#server_url").attr("disabled", "disabled");
+        
+        //Network.getWgsClient().heartbeat(5000, "*****DISCARDED HEARTBEAT PAYLOAD*******");
+
+    } else if(state == ConnectionState.CHALLENGED) {        
+        console.log("Challenge: " + msg);
+        
+        if(msg._oauth2_provider_url) {
+            window.open(msg._oauth2_provider_url + "&state=" + escape(notificationChannel), '_blank');
+            
+        } else if(msg._oauth2_providers) {  
+            // OAuth 2.0 / OpenID Connect selector
+            var providers = $("#openid_providers_menu");
+            providers.find("li:gt(0)").each(function(){
+                $(this).remove();
+            });
+            
+            msg._oauth2_providers.forEach(function(provider) {
+                var link = $("<a>");
+                link.text(provider.name);
+                link.attr("class", "ui-corner-all")
+                if(provider.url) link.attr("onclick", "javascript:window.open('" + provider.url + "&state=" + escape(notificationChannel) + "','_blank')");
+                // else link.attr("onclick", "javascript:wgsclient.openIdConnectFromSubject('"+realm+"','"+provider.registrationEndpoint+"', get_openid_connect_callback_url(), notificationChannel, authentication);");
+
+                var item = $("<li>");
+                item.attr("class", "ui-menu-item").append(link)
+                providers.append(item);
+            });
+
+        
+            var menu = $( "#oic_connect" ).next().next().show().position({
+                            my: "left top",
+                            at: "left bottom",
+                            offset: "0 2",
+                            of: "#btnConnect"
+                        });
+            $( document ).one( "click", function() {
+                menu.hide();
+                //wgsclient.close();
+                //wgsclient = null;
+            });
+        }
+
+        
+    } else if(state == ConnectionState.WELCOMED || state == ConnectionState.AUTHENTICATED) {
+
+        $("#btnRegister").attr("disabled", "disabled");
+        $("#oic_connect").attr("disabled", "disabled");
+
+
+        if(msg && msg.picture) {
+            $("#user_picture").attr("src", msg.picture).width(48).height(48);
+        } else {
+            $("#user_picture").attr("src", "images/anonymous.png").width(48).height(48);
+        }
+
+        if(state == ConnectionState.AUTHENTICATED) {
+            $("#user").attr("disabled", "disabled");
+            $("#password").attr("disabled", "disabled");
+            
+            if(msg.name) $("#user").val(msg.name);
+            $("#lbl_password").hide();
+            $("#password").hide();
+
+            $("#btnConnect").hide();
+            $("#oic_connect").hide();
+            $("#btnRegister").hide();
+        } 
+
+        Network.onConnect(msg); 
+
+    } else if(state == ConnectionState.DISCONNECTED  || state == ConnectionState.CLOSED) {
+        if(Network) Network.disconnect();
+    }
+        
+}
+
+
+function openid_connect(redirectUri) {
+    if(!redirectUri) {
+        var redirectUri = get_openid_connect_callback_url();
+        var user = $("#user").val();
+        if(user.length == 0) {
+            alert("User name is empty");
+        } else {
+            var url = $("#server_url").val();
+            var wgsclient = Network.getWgsClient(url);
+            var realm = wgsclient.getDefaultRealm();
+            wgsclient.openIdConnectFromSubject(realm, user, redirectUri, notificationChannel, authentication);
+        }
+        
+    } else {
+        var url = $("#server_url").val();
+        var code = get_url_param(redirectUri, "code");
+        if(code != null) {
+            var provider = get_url_param(redirectUri, "provider");
+            redirectUri = clear_openid_connect_params(redirectUri, false);
+            
+            var wgsclient = Network.getWgsClient(url);
+            var realm = wgsclient.getDefaultRealm();
+            wgsclient.openIdConnectAuthCode(realm, provider, redirectUri, code, notificationChannel, authentication);
+        } else {
+            var error = get_url_param(redirectUri, "error");
+            if(Network) {
+              var wgsclient = Network.getWgsClient(null);
+              if(wgsclient) wgsclient.goodbye(error);
+            }
+        }
+    }
+}
+
+function get_url_param(url, param) {
+    var value = null;
+    var pos = url.indexOf("&"+param+"=");
+    if(pos == -1) pos = url.indexOf("?"+param+"=");
+    if(pos != -1) {
+        value = url.substring(pos+param.length+2);
+        pos = value.indexOf("&");
+        if(pos != -1) value = value.substring(0, pos);
+    }
+    return value;
+}
+
+
+function get_openid_connect_callback_url() {
+    var url = document.location.href;
+    url = url.substring(0, url.lastIndexOf("/")) + "/oauth2callback.html";
+    return url;
+}
+
+
+function clear_openid_connect_params(url,clearProvider) {
+    // Clear OpenId Connect's parameters
+    var oicParams = ["code","state","error","error_description","authuser","prompt","session_state","num_sessions"];
+    if(clearProvider) oicParams = ["provider", "code","state","error","error_description","authuser","prompt","session_state","gcmChannelId","num_sessions"];
+    oicParams.forEach(function(param) {
+        var paramPos = url.indexOf("&"+param+"=");
+        if(paramPos == -1) paramPos = url.indexOf("?"+param+"=");
+        if(paramPos != -1) {
+            var paramEnd = url.indexOf("&", paramPos+1);
+            var otherParams = (paramEnd != -1)? url.substring(paramEnd+1) : "";
+            var offset = (otherParams.length==0)? 0 : 1;
+            url = url.substring(0, paramPos+offset) + otherParams;
+        }
+    });
+
+    return url;
+}
+
+
+function openid_connect_menu(self) {
+    var url = $("#server_url").val();
+    var redirectUri = get_openid_connect_callback_url();
+    
+    var url = $("#server_url").val();
+    var wgsclient = Network.getWgsClient(url);
+    var realm = wgsclient.getDefaultRealm();
+    wgsclient.openIdConnectProviders(realm, redirectUri, authentication);
+}
+
+function initApp() {
+  initBoard3D(); 
+  UI.createGame(); 
+  listGames(); 
+  preloadSounds();
+}
+
+</SCRIPT> 
+ 
+ 
+</HEAD>
+<BODY onload="initApp();"> 
+<DIV id="main"> 
+  <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
+
+  <DIV id="title">
+     <H1><a href="javascript:toggleCredits()">WebGL 8x8 board games</a></H1>
+     <div id="credits">
+     <a class="author" href="mailto:jmarine@tinet.org">Copyright &copy; 2011 Jordi Marin&eacute; Fort</a><br>
+     The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">source code</a> of this game is licensed<br>under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a> and uses the libraries:<br>
+     - <a href="http://www.spidergl.org" target="_blank">SpiderGL v0.1.1</a> <br>
+     - <a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> <br>
+     - <a href="http://jquery.com" target="_blank">jQuery v1.8.3</a><br>
+     - <a href="https://github.com/jmarine/wgs" target="_blank">WGS v2</a><br>
+     - <a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a><br>
+     - <a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a><br>
+     </div>
+  </DIV>
+
+
+  <DIV id="controls">
+        <button id="btnSetup" onclick="javascript:showOptions(); return false;" style="clear:both">Configuration</button>
+        <button class='btnStartGame' style="clear:both">Start game</button>
+  </DIV>
+ 
+  <DIV id="config">
+    <form>
+      <div id="options">
+      <H4><a href="javascript:hideOptions()">Game configuration</a></H4>
+      <a href="#" id="minimize_options" style="float: right; text-decoration: none" onclick="javascript:hideOptions(); return false">&gt;</a>
+      <br>
+
+      <DIV id="players">
+         <dl>
+	   <dt><label for="game_type">Type</label> <a id="help" href="#">(?)</a>:</dt>
+	   <dd><select id="game_type">
+		<option value="draughts">Draughts</option>
+		<option value="checkers">Checkers</option>
+		<option value="chess">Chess</option>
+		<option value="chess960">Chess960</option>
+		<option value="breakthrough">Breakthrough</option>
+	      </select>
+           </dd>
+
+           <dt><label for=player1>Player 1:</label></dt>
+           <dd>
+		<select id='player1' name="player1">
+		  <option value="1">Local user</option>
+		  <option value="2">Network user</option>
+		  <option value="3">Computer Engine</option>
+		</select>
+           </dd>
+           <dt><label for=player2>Player 2:</label></dt>
+           <dd>
+		<select id='player2' name="player2">
+		  <option value="1">Local user</option>
+		  <option value="2">Network user</option>
+		  <option value="3" selected="true">Computer Engine</option>
+		</select>
+	   </dd>
+	 </dl>
+
+         <dl id="promotion_option">
+           <dt><label for="promotion_piece">Promote to:</label></dt>
+           <dd><select id="promotion_piece">
+                <option value="Q">Queen</option>
+                <option value="R">Rook</option>
+                <option value="B">Bishop</option>
+                <option value="N">Knight</option>
+              </select>
+           </dd>
+         </dl>
+
+
+         <button id='btnSaveGame' style="clear:left">Save game</button>
+         <button id='btnRetractMove'>Retract move</button>
+
+      </DIV>
+
+      <DIV id="storage" style="display: none">
+      <H4>Storage configuration</H4>
+           <dl>
+           <dt><label for="saved_games">Games:</label></dt>
+           <dd><select name="saved_games"></select></dd>
+           </dl>
+
+           <button id='btnLoadGame' style="clear:left">Load</button>
+           <button id='btnDeleteGame'>Delete</button>
+           <button id='btnDeleteAllGames'>Delete all</button>
+
+      </DIV>
+
+
+      <DIV id="ui">
+      <H4>UI configuration</H4>
+	<dl>
+
+           <dt><label for="shadows">Shadows:</label></dt>
+           <dd><input id='shadows' type="checkbox" value="1" checked></dd>
+
+           <dt><label for="reflections">Reflections:</label></dt>
+           <dd><input id='reflections' type="checkbox" value="1"></dd>
+
+           <dt><label for="color1">White color:</label></dt>
+	   <dd><input type="color" id="color1" name="color1" value="#EAB13D"></dd>
+
+           <dt><label for="color2">Black color:</label></dt>
+	   <dd><input type="color" id="color2" name="color2" value="#8C532D"></dd>
+
+	   <dt><label for="bgcolor">Background:</label></dt>
+	   <dd><input type="color" id="bgcolor" name="bgcolor" value="#CCA554"></dd>
+
+	</dl>
+      </DIV>
+
+      <DIV id="sound">
+      <H4>Sound configuration</H4>
+        <dl>
+           <dt><label for="sounds">Effects:</label></dt>
+           <dd><input id='sounds' type="checkbox" value="1"></dd>
+	</dl>
+      </DIV>
+
+
+      <DIV id="ai">
+      <H4>AI engine configuration</H4>
+	<dl>
+	   <dt><label for="algorithm_name">Algorithm:</label></dt>
+	   <dd><select id="algorithm_name">
+		<option value="alphaBeta">Alpha-Beta</option>
+		<option value="negascout">Negascout</option>
+		<option value="MTDf">MTDf</option>
+	      </select>
+           </dd>
+           <dt><label for="level">Level:</label></dt>
+           <dd><input id='level' value="6" size="1" maxlength="1"></dd>
+	</dl>
+      </DIV>
+
+      <DIV id="network">
+      <H4>Network configuration</H4>
+         <dl>
+           <dt><label for="server_url">WGS url:</label></dt>
+           <dd><input name="server_url" id="server_url" name="server_url" value='wss://wgs-jmarine.rhcloud.com:8443/wgs'></dd>
+
+           <dt><label for="user">User:</label></dt>
+           <dd><input id="user" name="user" value=""></dd>
+
+           <dt><label for="password" id="lbl_password">Password:</label></dt>
+           <dd><input id="password" type="password" value=""></dd>
+        </dl>
+
+        <!-- img id="user_picture" width="0" height="0" -->
+
+
+      <!--<DIV id="extend_list" style="width:100%">-->
+      <button id="btnConnect" style="clear:left">Connect</button>
+      <button id="oic_connect">&nbsp;</button>
+      <button id="btnRegister">Register</button>
+
+      <ul id="openid_providers_menu" style="display: none;">
+        <li><a href="javascript:openid_connect(false);">OpenID Connect provider</a></li>
+      </ul>    
+      <!--</DIV>-->
+
+
+
+      </DIV>
+
+
+
+
+      <div id="network_status">
+	Waiting connection
+      </div>
+
+
+
+      <div id="games_section" style="width: 100%; display: none">
+      <H4>Select game:</H4>
+      <div id="groupsHeader" class="scrollTableHeader" style="overflow:hidden;width:100%">
+        <table cellspacing="0" cellpadding="0" border="0" >
+          <tr id='firstTr'>
+            <td>
+              <div class="columnHeader">Game</div>
+            </td>
+            <td>
+              <div class="columnHeader">Status</div>
+            </td>
+            <td>
+              <div class="columnHeader">#</div>
+            </td>
+            <td>
+              <div class="columnHeader">Members</div>
+            </td>
+          </tr>
+        </table>
+      </div>  
+      <div id="groupsTable" class="scrollTableData" style="width:100%;position:relative" onscroll="fnScroll('groups')" >
+        <table cellspacing="0" cellpadding="0" border="0" width="100%">
+          <!--<tr>
+            <td>Chess</td>
+            <td>Open</td>
+            <td>2/2</td>
+            <td>Judith vs Irene</td>
+          </tr>-->
+        </table>
+      </div>
+      </div>
+
+      <div id="matching_options" style="display: none">
+      <H4>Create game</H4>
+        <dl>
+          <dt><label for="new_grp_role">Role:</label></dt>
+          <dd><select id="new_grp_role" name="new_grp_role">
+                <option value="">Any</option>
+                <option value="White">White</option>
+                <option value="Black">Black</option></select></dd>
+
+          <dt><label for="new_grp_opponent">Opponent:</label></dt>
+          <dd><select name="new_grp_opponent" id="new_grp_opponent">
+                <option value="">Auto-match</option>
+              </select>
+          </dd>
+
+          <dt><label for="new_grp_observable">Observable</label></dt>
+          <dd><input type="checkbox" name="new_grp_observable" id="new_grp_observable" /></dd>
+
+          <dt><label for="new_grp_hidden">Hidden:</label></dt>
+          <dd><input type="checkbox" name="new_grp_hidden" id="new_grp_hidden" /></dd>
+
+          <dt><label for="new_grp_password">Password:</label></dt>
+          <dd><input type="password" name="new_grp_password" id="new_grp_password" /></dd>
+
+        </dl>
+      </div>
+
+
+      <button id="btnHideMatchingOptions" style="clear:both">Back</button>
+      <button id="btnCreateGame">Create</button>
+
+      <button id="btnShowMatchingOptions">New game</button>
+      <button id="btnDeleteFinishedGames">Delete finished</button>
+
+      <button id="btnFinishGame">Resign</button>
+      <button id="btnDisconnect">Disconnect</button>
+
+      <button class='btnStartGame' style="clear:both">Start game</button>
+
+    </div>
+  </form>
+  </DIV>
+
+  <DIV id="messageBox">
+    <table border="0" width="100%" height="100%">
+    <tr>
+    <td valign="middle" align="center">
+    <div id="message">
+    Loading game...
+    </div>
+    </td>
+    </tr>
+    </table>
+  </DIV>
+
+</DIV>
+
+<audio id="move" src="resources/sounds/move.ogg" preload="auto">
+
+</BODY>
+</HTML>
