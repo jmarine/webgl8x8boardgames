@@ -267,7 +267,7 @@ WgsClient.prototype.isMemberOfGroup = function(gid) {
     return retval;
 }
 
-WgsClient.prototype.updateGroup = function(appId, gid, state, data, automatch, hidden, observable, dynamic, alliances, callback) {
+WgsClient.prototype.updateGroup = function(appId, gid, state, ready, data, automatch, hidden, observable, dynamic, alliances, callback) {
     var client = this;
     var msg = Object();
     msg.app = appId;
@@ -277,8 +277,11 @@ WgsClient.prototype.updateGroup = function(appId, gid, state, data, automatch, h
     msg.observable = observable;
     msg.dynamic = dynamic;
     msg.alliances = alliances;      
-    if(state) msg.state = state;
     if(data) msg.data  = data;
+    if(state) {
+        msg.state = state;
+        msg.ready = ready;        
+    }
 
     this.call("wgs.update_group", msg).then(function(id,details,errorURI,result,resultKw) { 
         client._update_group_users(id,details,errorURI,result,resultKw, null, callback, false);
