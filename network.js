@@ -92,16 +92,6 @@ onConnect: function(msg) {
 
     Network.wgsclient.subscribe("wgs.apps_event", Network.update_groups, null, {"match": "exact"} );
 
-    /*
-        if(msg && msg.picture) {
-            $("#user_picture").attr("src", msg.picture).width(48).height(48);
-        } else if(state == ConnectionState.ANONYMOUS) {
-            $("#user_picture").attr("src", "images/anonymous.png").width(48).height(48);
-        } else {
-            $("#user_picture").width(0).height(0);
-        }
-    */
-
     if(msg) {
       this.user = msg;
       this.nick = msg.user;
@@ -154,6 +144,14 @@ getOpponentNick: function()
 exitGame: function(waitNewGame)
 {
     acceptHumanMove(false);
+
+    $("#member0").hide();
+    $("#member1").hide();
+    $("#state0").hide();
+    $("#state1").hide();
+    $("#game_type").removeAttr("disabled");
+    $("#player1").show();
+    $("#player2").show();
 
     $('#network_status').hide();
     $("#btnFinishGame").hide();
@@ -221,7 +219,7 @@ group_finished: function() {
   var group = Network.gameRoom;
   if(this.wgsclient && group && group.state != "FINISHED") {
     var newState = "FINISHED";
-    this.wgsclient.updateGroup(group.appId, group.gid, newState, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
+    this.wgsclient.updateGroup(group.appId, group.gid, newState, false, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
        if(errorURI) alert(errorURI);
     });
   }
@@ -237,13 +235,22 @@ group_opened: function(group) {
           newState = "FINISHED";
         }
 
-        this.wgsclient.updateGroup(group.appId, group.gid, newState, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
+        this.wgsclient.updateGroup(group.appId, group.gid, newState, false, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
            if(errorURI) alert(errorURI);
         });
 
         group.state = newState;
 
     }
+
+    $('#game_type').attr('disabled','disabled');
+    $("#player1").hide();
+    $("#player2").hide();
+    $("#member0").show();
+    $("#member1").show();
+    $("#state0").show();
+    $("#state1").show();
+    
 
     $('#start').hide();
     $('#games_section').hide();
@@ -352,6 +359,58 @@ group_changed: function(group) {
         }
       }
     }
+
+
+    if(group.members) {
+        var currentUser = Network.wgsclient.user;
+        var currentUserIsOnlineMember = false;
+        var currentUserIsOfflineMember = false;
+        group.members.forEach(function(member, index) {
+            if(!member.connected && member.user==currentUser) {
+                currentUserIsOfflineMember = true;
+            }
+        });
+        group.members.forEach(function(member) {
+            var memberId = member.slot;
+            var selected = "";
+            var roleFixed = false;
+            var currentUserSelected = false;
+            
+            if(member.sid==Network.wgsclient.sid) {
+                var selected = "";
+                if(currentUserIsOfflineMember && (!member.connected) && member.user==currentUser) {
+                    currentUserSelected = true;;
+                    currentUserIsOnlineMember = true;
+                    currentUserIsOfflineMember = false;
+                    roleFixed = true;
+                }
+                if(!currentUserIsOfflineMember && !currentUserIsOnlineMember) {
+                    currentUserSelected = true;
+                    currentUserIsOnlineMember = true;
+                }
+            } else {
+                roleFixed = true;
+            }
+
+            Network.update_group_member(memberId, member, currentUserSelected, roleFixed);
+
+        });
+    }
+
+},
+
+update_group_member: function(memberId, member, currentUserSelected, roleFixed) {
+    var memberState = member.state ? member.state : "empty";
+    var memberType  = member.type  ? member.type  : "user";
+    var memberName  = member.name  ? member.name  : "";
+    if(memberName.length == 0) memberName = "Empty";
+    //if( member.sid && member.sid == Network.wgsclient.sid ) memberName = "Me";
+    
+    var status = memberState.toLowerCase();
+    if(status != 'empty') status = memberType.toLowerCase() + "_" + status;
+    $("#state" + memberId).attr("src", "/images/" + status + ".png");
+    $("#state" + memberId).attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
+    $("#member" + memberId).html( memberName );
 },
 
 
@@ -505,7 +564,7 @@ disconnect: function() {
         $("#password").val("");
         $("#password").show();
         $("#lbl_password").show();
-        //$("#user_picture").width(0).height(0);
+        $("#user_picture").width(0).height(0);
 
         $("#btnConnect").removeAttr("disabled");
         $("#btnRegister").removeAttr("disabled");

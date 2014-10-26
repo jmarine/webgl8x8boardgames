@@ -247,25 +247,44 @@ function showMessage(msg) {
   }
 }
 
+function showCredits() {
+  $('#title').show();
+  $('#imgBadge').show();
+  //showMessage("Test message");
+}
 
-function toggleCredits() {
-  $('#credits').toggle();
+function hideCredits() {
+  $('#title').hide();
+  $('#imgBadge').hide();
   //showMessage("Test message");
 }
 
 
 function hideOptions() {
+  $('#title').hide();
+  $('#imgBadge').hide();
   $('#config').hide();
-  $('#btnSetup').show();
+  $('#btnOptions').show();
   $('#controls').show();
 }
 
 function showOptions() {
-  $('#btnSetup').hide();
+  $('#games').hide();
+  $('#btnOptions').hide();
   $('#controls').hide();
   $('#config').show();
   $('#options').show();
 }
+
+function showGames() {
+  $('#options').hide();
+  $('#btnOptions').hide();
+  $('#controls').hide();
+  $('#games').show();
+  $('#config').show();
+}
+
+
 
 
 function adjustScrollTable(tableName){
@@ -379,13 +398,7 @@ function authentication(state, msg) {
         $("#btnRegister").attr("disabled", "disabled");
         $("#oic_connect").attr("disabled", "disabled");
 
-
-        if(msg && msg.picture) {
-            $("#user_picture").attr("src", msg.picture).width(48).height(48);
-        } else {
-            $("#user_picture").attr("src", "images/anonymous.png").width(48).height(48);
-        }
-
+        $("#user_picture").attr("src", "/images/anonymous.png");
         if(state == ConnectionState.AUTHENTICATED) {
             $("#user").attr("disabled", "disabled");
             $("#password").attr("disabled", "disabled");
@@ -397,7 +410,10 @@ function authentication(state, msg) {
             $("#btnConnect").hide();
             $("#oic_connect").hide();
             $("#btnRegister").hide();
+            if(msg.picture) $("#user_picture").attr("src", msg.picture);
         } 
+
+        $("#user_picture").width(48).height(48);
 
         Network.onConnect(msg); 
 
@@ -506,7 +522,7 @@ function initApp() {
   <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
 
   <DIV id="title">
-     <H1><a href="javascript:toggleCredits()">WebGL 8x8 board games</a></H1>
+     <H1><a href="javascript:hideCredits()">WebGL 8x8 board games</a></H1>
      <div id="credits">
      <a class="author" href="mailto:jmarine@tinet.org">Copyright &copy; 2011 Jordi Marin&eacute; Fort</a><br>
      The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">source code</a> of this game is licensed<br>under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a> and uses the libraries:<br>
@@ -521,80 +537,20 @@ function initApp() {
 
 
   <DIV id="controls">
-        <button id="btnSetup" onclick="javascript:showOptions(); return false;" style="clear:both">Configuration</button>
-        <button class='btnStartGame' style="clear:both">Restart game</button>
+        <img id="imgBadge" style="float: left; margin: 0 0 0 3" src="resources/images/chromeexperiments-badge-trans.png"/>
+        <button id='btnGame' onclick="javascript:showGames(); return false;" style="float: left; clear: left">Game</button>
+        <button id="btnOptions" onclick="javascript:showOptions(); return false;" style="float: left">Options</button>
+        <button id="btnAbout" onclick="javascript:showCredits(); return false;" style="float: left">About</button>
   </DIV>
  
   <DIV id="config">
     <form>
       <div id="options">
-      <H4><a href="javascript:hideOptions()">Game configuration</a></H4>
-      <a href="#" id="minimize_options" style="float: right; text-decoration: none" onclick="javascript:hideOptions(); return false">&gt;</a>
+      <DIV id="ui">
+      <H4><a href="javascript:hideOptions()">UI configuration</a></H4>
+      <a href="#" id="hide_options" style="float: right; text-decoration: none" onclick="javascript:hideOptions(); return false">&gt;</a>
       <br>
 
-      <DIV id="players">
-         <dl>
-	   <dt><label for="game_type">Type</label> <a id="help" href="#">(?)</a>:</dt>
-	   <dd><select id="game_type">
-		<option value="draughts">Draughts</option>
-		<option value="checkers">Checkers</option>
-		<option value="chess">Chess</option>
-		<option value="chess960">Chess960</option>
-		<option value="breakthrough">Breakthrough</option>
-	      </select>
-           </dd>
-
-           <dt><label for=player1>Player 1:</label></dt>
-           <dd>
-		<select id='player1' name="player1">
-		  <option value="1">Local user</option>
-		  <option value="2">Network user</option>
-		  <option value="3">Computer Engine</option>
-		</select>
-           </dd>
-           <dt><label for=player2>Player 2:</label></dt>
-           <dd>
-		<select id='player2' name="player2">
-		  <option value="1">Local user</option>
-		  <option value="2">Network user</option>
-		  <option value="3" selected="true">Computer Engine</option>
-		</select>
-	   </dd>
-	 </dl>
-
-         <dl id="promotion_option">
-           <dt><label for="promotion_piece">Promote to:</label></dt>
-           <dd><select id="promotion_piece">
-                <option value="Q">Queen</option>
-                <option value="R">Rook</option>
-                <option value="B">Bishop</option>
-                <option value="N">Knight</option>
-              </select>
-           </dd>
-         </dl>
-
-
-         <button id='btnSaveGame' style="clear:left">Save game</button>
-         <button id='btnRetractMove'>Retract move</button>
-
-      </DIV>
-
-      <DIV id="storage" style="display: none">
-      <H4>Storage configuration</H4>
-           <dl>
-           <dt><label for="saved_games">Games:</label></dt>
-           <dd><select name="saved_games"></select></dd>
-           </dl>
-
-           <button id='btnLoadGame' style="clear:left">Load</button>
-           <button id='btnDeleteGame'>Delete</button>
-           <button id='btnDeleteAllGames'>Delete all</button>
-
-      </DIV>
-
-
-      <DIV id="ui">
-      <H4>UI configuration</H4>
 	<dl>
 
            <dt><label for="shadows">Shadows:</label></dt>
@@ -639,9 +595,84 @@ function initApp() {
 	</dl>
       </DIV>
 
-      <DIV id="network">
-      <H4>Network configuration</H4>
+
+      <DIV id="actions">
+      <H4>Game options</H4>
+         <dl id="promotion_option">
+           <dt><label for="promotion_piece">Promote to:</label></dt>
+           <dd><select id="promotion_piece">
+                <option value="Q">Queen</option>
+                <option value="R">Rook</option>
+                <option value="B">Bishop</option>
+                <option value="N">Knight</option>
+              </select>
+           </dd>
+         </dl>
+
+         <button id='btnSaveGame' style="clear:left">Save game</button>
+         <button id='btnRetractMove'>Retract move</button>
+      </DIV>
+
+      <DIV id="storage" style="display: none">
+      <H4>Saved games</H4>
+           <dl>
+           <dt><label for="saved_games">Name:</label></dt>
+           <dd><select name="saved_games"></select></dd>
+           </dl>
+
+           <button id='btnLoadGame' style="clear:left">Load</button>
+           <button id='btnDeleteGame'>Delete</button>
+           <button id='btnDeleteAllGames'>Delete all</button>
+
+      </DIV>
+
+
+      </div>
+
+      <div id="games">
+      <H4><a href="javascript:hideOptions()">Game &amp; players</a></H4>
+      <a href="#" id="hide_options" style="float: right; text-decoration: none" onclick="javascript:hideOptions(); return false">&gt;</a>
+      <br>
+
+      <DIV id="players">
          <dl>
+	   <dt><label for="game_type">Type</label> <a id="help" href="#">(?)</a>:</dt>
+	   <dd><select id="game_type">
+		<option value="draughts">Draughts</option>
+		<option value="checkers">Checkers</option>
+		<option value="chess">Chess</option>
+		<option value="chess960">Chess960</option>
+		<option value="breakthrough">Breakthrough</option>
+	      </select>
+           </dd>
+
+           <dt><label for=player1>Player 1:</label></dt>
+           <dd>
+		<select id='player1' name="player1">
+		  <option value="1">Local user</option>
+		  <option value="2">Network user</option>
+		  <option value="3">Computer Engine</option>
+		</select>
+                <img title="EMPTY" id="state0" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
+                <span id="member0" style="display: none"></span>
+           </dd>
+           <dt><label for=player2>Player 2:</label></dt>
+           <dd>
+		<select id='player2' name="player2">
+		  <option value="1">Local user</option>
+		  <option value="2">Network user</option>
+		  <option value="3" selected="true">Computer Engine</option>
+		</select>
+                <img title="EMPTY" id="state1" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
+                <span id="member1" style="display: none"></span>
+	   </dd>
+	 </dl>
+
+      </DIV>
+ 
+      <DIV id="network">
+      <H4>User login</H4>
+         <dl style="float: left; clear:both">
            <dt><label for="server_url">WGS url:</label></dt>
            <dd><input name="server_url" id="server_url" name="server_url" value='wss://wgs-jmarine.rhcloud.com:8443/wgs'></dd>
 
@@ -652,8 +683,8 @@ function initApp() {
            <dd><input id="password" type="password" value=""></dd>
         </dl>
 
-        <!-- img id="user_picture" width="0" height="0" -->
 
+      <img id="user_picture" src="/images/anonymous.png" width="0" height="0" style="float: right;">
 
       <!--<DIV id="extend_list" style="width:100%">-->
       <button id="btnConnect" style="clear:left">Connect</button>
@@ -679,7 +710,7 @@ function initApp() {
 
 
       <div id="games_section" style="width: 100%; display: none">
-      <H4>Select game:</H4>
+      <H4>Select match:</H4>
       <div id="groupsHeader" class="scrollTableHeader" style="overflow:hidden;width:100%">
         <table cellspacing="0" cellpadding="0" border="0" >
           <tr id='firstTr'>
@@ -700,18 +731,12 @@ function initApp() {
       </div>  
       <div id="groupsTable" class="scrollTableData" style="width:100%;position:relative" onscroll="fnScroll('groups')" >
         <table cellspacing="0" cellpadding="0" border="0" width="100%">
-          <!--<tr>
-            <td>Chess</td>
-            <td>Open</td>
-            <td>2/2</td>
-            <td>Judith vs Irene</td>
-          </tr>-->
         </table>
       </div>
       </div>
 
       <div id="matching_options" style="display: none">
-      <H4>Create game</H4>
+      <H4>Create match</H4>
         <dl>
           <dt><label for="new_grp_role">Role:</label></dt>
           <dd><select id="new_grp_role" name="new_grp_role">
@@ -738,10 +763,10 @@ function initApp() {
       </div>
 
 
-      <button id="btnHideMatchingOptions" style="clear:both">Back</button>
+      <button id="btnHideMatchingOptions" style="clear:both">Back to lobby</button>
       <button id="btnCreateGame">Create</button>
 
-      <button id="btnShowMatchingOptions">New game</button>
+      <button id="btnShowMatchingOptions">New...</button>
       <button id="btnDeleteFinishedGames">Delete finished</button>
 
       <button id="btnFinishGame">Resign</button>

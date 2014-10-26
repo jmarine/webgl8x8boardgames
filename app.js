@@ -208,7 +208,7 @@ $(document).ready(function(){
         } else {
           $("#user").val("");
           $("#password").val("");
-          //$("#user_picture").width(0).height(0);
+          $("#user_picture").width(0).height(0);
        
           var wgsclient = Network.getWgsClient(url);
           var realm = wgsclient.getDefaultRealm(); 
@@ -222,6 +222,7 @@ $(document).ready(function(){
   $('button.btnStartGame').click(function() {
         // Quick access button
         showMessage(false);
+        hideOptions();
 	UI.createGame();
         return false;
   });
@@ -275,13 +276,13 @@ $(document).ready(function(){
 
   $("#gameCanvas").mousedown(function() {
       hideOptions();
-      $('#credits').hide();
       return false;
   });
 
   $("#btnConnect")
             .click(function() {
                 showMessage(false);
+                $("#openid_providers_menu").hide();
 
                 var url = $("#server_url").val();
                 var user = $("#user").val();

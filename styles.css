@@ -80,7 +80,7 @@ body {
   display: none;
 }
 
-#options {
+#options, #games {
   display: none;
   margin: 5px 10px 5px 10px;
 }
@@ -206,7 +206,7 @@ button:active {
   background: #dac394;
 }
 
-button:disabled {
+button:disabled, input:disabled {
   background: #f7e3a4;
   color: #777777;
 }
