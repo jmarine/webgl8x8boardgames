@@ -208,7 +208,7 @@ $(document).ready(function(){
         } else {
           $("#user").val("");
           $("#password").val("");
-          $("#user_picture").width(0).height(0);
+          $("#user_picture").hide();
        
           var wgsclient = Network.getWgsClient(url);
           var realm = wgsclient.getDefaultRealm(); 

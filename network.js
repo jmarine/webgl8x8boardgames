@@ -564,7 +564,7 @@ disconnect: function() {
         $("#password").val("");
         $("#password").show();
         $("#lbl_password").show();
-        $("#user_picture").width(0).height(0);
+        $("#user_picture").hide();
 
         $("#btnConnect").removeAttr("disabled");
         $("#btnRegister").removeAttr("disabled");

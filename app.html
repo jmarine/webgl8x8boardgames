@@ -413,7 +413,7 @@ function authentication(state, msg) {
             if(msg.picture) $("#user_picture").attr("src", msg.picture);
         } 
 
-        $("#user_picture").width(48).height(48);
+        $("#user_picture").show();
 
         Network.onConnect(msg); 
 
@@ -672,7 +672,7 @@ function initApp() {
  
       <DIV id="network">
       <H4>User login</H4>
-         <dl style="float: left; clear:both">
+         <dl style="float: left; clear: left;">
            <dt><label for="server_url">WGS url:</label></dt>
            <dd><input name="server_url" id="server_url" name="server_url" value='wss://wgs-jmarine.rhcloud.com:8443/wgs'></dd>
 
@@ -684,7 +684,7 @@ function initApp() {
         </dl>
 
 
-      <img id="user_picture" src="/images/anonymous.png" width="0" height="0" style="float: right;">
+      <img id="user_picture" src="/images/anonymous.png" width="48" height="48" style="float: left; display: none; width: 48px; height: 48px">
 
       <!--<DIV id="extend_list" style="width:100%">-->
       <button id="btnConnect" style="clear:left">Connect</button>
