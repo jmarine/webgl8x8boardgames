@@ -145,13 +145,15 @@ exitGame: function(waitNewGame)
 {
     acceptHumanMove(false);
 
-    $("#member0").hide();
-    $("#member1").hide();
-    $("#state0").hide();
-    $("#state1").hide();
+    $("#chat_section").hide();
+    $("#game_info").hide();
+    $("#member0_info").hide();
+    $("#member1_info").hide();
+    $("#state0_info").hide();
+    $("#state1_info").hide();
     $("#game_type").removeAttr("disabled");
-    $("#player1").show();
-    $("#player2").show();
+    $("#player1").removeAttr("disabled");
+    $("#player2").removeAttr("disabled");
 
     $('#network_status').hide();
     $("#btnFinishGame").hide();
@@ -243,13 +245,10 @@ group_opened: function(group) {
 
     }
 
-    $('#game_type').attr('disabled','disabled');
-    $("#player1").hide();
-    $("#player2").hide();
-    $("#member0").show();
-    $("#member1").show();
-    $("#state0").show();
-    $("#state1").show();
+    UI.clearChat();
+    $("#chat_section").show();
+    $("#state0_info").show();
+    $("#state1_info").show();
     
 
     $('#start').hide();
@@ -269,7 +268,9 @@ group_opened: function(group) {
     });
 
 
-    //$('#network_status').text("Playing " + group.members[0].name + " with " + group.members[1].name);
+    $('#game_type').attr('disabled','disabled');
+    $('#player1').attr('disabled','disabled');
+    $('#player2').attr('disabled','disabled');
     showMessage(false);
     //alert("ACK: unsubscribe from MUC");
 
@@ -280,13 +281,14 @@ group_opened: function(group) {
       var sim = game.clone();
       var lastAction = null;
       group.actions.forEach(function(action, index) {
-        game.initFromStateStr(sim.toString());
         if(action.type == "MOVE") {
+          game.initFromStateStr(sim.toString());
           if(action.slot == Network.gameRoom.slotJoinedByClient) window.undoManager.add(sim.toString());
           var move = sim.parseMoveString(action.value);
           sim.makeMove(move);
 
         } else if(action.type == "RETRACT_ACCEPTED") {
+          game.initFromStateStr(sim.toString());
           sim.initFromStateStr(action.value);
           if(index+1 < group.actions.length && Network.gameRoom.slotJoinedByClient >= 0 
              && (action.slot != Network.gameRoom.slotJoinedByClient || (1+action.slot)!=game.getTurn()) ) { // member
@@ -294,9 +296,16 @@ group_opened: function(group) {
             document.execCommand("undo");
             setNumUndosToIgnore(0);
           }
+
+        } 
+
+
+        if(action.type == "CHAT") {
+	  UI.addChatLine(action);
+        } else {
+          lastAction = action;
         }
-        lastAction = action;
-        //UI.setGameState(game.toString());
+
       });
       group.action = lastAction;
     }
@@ -314,7 +323,9 @@ group_changed: function(group) {
     if(action) {
       group.action = null;
       var currentSlot = Network.gameRoom.slotJoinedByClient;
-      if(action.type == "MOVE" && (opened || action.slot != currentSlot) ) {
+      if(action.type == "CHAT") {
+        UI.addChatLine(action);
+      } else if(action.type == "MOVE" && (opened || action.slot != currentSlot) ) {
         UI.setGameState(game.toString());
         var move = game.parseMoveString(action.value);
         if(move) movePieceOnBoard(move, true);
@@ -410,7 +421,10 @@ update_group_member: function(memberId, member, currentUserSelected, roleFixed) 
     if(status != 'empty') status = memberType.toLowerCase() + "_" + status;
     $("#state" + memberId).attr("src", "/images/" + status + ".png");
     $("#state" + memberId).attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
+    $("#state" + memberId + "_info").attr("src", "/images/" + status + ".png");
+    $("#state" + memberId + "_info").attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
     $("#member" + memberId).html( memberName );
+    $("#member" + memberId + "_info").html( memberName );
 },
 
 
@@ -528,6 +542,7 @@ update_groups: function(id,details,errorURI,payload,payloadKw) {
       }
     
       adjustScrollTable("groups");
+      adjustScrollTable("history");
 },
 
 
@@ -589,6 +604,8 @@ disconnect: function() {
         $('#connect_section').fadeIn();
 
         $("#groupsTable>table>tbody>tr").remove();
+
+        adjustScrollTable('history');
 
 	//wait sending of unavailable presence stanzas
 	showMessage("User disconnected.");

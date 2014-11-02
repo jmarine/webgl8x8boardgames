@@ -282,6 +282,8 @@ function showGames() {
   $('#controls').hide();
   $('#games').show();
   $('#config').show();
+  adjustScrollTable('groups');
+  adjustScrollTable('history');
 }
 
 
@@ -347,6 +349,7 @@ function authentication(state, msg) {
 
     if(state == ConnectionState.ERROR) {
         alert(msg);
+        if(Network) Network.disconnect();
         
     } else if(state == ConnectionState.CONNECTED) {
         $("#server_url").attr("disabled", "disabled");
@@ -521,6 +524,23 @@ function initApp() {
 <DIV id="main"> 
   <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
 
+  <div id="game_info" style="padding-left: 6px; padding-right: 6px">
+    <H4><span id="type_info">Draughts players</span></H4>
+        <dl style="clear: both">
+           <dt style="width: 40px" id="lblPlayer1">White:</dt>
+           <dd> 
+                <img title="EMPTY" id="state0_info" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
+                <span id="member0_info" style="display: none">Local user</span>
+           </dd>
+
+           <dt style="width: 40px" id="lblPlayer2">Black:</dt>
+           <dd>
+                <img title="EMPTY" id="state1_info" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
+                <span id="member1_info" style="display: none">Computer engine</span>
+	   </dd>
+	 </dl>
+  </div>
+
   <DIV id="title">
      <H1><a href="javascript:hideCredits()">WebGL 8x8 board games</a></H1>
      <div id="credits">
@@ -537,10 +557,10 @@ function initApp() {
 
 
   <DIV id="controls">
-        <img id="imgBadge" style="float: left; margin: 0 0 0 3" src="resources/images/chromeexperiments-badge-trans.png"/>
-        <button id='btnGame' onclick="javascript:showGames(); return false;" style="float: left; clear: left">Game</button>
+        <button id='btnGame' onclick="javascript:showGames(); return false;" style="float: left; clear: left">Games</button>
         <button id="btnOptions" onclick="javascript:showOptions(); return false;" style="float: left">Options</button>
         <button id="btnAbout" onclick="javascript:showCredits(); return false;" style="float: left">About</button>
+        <img id="imgBadge" style="float: left; margin: 6 0 6 6; clear: both" src="resources/images/chromeexperiments-badge-trans.png"/>
   </DIV>
  
   <DIV id="config">
@@ -597,7 +617,7 @@ function initApp() {
 
 
       <DIV id="actions">
-      <H4>Game options</H4>
+      <H4>Game options &amp; actions</H4>
          <dl id="promotion_option">
            <dt><label for="promotion_piece">Promote to:</label></dt>
            <dd><select id="promotion_piece">
@@ -630,7 +650,7 @@ function initApp() {
       </div>
 
       <div id="games">
-      <H4><a href="javascript:hideOptions()">Game &amp; players</a></H4>
+      <H4><a href="javascript:hideOptions()">Games &amp; players</a></H4>
       <a href="#" id="hide_options" style="float: right; text-decoration: none" onclick="javascript:hideOptions(); return false">&gt;</a>
       <br>
 
@@ -762,6 +782,13 @@ function initApp() {
         </dl>
       </div>
 
+      <div id="chat_section" style="display: none">
+        <H4>Game chat</H4>
+        <textarea id="line" cols="28" style="height: 40px; float: left; clear: left"></textarea><button id="btnSendChatLine" style="float: left; margin-left: 3px">Send</button></td>
+        <textarea id="chat" style="clear: both; float: left; width: 100%; height: 200px" readonly></textarea>
+      </div>
+
+
 
       <button id="btnHideMatchingOptions" style="clear:both">Back to lobby</button>
       <button id="btnCreateGame">Create</button>
@@ -773,6 +800,36 @@ function initApp() {
       <button id="btnDisconnect">Disconnect</button>
 
       <button class='btnStartGame' style="clear:both">Start game</button>
+
+
+      <!-- TODO -->
+      <div id="history" style="display: none">
+      <H4 style="clear: both">Match history:</H4>
+      <div id="historyHeader" class="scrollTableHeader" style="overflow:hidden;width:100%">
+        <table cellspacing="0" cellpadding="0" border="0" >
+          <tr id='firstTr'>
+            <td>
+              <div class="columnHeader">#</div>
+            </td>
+            <td>
+              <div class="columnHeader">White</div>
+            </td>
+            <td>
+              <div class="columnHeader">Black</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div id="historyTable" class="scrollTableData" style="width:100%;position:relative" onscroll="fnScroll('history')" >
+        <table cellspacing="0" cellpadding="0" border="0" width="100%">
+          <tr>
+            <td>1</td>
+            <td>a1a3</td>
+            <td>O-O-O</td>
+          </tr>
+        </table>
+        </div>
+      </div>
 
     </div>
   </form>

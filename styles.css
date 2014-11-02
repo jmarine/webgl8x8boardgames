@@ -45,6 +45,17 @@ body {
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
 
+#game_info {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: auto;
+  background-color: #f7e3a4;
+  border: 3px groove #402b2a;
+  border-bottom-right-radius: 10px; -webkit-border-bottom-right-radius: 10px; -khtml-border-bottom-right-radius: 10px;
+  user-select: none; -webkit-user-select: none; -moz-user-select: none;
+}
+
 #board {
   float: left;
   left: 0;
@@ -163,7 +174,7 @@ H4 {
    margin-bottom: 3px;
 }
 
-form dt {
+dt {
    clear:both;
    float:left;
    width: 70px;
@@ -171,12 +182,12 @@ form dt {
    margin:0 0 0.0em 0em;
 }
 
-form dd {
+dd {
    float:left;
    margin:0 0 0.3em 0.25em;
 }
 
-form input {
+input {
    clear:both;
    float:left;
 }

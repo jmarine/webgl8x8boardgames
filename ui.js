@@ -19,6 +19,8 @@ UI.openNetworkGame = function(state) {
         UI.setGameState(state);
         hideGameStorage();
 
+        $("#game_info").show();
+
         console.log("Game created.");
 
      } catch(e) {
@@ -38,6 +40,14 @@ UI.createGame = function() {
 
         window.undoManager.clearUndo();
         showGameStorage();
+
+        $("#type_info").html($('select[id=game_type] > option:selected').text() + " players");
+        $("#member0_info").html($('select[id=player1] > option:selected').text());
+        $("#member1_info").html($('select[id=player2] > option:selected').text());
+        $("#member0_info").show();
+        $("#member1_info").show();
+        $("#game_info").show();
+
         console.log("Game created.");
 
      } catch(e) {
@@ -50,6 +60,7 @@ UI.setGameState = function(state) {
   acceptHumanMove(false);
   stopEnginePlayer();
   game.initFromStateStr(state, PLAYER1);
+  UI.setTurn(game.getTurn());
   BlenderExport = eval(game.constructor.name.toLowerCase() + "Theme");
   board.invalidate();
   getPlayer(PLAYER1).sendCommand(game, PLAYER1, 'STATE', state);
@@ -89,4 +100,20 @@ UI.retractMove = function(event) {
     }
 
   }
+}
+
+UI.setTurn = function(player) {
+        $('#lblPlayer1').css('font-weight', 'normal');
+        $('#lblPlayer2').css('font-weight', 'normal');
+        $('#lblPlayer' + player).css('font-weight', 'bold');
+}
+
+UI.clearChat = function(action) {
+        $("#chat").val('');
+}
+
+UI.addChatLine = function(action) {
+        $("#chat").val( $("#chat").val() + action.user + "> " + action.value + "\n");
+        document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+        showGames();
 }

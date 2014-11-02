@@ -150,6 +150,12 @@ $(document).ready(function(){
 
   onPlayerTypeChange();
 
+  $('#btnSendChatLine').click(function() {
+        Network.wgsclient.addAction(Network.gameRoom.gid, -1, "CHAT", $('#line').val());
+	return false;
+  });
+
+
   $('#btnSaveGame').click(function() {
 	saveGame();	
 	return false;

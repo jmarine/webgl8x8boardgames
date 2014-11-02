@@ -167,6 +167,8 @@ function acceptHumanMove(ac) {
 function movePieceOnBoard(move, isReplay) {
 
     acceptHumanMove(false); 
+    UI.setTurn(game.getOpponent());
+
     if(!isReplay) {
         var player = getPlayer(game.getOpponent());
         player.sendCommand(game, game.getOpponent(), 'MOVE', move);
@@ -1256,6 +1258,8 @@ Board3D.prototype =
         this.xform.projection.loadIdentity();
         this.xform.projection.perspective(sglDegToRad(45.0), canvas.width/canvas.height, 0.1, 40000.0);
         this.invalidate();
+        adjustScrollTable('groups');
+        adjustScrollTable('history');
         return true;
     }
 };
