@@ -784,7 +784,7 @@ function initApp() {
 
       <div id="chat_section" style="display: none">
         <H4>Game chat</H4>
-        <textarea id="line" cols="28" style="height: 40px; float: left; clear: left"></textarea><button id="btnSendChatLine" style="float: left; margin-left: 3px">Send</button></td>
+        <textarea id="line" cols="28" style="height: 40px; float: left; clear: left" onkeypress="if(event.keyCode == 13) { UI.sendChatLine(); return false; }"></textarea><button id="btnSendChatLine" style="float: left; margin-left: 3px">Send</button></td>
         <textarea id="chat" style="clear: both; float: left; width: 100%; height: 200px" readonly></textarea>
       </div>
 

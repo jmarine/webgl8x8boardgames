@@ -103,17 +103,22 @@ UI.retractMove = function(event) {
 }
 
 UI.setTurn = function(player) {
-        $('#lblPlayer1').css('font-weight', 'normal');
-        $('#lblPlayer2').css('font-weight', 'normal');
-        $('#lblPlayer' + player).css('font-weight', 'bold');
+  $('#lblPlayer1').css('font-weight', 'normal');
+  $('#lblPlayer2').css('font-weight', 'normal');
+  $('#lblPlayer' + player).css('font-weight', 'bold');
+}
+
+UI.sendChatLine = function() {
+  Network.wgsclient.addAction(Network.gameRoom.gid, -1, "CHAT", $('#line').val());
+  $('#line').val('');
 }
 
 UI.clearChat = function(action) {
-        $("#chat").val('');
+  $("#chat").val('');
 }
 
 UI.addChatLine = function(action) {
-        $("#chat").val( $("#chat").val() + action.user + "> " + action.value + "\n");
-        document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
-        showGames();
+  $("#chat").val( $("#chat").val() + action.user + "> " + action.value + "\n");
+  document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+  showGames();
 }
