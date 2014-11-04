@@ -410,7 +410,9 @@ function authentication(state, msg) {
         $("#oic_connect").attr("disabled", "disabled");
 
         $("#user_picture").attr("src", "/images/anonymous.png");
-        if(state == ConnectionState.AUTHENTICATED) {
+        if(state == ConnectionState.WELCOMED) {
+            Network.onConnect(msg); 
+        } else if(state == ConnectionState.AUTHENTICATED) {
             $("#user").attr("disabled", "disabled");
             $("#password").attr("disabled", "disabled");
             
@@ -422,11 +424,10 @@ function authentication(state, msg) {
             $("#oic_connect").hide();
             $("#btnRegister").hide();
             if(msg.picture) $("#user_picture").attr("src", msg.picture);
-        } 
+        }
 
         $("#user_picture").show();
 
-        Network.onConnect(msg); 
 
     } else if(state == ConnectionState.DISCONNECTED  || state == ConnectionState.CLOSED) {
         if(Network) Network.disconnect();

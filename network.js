@@ -509,6 +509,8 @@ update_groups: function(id,details,errorURI,payload,payloadKw) {
         //$("#groups option").remove();
         $("#groupsTable>table>tbody>tr").remove();
         
+
+     console.log("**** update_groups ****");
         payloadKw.groups.forEach(function(item) {
             /*
             var opt = $('<option>')
@@ -517,8 +519,14 @@ update_groups: function(id,details,errorURI,payload,payloadKw) {
             $("#groups").append(opt);
             */
             Network.addGroupListItem(item);
+
+            if(gid != null && gid == item.gid) {
+	      Network.open_group(item.appId, item.gid, {});	
+            }
+
         });
-        
+
+                
       } else if(payloadKw.cmd == "group_deleted") {
        
         $("#groupsTable>table>tbody>tr[gid='"+payloadKw.gid+"']").remove();
@@ -555,7 +563,8 @@ listGames: function()
         if(!errorURI) {
             Network.update_groups(id,details,errorURI,result,resultKw);
             $("#app_list").hide();
-            $("#group_list").slideDown(500);
+            if(gid == null || gid.length == 0) $("#group_list").slideDown(500);
+            else gid = "";  // TODO: show/hide buttons
         } else {
             showMessage("Error: " + errorURI);
         }
