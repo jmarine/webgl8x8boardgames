@@ -572,14 +572,16 @@ disconnect: function() {
         this.wgsclient.close();
         this.wgsclient = null;
 
-        $("#server_url").removeAttr("disabled");
-        $("#user").removeAttr("disabled");
+        $("#user_picture").hide();
         $("#user").val("");
         $("#password").removeAttr("disabled");
         $("#password").val("");
-        $("#password").show();
-        $("#lbl_password").show();
-        $("#user_picture").hide();
+        if(provider.length == 0) {
+          $("#password").show();
+          $("#lbl_password").show();
+          $("#user").removeAttr("disabled");
+          $("#server_url").removeAttr("disabled");
+        }
 
         $("#btnConnect").removeAttr("disabled");
         $("#btnRegister").removeAttr("disabled");

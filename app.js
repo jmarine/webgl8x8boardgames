@@ -287,6 +287,9 @@ $(document).ready(function(){
 
   $("#btnConnect")
             .click(function() {
+              if(provider.length > 0) {
+                openid_connect_menu(null);
+              } else {
                 showMessage(false);
                 $("#openid_providers_menu").hide();
 
@@ -299,7 +302,8 @@ $(document).ready(function(){
                   $("#password").val("");  // clear credentials
                   Network.login(url, user, pass);
                 }
-                return false;
+              }
+              return false;
             })
             .next()
                 .button({

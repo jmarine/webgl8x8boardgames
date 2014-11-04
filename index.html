@@ -12,10 +12,17 @@
 </script>
 
 <script language="javascript">
-if(document.location.href.indexOf("fb_source") != -1) {
-  window.top.location.href="https://www.facebook.com/dialog/apprequests?app_id=249148035263387&message=Request to play with WebGL 8x8 board games!&redirect_uri=https://apps.facebook.com/webglchessboardgames/app.html"; 
+var gid = (document.location.href.indexOf("gid=") != -1) ? document.location.href.substring(document.location.href.indexOf("gid=")+4) : "";
+if(gid.indexOf("&") != -1) gid = gid.substring(0, gid.indexOf("&"));
+
+var provider = (document.location.href.indexOf("provider=") != -1) ? document.location.href.substring(document.location.href.indexOf("provider=")+9) : "";
+if(provider.indexOf("&") != -1) provider = provider.substring(0, provider.indexOf("&"));
+
+if(provider == "facebook.com" || window.top != window.self) {
+  provider = "facebook.com";
+  window.top.location.href="https://www.facebook.com/dialog/apprequests?app_id=249148035263387&message=Request to play with WebGL 8x8 board games!&redirect_uri=https://apps.facebook.com/webglchessboardgames/app.html" + escape("?provider=" + escape(provider) + "&gid=" + escape(gid)); 
 } else {
-  document.location.href="app.html";
+  document.location.href="app.html?provider=" + escape(provider) + "&gid=" + escape(gid);
 }
 </script>
 
