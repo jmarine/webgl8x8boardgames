@@ -383,8 +383,10 @@ function authentication(state, msg) {
                 providers.append(li);
 
                 if(provider == item.name) {
+                   if(providerAuthUrl == null) {
 			providerAuthUrl = item.url + "&state=" + escape(notificationChannel);
 			window.open(providerAuthUrl,'_blank');  // it may be blocked by anti-popup software
+                   }
 		}
               } 
 
