@@ -402,32 +402,28 @@ function authentication(state, msg) {
         }
 
         
-    } else if(state == ConnectionState.WELCOMED || state == ConnectionState.AUTHENTICATED) {
-
+    } else if(state == ConnectionState.AUTHENTICATED) {
 
         if(menu) menu.hide();
         $("#btnRegister").attr("disabled", "disabled");
         $("#oic_connect").attr("disabled", "disabled");
 
+        $("#user").attr("disabled", "disabled");
+        $("#password").attr("disabled", "disabled");
+           
+        if(msg.name) $("#user").val(msg.name);
+        $("#lbl_password").hide();
+        $("#password").hide();
+
+        $("#btnConnect").hide();
+        $("#oic_connect").hide();
+        $("#btnRegister").hide();
+
         $("#user_picture").attr("src", "/images/anonymous.png");
-        if(state == ConnectionState.WELCOMED) {
-            Network.onConnect(msg); 
-        } else if(state == ConnectionState.AUTHENTICATED) {
-            $("#user").attr("disabled", "disabled");
-            $("#password").attr("disabled", "disabled");
-            
-            if(msg.name) $("#user").val(msg.name);
-            $("#lbl_password").hide();
-            $("#password").hide();
-
-            $("#btnConnect").hide();
-            $("#oic_connect").hide();
-            $("#btnRegister").hide();
-            if(msg.picture) $("#user_picture").attr("src", msg.picture);
-        }
-
+        if(msg.picture) $("#user_picture").attr("src", msg.picture);
         $("#user_picture").show();
 
+        Network.onConnect(msg); 
 
     } else if(state == ConnectionState.DISCONNECTED  || state == ConnectionState.CLOSED) {
         if(Network) Network.disconnect();
@@ -527,6 +523,9 @@ function initApp() {
   listGames(); 
   preloadSounds();
 
+  gid = (document.location.href.indexOf("gid=") != -1) ? document.location.href.substring(document.location.href.indexOf("gid=")+4) : "";
+  if(gid.indexOf("&") != -1) gid = gid.substring(0, gid.indexOf("&"));
+
   provider = (document.location.href.indexOf("provider=") != -1) ? document.location.href.substring(document.location.href.indexOf("provider=")+9) : "";
   if(provider.indexOf("&") != -1) provider = provider.substring(0, provider.indexOf("&"));
 
@@ -534,13 +533,7 @@ function initApp() {
       $('#lbl_password').hide();
       $('#password').hide();
       $('#user').attr('disabled','disabled');
-  }
 
-
-  gid = (document.location.href.indexOf("gid=") != -1) ? document.location.href.substring(document.location.href.indexOf("gid=")+4) : "";
-  if(gid.indexOf("&") != -1) gid = gid.substring(0, gid.indexOf("&"));
-
-  if(gid.length > 0) {
       showGames();
       $('#player2').val(2);
 
@@ -548,9 +541,7 @@ function initApp() {
       $('#connect_section').show();
       $('#network').fadeIn();
 
-      if(provider.length > 0) {
-        openid_connect_menu(null);
-      }
+      openid_connect_menu(null);
   }
 
 }
