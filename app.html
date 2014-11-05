@@ -382,23 +382,28 @@ function authentication(state, msg) {
                 li.attr("class", "ui-menu-item").append(link)
                 providers.append(li);
 
-                if(provider == item.name) window.open(item.url + "&state=" + escape(notificationChannel),'_blank');  // it may be blocked by anti-popup software
+                if(provider == item.name) {
+			providerAuthUrl = item.url + "&state=" + escape(notificationChannel);
+			window.open(providerAuthUrl,'_blank');  // it may be blocked by anti-popup software
+		}
               } 
 
             });
 
-       
-            menu = $( "#oic_connect" ).next().next().show().position({
+      
+            if(providerAuthUrl == null) { 
+                menu = $( "#oic_connect" ).next().next().show().position({
                             my: "left top",
                             at: "left bottom",
                             offset: "0 2",
                             of: "#btnConnect"
                         });
-            $( document ).one( "click", function() {
-                menu.hide();
-                //wgsclient.close();
-                //wgsclient = null;
-            });
+                $( document ).one( "click", function() {
+                    menu.hide();
+                    //wgsclient.close();
+                    //wgsclient = null;
+                });
+            }
         }
 
         
@@ -517,6 +522,8 @@ function openid_connect_menu(self) {
 
 var gid = null;
 var provider = null;
+var providerAuthUrl = null;
+
 function initApp() {
   initBoard3D(); 
   UI.createGame(); 
