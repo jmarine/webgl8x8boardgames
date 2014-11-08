@@ -391,7 +391,7 @@ Wamp2.prototype = {
 
         var url = client.url + '/open?x=' + client.newGlobalScopeId();
         console.log("Connecting to URL " + url);
-        $.post(url, {}, lpOnOpen, 'json')
+        $.post(url, JSON.stringify({ "protocols": ["wamp.2.json"] }), lpOnOpen, 'json')
          .fail(function(e) { onstatechange(ConnectionState.ERROR, "WGS connection error"); });
     },
 
@@ -429,8 +429,9 @@ Wamp2.prototype = {
 
         } else if (arr[0] == 4) {  // CHALLENGE
             var extra = arr[2] || {};
-            client.authmethod = arr[1];
             extra.authmethod = arr[1];
+            client.authmethod = arr[1];
+            client.state = ConnectionState.CHALLENGED;
             onstatechange(ConnectionState.CHALLENGED, extra);
 
         } else if (arr[0] == 6) {  // GOODBYE 
