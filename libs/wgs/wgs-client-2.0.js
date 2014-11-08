@@ -267,6 +267,15 @@ WgsClient.prototype.isMemberOfGroup = function(gid) {
     return retval;
 }
 
+WgsClient.prototype.getSlotOfGroup = function(gid) {
+    var retval = -1;
+    var client = this;
+    this.groups[gid].members.forEach(function(item, index) {
+        if(item.user == client.user) retval = index;
+    });
+    return retval;
+}
+
 WgsClient.prototype.updateGroup = function(appId, gid, state, ready, data, automatch, hidden, observable, dynamic, alliances, callback) {
     var client = this;
     var msg = Object();
