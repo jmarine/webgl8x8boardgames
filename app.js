@@ -288,8 +288,8 @@ $(document).ready(function(){
   $("#btnConnect")
             .click(function() {
               if(provider.length > 0) {
-                openid_connect_menu(null);
                 if(providerAuthUrl != null) window.open(providerAuthUrl,'_blank'); 
+                else openid_connect_menu(null);
               } else {
                 showMessage(false);
                 $("#openid_providers_menu").hide();
@@ -314,8 +314,8 @@ $(document).ready(function(){
                     }
                 })
                 .click(function() {
-                    openid_connect_menu(null);
                     if(providerAuthUrl != null)  window.open(providerAuthUrl,'_blank'); 
+                    else openid_connect_menu(null);
                     return false;
                 })
                     .next()

@@ -344,6 +344,14 @@ function fnScroll(tableName){
 var menu = null;
 var notificationChannel = null;
 
+var gid = null;
+var provider = null;
+var providerAuthUrl = null;
+var oauth2Code = null;
+var oauth2RedirectUri = null;
+var oauth2Provider = null;
+
+
 function authentication(state, msg) {
     console.log("authentication state: " + state);
 
@@ -358,9 +366,16 @@ function authentication(state, msg) {
 
     } else if(state == ConnectionState.CHALLENGED) {        
         console.log("Challenge: " + msg);
-        
-        if(msg._oauth2_provider_url) {
-            window.open(msg._oauth2_provider_url + "&state=" + escape(notificationChannel), '_blank');
+        if(oauth2Code != null) {
+            var url = $("#server_url").val();
+            var wgsclient = Network.getWgsClient(url);
+            var realm = wgsclient.getDefaultRealm();
+            wgsclient.openIdConnectAuthCode(realm, oauth2Provider, oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
+            oauth2Code = null;
+
+        } else if(msg._oauth2_provider_url) {
+            var authUrl = msg._oauth2_provider_url + "&state=" + escape(notificationChannel);
+            window.open(authUrl, '_blank');
             
         } else if(msg._oauth2_providers) {  
             // OAuth 2.0 / OpenID Connect selector
@@ -453,15 +468,20 @@ function openid_connect(redirectUri) {
         }
         
     } else {
-        var url = $("#server_url").val();
-        var code = get_url_param(redirectUri, "code");
-        if(code != null) {
-            var provider = get_url_param(redirectUri, "provider");
-            redirectUri = clear_openid_connect_params(redirectUri, false);
+        oauth2Code = get_url_param(redirectUri, "code");
+        if(oauth2Code != null) {
+            oauth2Provider = get_url_param(redirectUri, "provider");
+            oauth2RedirectUri = clear_openid_connect_params(redirectUri, false);
             
+            var url = $("#server_url").val();
             var wgsclient = Network.getWgsClient(url);
-            var realm = wgsclient.getDefaultRealm();
-            wgsclient.openIdConnectAuthCode(realm, provider, redirectUri, code, notificationChannel, authentication);
+            if(wgsclient.getState() != ConnectionState.CHALLENGED) {
+               openid_connect_menu(null);
+            } else {
+               var realm = wgsclient.getDefaultRealm();
+               wgsclient.openIdConnectAuthCode(realm, oauth2Provider, oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
+               oauth2Code = null;
+            }
         } else {
             var error = get_url_param(redirectUri, "error");
             if(Network) {
@@ -522,9 +542,6 @@ function openid_connect_menu(self) {
 }
 
 
-var gid = null;
-var provider = null;
-var providerAuthUrl = null;
 
 function initApp() {
   initBoard3D(); 
