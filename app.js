@@ -57,13 +57,15 @@ $(document).ready(function(){
 	    || ($('select[id=player2] > option:selected').attr('value') == REMOTE_USER ) ) {
 
 		$('button.btnStartGame').hide();
+		$('#btnRetractMove').hide();
 		$('#connect_section').show();
 		$('#network').fadeIn();
 
 	} else {
 		$('#connect_section').hide();
 		$('#network').hide();
-		$('button.btnStartGame').fadeIn();
+		$('#btnRetractMove').show();
+		$('button.btnStartGame').show();
                 $('button.btnStartGame').each(function() { 
 	            this.disabled = false;
                 });
@@ -185,7 +187,8 @@ $(document).ready(function(){
 
   $('#btnFinishGame').click(function() {
         if(confirm("Do you really want to resign?")) {
-          Network.group_finished();
+          //Network.group_finished();
+          Network.resign();
           Network.exitGame();
         }
         return false;

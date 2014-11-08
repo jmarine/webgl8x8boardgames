@@ -671,10 +671,22 @@ function initApp() {
 	</dl>
       </DIV>
 
+      <DIV id="storage" style="display: none;">
+      <H4>Saved games</H4>
+           <dl>
+           <dt><label for="saved_games">Name:</label></dt>
+           <dd><select name="saved_games"></select></dd>
+           </dl>
 
-      <DIV id="actions">
-      <H4>Game options &amp; actions</H4>
-         <dl id="promotion_option">
+           <button id='btnSaveGame' style="clear:left">Save</button>
+           <button id='btnLoadGame'>Load</button>
+           <button id='btnDeleteGame'>Delete</button>
+           <button id='btnDeleteAllGames'>Delete all</button>
+      </DIV>
+
+      <DIV id="promotion_option">
+      <H4>Pawn promotion</H4>
+         <dl>
            <dt><label for="promotion_piece">Promote to:</label></dt>
            <dd><select id="promotion_piece">
                 <option value="Q">Queen</option>
@@ -684,21 +696,6 @@ function initApp() {
               </select>
            </dd>
          </dl>
-
-         <button id='btnSaveGame' style="clear:left">Save game</button>
-         <button id='btnRetractMove'>Retract move</button>
-      </DIV>
-
-      <DIV id="storage" style="display: none">
-      <H4>Saved games</H4>
-           <dl>
-           <dt><label for="saved_games">Name:</label></dt>
-           <dd><select name="saved_games"></select></dd>
-           </dl>
-
-           <button id='btnLoadGame' style="clear:left">Load</button>
-           <button id='btnDeleteGame'>Delete</button>
-           <button id='btnDeleteAllGames'>Delete all</button>
 
       </DIV>
 
@@ -852,10 +849,15 @@ function initApp() {
       <button id="btnShowMatchingOptions">New...</button>
       <button id="btnDeleteFinishedGames">Delete finished</button>
 
+
+      <button class='btnStartGame' style="clear: left">Start game</button>
+
+      <button id='btnRetractMove' style="display: none">Retract move</button>
       <button id="btnFinishGame">Resign</button>
+
       <button id="btnDisconnect">Disconnect</button>
 
-      <button class='btnStartGame' style="clear:both">Start game</button>
+
 
 
       <!-- TODO -->

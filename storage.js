@@ -59,7 +59,7 @@ function saveGame() {
 function hideGameStorage() {
   $("#storage").hide();
   $("#btnSaveGame").hide();
-  $("#btnRetractMove").hide();
+  //$("#btnRetractMove").hide();
 }
 
 function showGameStorage() {
@@ -67,7 +67,7 @@ function showGameStorage() {
   $('#btnRetractMove').each(function() {
      this.disabled = true;
   });
-  $("#btnRetractMove").show();
+  //$("#btnRetractMove").show();
   listGames();
 }
 

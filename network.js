@@ -164,6 +164,7 @@ exitGame: function(waitNewGame)
     $("#games_section").show();
     $("#btnShowMatchingOptions").show();
     $("#btnDeleteFinishedGames").show();
+    $('#btnRetractMove').hide();
 
     if(this.gameRoom) {
       var gid = this.gameRoom.gid;
@@ -217,9 +218,18 @@ new_group: function() {
     return false;
 },
 
+resign: function() {
+  var group = Network.gameRoom;
+  if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
+    var slot = this.wgsclient.getSlotOfGroup(group.gid);
+    var data = ""; 
+    this.wgsclient.addAction(group.gid, slot, "RESIGN", data);
+  }
+},
+
 group_finished: function() {
   var group = Network.gameRoom;
-  if(this.wgsclient && group && group.state != "FINISHED") {
+  if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {
     var newState = "FINISHED";
     this.wgsclient.updateGroup(group.appId, group.gid, newState, false, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
        if(errorURI) alert(errorURI);
@@ -259,9 +269,16 @@ group_opened: function(group) {
     $("#btnShowMatchingOptions").hide();
     $("#btnHideMatchingOptions").show();
     $("#btnDeleteFinishedGames").hide();
+    $("#btnRetractMove").show();
     if(this.wgsclient.isMemberOfGroup(group.gid) && group.state != "FINISHED") $("#btnFinishGame").show();
 
     $("select[id=game_type]").val(group.appName);
+    if(group.appName.indexOf('chess') == 0) {
+        $('#promotion_option').show();
+    } else {
+        $('#promotion_option').hide();
+    }
+
 
     group.members.forEach(function(item) {
       $("select[id=player" + (item.slot+1) + "]").val((Network.wgsclient.sid == item.sid)? LOCAL_USER : REMOTE_USER);
@@ -329,6 +346,11 @@ group_changed: function(group) {
         UI.setGameState(game.toString());
         var move = game.parseMoveString(action.value);
         if(move) movePieceOnBoard(move, true);
+
+      } else if(action.type == "RESIGN") {
+          showMessage("Player " + (action.slot+1) + " has resigned!");
+          $("#btnRetractMove").hide();
+          acceptHumanMove(false);
 
       } else if(action.type == "RETRACT_REJECTED") {
           UI.setGameState(action.value);
@@ -451,7 +473,7 @@ getGroupDescription: function(group) {
 },
 
 addGroupListItem: function(group) {
-   var turn = false;
+   var localPlayerTurn = false;
    var opt = $('<tr>');
    opt.attr("gid", group.gid);
    opt.attr('observable', group.observable);   
@@ -475,9 +497,9 @@ addGroupListItem: function(group) {
        count++;
        
        var playerLabel = "Player " + count; // + (member.role? " ("+ member.role +")" : "");
-       if(group.state != "FINISHED" && index == group.turn && group.members[group.turn].user == Network.wgsclient.user) {
-          turn = true;
-          playerLabel = "<b>" + playerLabel + "</b>";  // remark current turn
+       if(group.state != "FINISHED" && index == group.turn) {
+          playerLabel = "<b>" + playerLabel + "</b>"; 
+          if(group.members[group.turn].user == Network.wgsclient.user) localPlayerTurn = true;
        }
 
        var row = $("<tr>");
@@ -495,7 +517,7 @@ addGroupListItem: function(group) {
    opt.append(memberCol);
 
 
-   if(turn) {
+   if(localPlayerTurn) {
      opt.attr("bgcolor", "#EAB13D");  // remark current turn
      $("#groupsTable>table").prepend(opt);
    } else {
