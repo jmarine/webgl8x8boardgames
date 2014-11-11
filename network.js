@@ -337,7 +337,9 @@ group_changed: function(group) {
     } 
 
     var action = group.action;
-    if(action) {
+    if(!action) {
+      UI.setGameState(game.toString());
+    } else {
       group.action = null;
       var currentSlot = Network.gameRoom.slotJoinedByClient;
       if(action.type == "CHAT") {

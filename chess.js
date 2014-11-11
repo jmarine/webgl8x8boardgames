@@ -17,8 +17,8 @@
 */
 
 
-var CASTLE_LONG_INDEX = 0;
-var CASTLE_SHORT_INDEX = 1;
+var CASTLE_A_SIDE = 0;
+var CASTLE_H_SIDE = 1;
 var CHESS_PIECE_VALUES = [ 0, 30, 165, 10000, 80, 80, 90 ];
 
 Chess.prototype = new Game();
@@ -176,7 +176,7 @@ Chess.prototype.parseMoveString = function(str) {
     var movs = this.getMovements();
     if(movs.length > 0) {
       var promotion = NONE;
-      if(str.length > 4) {
+      if(str.length == 5) {
 	promotion = this.parsePieceType(str.substring(4));
 	str = str.substring(0,4);
       }
@@ -184,7 +184,9 @@ Chess.prototype.parseMoveString = function(str) {
       str = str.toLowerCase();
       for(var i = 0; i < movs.length; i++) {
         var move = movs[i];
-        if(str == this.getMoveString(move).substring(0,4)) {  // ignore default QUEEN promotion
+        var moveStr = this.getMoveString(move);
+        if(moveStr.length == 5) moveStr = moveStr.substring(0,4);  // ignore default promotion
+        if(str == moveStr) { 
 	  move.promotion = promotion;  // update promotion type
 	  return move;
 	}
@@ -250,37 +252,28 @@ Chess.prototype.makeStep = function(player, move) {
         var startRow = (this.getPieceOwner(piece)==PLAYER1) ? 0 : 7;
         var castleTurnIndex = (this.getPieceOwner(piece)==PLAYER1) ? 0 : 1;
         if( (fromRow == startRow) && (fromCol == 0) ) {
-            this.enrocsValids[castleTurnIndex][CASTLE_LONG_INDEX] = false;
+            this.enrocsValids[castleTurnIndex][CASTLE_A_SIDE] = false;
         } else if( (fromRow == startRow) && (fromCol == 7) ) {
-            this.enrocsValids[castleTurnIndex][CASTLE_SHORT_INDEX] = false;
+            this.enrocsValids[castleTurnIndex][CASTLE_H_SIDE] = false;
         }
     }
 
     if(this.getPieceType(piece) == KING) {
-        if( ((fromRow - toRow) == 0) && (Math.abs(diffCol) == 2) ) {
-            if(diffCol > 0) {
-                castleRookMove = new Move();
-		castleRookMove.setFrom(7, toRow);
-                castleRookMove.setTarget(toCol-1, toRow);
-            } else {
-                castleRookMove = new Move();
-		castleRookMove.setFrom(0,toRow);
-		castleRookMove.setTarget(toCol+1, toRow);
-            }
-            move.setNextMove(castleRookMove);
-        }
-
         var castleTurnIndex = (this.getPieceOwner(piece)==PLAYER1) ? 0 : 1;
-        this.enrocsValids[castleTurnIndex][CASTLE_LONG_INDEX] = false;
-        this.enrocsValids[castleTurnIndex][CASTLE_SHORT_INDEX] = false;
+        this.enrocsValids[castleTurnIndex][CASTLE_A_SIDE] = false;
+        this.enrocsValids[castleTurnIndex][CASTLE_H_SIDE] = false;
     }
  
     var killedPiece = this.getPiece(move.killedX, move.killedY);
     if(killedPiece != NONE) {
         this.setPiece(move.killedX, move.killedY, NONE, NONE);
     }
-       
+     
+    var previousPiece = this.getPiece(toCol, toRow); 
     this.setPiece(fromCol, fromRow, NONE, NONE);
+    if(previousPiece != NONE && move.castleToCol) {
+       this.setPiece(move.castleToCol, fromRow, player, this.getPieceType(previousPiece));
+    }
     this.setPiece(toCol, toRow, this.getPieceOwner(piece), this.getPieceType(piece));
 
     /* Note: castleRookMove is already received/processed by makeMove function (as the "nextMove"):
@@ -439,26 +432,39 @@ Chess.prototype.inRange = function(x,y) {
   return ( (x >= 0) && (y >= 0) && (x < 8) && (y < 8) );
 }
 
-Chess.prototype.acumulatePieceMoveWhenValidDestination = function(moves, fromRow, fromCol, destRow, destCol) {
+Chess.prototype.addPieceMoveWhenValidDestination = function(moves, fromRow, fromCol, destRow, destCol, castleFromCol, castleToCol) {
     var currentPiece = this.getPiece(fromCol, fromRow);
     var currentPiecePlayer = this.getPieceOwner(currentPiece);
     if( this.inRange(destCol, destRow) ) {
         var killedPiece = this.getPiece(destCol, destRow);
         var killedPiecePlayer = this.getPieceOwner(killedPiece);
-        if( (killedPiece == NONE) || (currentPiecePlayer != killedPiecePlayer) ) {
+        if( (killedPiece == NONE) || (currentPiecePlayer != killedPiecePlayer) || (destCol == castleFromCol) ) {
             var move = new Move();
             move.setFrom(fromCol, fromRow);
             move.setTarget(destCol, destRow);
-            if(killedPiece != NONE) move.setKilledPiece(destCol, destRow);
-            else if(this.getPieceType(currentPiece) == PAWN) {
-              if( ((currentPiecePlayer==PLAYER1) && (Math.abs(this.lastPawnLargeMoveCol-fromCol)==1) && (fromRow==4)) 
-                  || ((currentPiecePlayer==PLAYER2) && (Math.abs(this.lastPawnLargeMoveCol-fromCol)==1) && (fromRow==3)) ) {
-                move.setKilledPiece(this.lastPawnLargeMoveCol, fromRow);
-              }
+
+            if(isFinite(castleFromCol) && isFinite(castleToCol)) {
+                castleRookMove = new Move();
+  	        castleRookMove.setFrom(castleFromCol,fromRow);
+	        castleRookMove.setTarget(castleToCol, fromRow);
+
+                if(destCol == castleFromCol) {
+		  move.castleToCol = castleToCol;
+                } else {
+                  move.setNextMove(castleRookMove);
+                }
+            } else if(killedPiece != NONE) {
+                move.setKilledPiece(destCol, destRow);
+            } else if(this.getPieceType(currentPiece) == PAWN) {
+                if( ((currentPiecePlayer==PLAYER1) && (Math.abs(this.lastPawnLargeMoveCol-fromCol)==1) && (fromRow==4))
+                    || ((currentPiecePlayer==PLAYER2) && (Math.abs(this.lastPawnLargeMoveCol-fromCol)==1) && (fromRow==3)) ) {
+                  move.setKilledPiece(this.lastPawnLargeMoveCol, fromRow);
+                }
             }
 
             moves.push(move);
         }
+
     }
 }
 
@@ -468,97 +474,194 @@ Chess.prototype.generatePawnMoves = function(player, fromCol, fromRow, moves) {
     switch(player) {
         case PLAYER1:
             if( (fromRow < 7) && (this.getPiece(fromCol, fromRow+1) == NONE) ) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol);
                 if( (fromRow == 1) && (this.getPiece(fromCol, fromRow+2) == NONE) ) {
-                    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+2, fromCol);
+                    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+2, fromCol);
                 }
             }
                 
             if( (fromCol > 0) && ((killablePiece = this.getPiece(fromCol-1, fromRow+1)) != NONE) && (this.getPieceOwner(killablePiece) == PLAYER2) ) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol-1);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol-1);
             }
             if( (fromCol < 7) && ((killablePiece = this.getPiece(fromCol+1, fromRow+1)) != NONE) && (this.getPieceOwner(killablePiece) == PLAYER2) ) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol+1);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol+1);
             }
 
             if( (Math.abs(this.lastPawnLargeMoveCol-fromCol) == 1) && (fromRow == 4) ) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, this.lastPawnLargeMoveCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, this.lastPawnLargeMoveCol);
             }
             break;
 
         case PLAYER2:
             if( (fromRow > 0) && (this.getPiece(fromCol, fromRow-1) == NONE) ) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol);
                 if( (fromRow == 6) && (this.getPiece(fromCol, fromRow-2) == NONE) ) {
-                    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-2, fromCol);
+                    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-2, fromCol);
                 }
             }
 
             if( (fromCol > 0) && ((killablePiece = this.getPiece(fromCol-1, fromRow-1)) != NONE) && (this.getPieceOwner(killablePiece) == PLAYER1) ) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol-1);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol-1);
             }
             if( (fromCol < 7) && ((killablePiece = this.getPiece(fromCol+1, fromRow-1)) != NONE) && (this.getPieceOwner(killablePiece) == PLAYER1) ) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol+1);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol+1);
             }
                 
             if( (Math.abs(this.lastPawnLargeMoveCol-fromCol) == 1) && (fromRow == 3) ) {
-               this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, this.lastPawnLargeMoveCol);
+               this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, this.lastPawnLargeMoveCol);
             }
             break;
     }
 }
 
 Chess.prototype.generateKnightMoves = function(player, fromCol, fromRow, moves) {
-    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol-2);
-    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol+2);
-    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol+2);
-    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol-2);
-    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-2, fromCol-1);
-    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-2, fromCol+1);
-    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+2, fromCol+1);
-    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+2, fromCol-1);
+    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol-2);
+    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol+2);
+    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol+2);
+    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol-2);
+    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-2, fromCol-1);
+    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-2, fromCol+1);
+    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+2, fromCol+1);
+    this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+2, fromCol-1);
 }
 
 Chess.prototype.generateKingMoves = function(player, fromCol, fromRow, moves, checkCastle) {
         var currentPiece = this.getPiece(fromCol, fromRow);
         
-        this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol-1);
-        this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol+0);
-        this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol+1);
-        this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+0, fromCol-1);
-        this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+0, fromCol+1);
-        this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol-1);
-        this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol+0);
-        this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol+1);
+        this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol-1);
+        this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol+0);
+        this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow-1, fromCol+1);
+        this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+0, fromCol-1);
+        this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+0, fromCol+1);
+        this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol-1);
+        this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol+0);
+        this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow+1, fromCol+1);
 
         if(checkCastle) {
             var row = (this.getPieceOwner(currentPiece)==PLAYER1)? 0: 7;
             var attacks = this.generateMoves( (this.getPieceOwner(currentPiece)==PLAYER1) ? PLAYER2 : PLAYER1 , false);
             
-            if(this.enrocsValids[(this.getPieceOwner(currentPiece)==PLAYER1)? 0: 1][CASTLE_LONG_INDEX]) {  // O-O-O
+            if(this.enrocsValids[(this.getPieceOwner(currentPiece)==PLAYER1)? 0: 1][CASTLE_A_SIDE]) {  // O-O-O
+                var kingCol = fromCol;
+                var rookCol = 0;
+                for(var col = 0; col <= 7; col++) {
+                   var piece = this.getPiece(col, row);
+                   if(this.getPieceType(piece) == ROOK && this.getPieceOwner(piece) == player) {
+		      rookCol = col; 
+                      break;
+                   }
+                }
+
+                var min = rookCol;
+                var max = kingCol;
+                if(min > max) {
+                   var tmp = min;
+                   min = max;
+                   max = tmp;
+                }
+
                 var freeCells = true;
-                for(var col = 1; col < 4 ; col++) {
-                    if( (this.getPiece(col, row) != NONE) || (this.isAttacked(attacks, row,col)) ) {
+                for(var col = min; col <= max; col++) {
+                    var piece = this.getPiece(col, row);
+                    if( !((piece == NONE) 
+                          || (this.getPieceType(piece) == ROOK && this.getPieceOwner(piece) == player && col == rookCol) 
+                          || (this.getPieceType(piece) == KING && this.getPieceOwner(piece) == player && col == kingCol)) ) {
                         freeCells = false;
                         break;
                     }
                 }
-                if( (freeCells) && (!this.isAttacked(attacks, row, 0)) && (!this.isAttacked(attacks, row, 4)) ) {
-                    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow, fromCol-2);
+
+                if(freeCells) {
+                    min = 2;
+                    max = kingCol;
+                    if(min > max) {
+                        var tmp = min;
+                        min = max;
+                        max = tmp;
+                    }
+
+                    for(var col = min; col <= max; col++) {
+                        if(this.isAttacked(attacks, row,col)) {
+                            freeCells = false;
+                            break;
+                        }
+                    }
+
+                    if(freeCells) {
+                        if(fromCol != 2) {
+                          if(rookCol != 3) {
+                            this.addPieceMoveWhenValidDestination(moves, fromRow, kingCol, fromRow, 2, rookCol, 3);  // move king and rook
+                            this.addPieceMoveWhenValidDestination(moves, fromRow, rookCol, fromRow, 3, kingCol, 2);  // move rook and king
+                          } else {
+                            this.addPieceMoveWhenValidDestination(moves, fromRow, kingCol, fromRow, 2 );  // move king only 
+                          }
+                        } else {
+                          this.addPieceMoveWhenValidDestination(moves, fromRow, rookCol, fromRow, 3);  // move rook only
+                        }
+                    }
                 }
             }
 
-            if(this.enrocsValids[(this.getPieceOwner(currentPiece)==PLAYER1)? 0: 1][CASTLE_SHORT_INDEX]) {  // O-O
+            if(this.enrocsValids[(this.getPieceOwner(currentPiece)==PLAYER1)? 0: 1][CASTLE_H_SIDE]) {  // O-O
+                var kingCol = fromCol;
+                var rookCol = 7;
+                for(var col = 7; col >= 0; col--) {
+                   var piece = this.getPiece(col, row);
+                   if(this.getPieceType(piece) == ROOK && this.getPieceOwner(piece) == player) {
+                      rookCol = col;
+                      break;
+                   }
+                }
+
+                var min = kingCol;
+                var max = rookCol;
+                if(min > max) {
+                   var tmp = min;
+                   min = max;
+                   max = tmp;
+                }
+
                 var freeCells = true;
-                for(var col = 5; col < 7 ; col++) {
-                    if( (this.getPiece(col, row) != NONE) || (this.isAttacked(attacks, row,col)) ) {
+                for(var col = min; col <= max; col++) {
+                    var piece = this.getPiece(col, row);
+                    if( !((piece == NONE) 
+                          || (this.getPieceType(piece) == ROOK && this.getPieceOwner(piece) == player && col == rookCol) 
+                          || (this.getPieceType(piece) == KING && this.getPieceOwner(piece) == player && col == kingCol)) ) {
                         freeCells = false;
                         break;
                     }
                 }
-                if( (freeCells) && (!this.isAttacked(attacks, row, 4)) && (!this.isAttacked(attacks, row, 7)) ) {
-                    this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, fromRow, fromCol+2);
+
+                if(freeCells) {
+                    min = kingCol;
+                    max = 6;
+                    if(min > max) {
+                        var tmp = min;
+                        min = max;
+                        max = tmp;
+                    }
+
+                    for(var col = min; col <= max; col++) {
+                        if(this.isAttacked(attacks, row,col)) {
+                            freeCells = false;
+                            break;
+                        }
+                    }
+
+                    if(freeCells) {
+                        if(fromCol != 6) {
+                          if(rookCol != 5) {
+                            this.addPieceMoveWhenValidDestination(moves, fromRow, kingCol, fromRow, 6, rookCol, 5);  // move king and rook
+                            this.addPieceMoveWhenValidDestination(moves, fromRow, rookCol, fromRow, 5, kingCol, 6);  // move king and rook
+                          } else {
+                            this.addPieceMoveWhenValidDestination(moves, fromRow, kingCol, fromRow, 6);  // move king only
+                          }
+                        } else {
+                          this.addPieceMoveWhenValidDestination(moves, fromRow, rookCol, fromRow, 5);  // move rook only
+                        }
+                    }
                 }
+ 
             }
         }
         
@@ -577,36 +680,36 @@ Chess.prototype.generateRookMoves = function(player, fromCol, fromRow, moves) {
         for(var destRow = fromRow-1, destCol = fromCol; destRow >= 0; destRow--) {
             var destPiece = this.getPiece(destCol, destRow);
             if(destPiece == NONE) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
             } else {
-                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
                 break;
             }
         }
         for(var destRow = fromRow, destCol = fromCol-1; destCol >= 0; destCol--) {
             var destPiece = this.getPiece(destCol, destRow);
             if(destPiece == NONE) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
             } else {
-                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
                 break;
             }
         }
         for(var destRow = fromRow+1, destCol = fromCol; destRow <= 7; destRow++) {
             var destPiece = this.getPiece(destCol, destRow);
             if(destPiece == NONE) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
             } else {
-                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
                 break;
             }
         }
         for(var destRow = fromRow, destCol = fromCol+1; destCol <= 7; destCol++) {
             var destPiece = this.getPiece(destCol, destRow);
             if(destPiece == NONE) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
             } else {
-                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
                 break;
             }
         }
@@ -618,36 +721,36 @@ Chess.prototype.generateBishopMoves = function(player, fromCol, fromRow, moves) 
         for(var destRow = fromRow-1, destCol = fromCol-1; destRow >= 0 && destCol >= 0; destRow--, destCol--) {
             var destPiece = this.getPiece(destCol, destRow);
             if(destPiece == NONE) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
             } else {
-                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
                 break;
             }
         }
         for(var destRow = fromRow+1, destCol = fromCol-1; destRow <= 7 && destCol >= 0; destRow++, destCol--) {
             var destPiece = this.getPiece(destCol, destRow);
             if(destPiece == NONE) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
             } else {
-                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
                 break;
             }
         }
         for(var destRow = fromRow+1, destCol = fromCol+1; destRow <= 7 && destCol <= 7; destRow++, destCol++) {
             var destPiece = this.getPiece(destCol, destRow);
             if(destPiece == NONE) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
             } else {
-                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
                 break;
             }
         }
         for(var destRow = fromRow-1, destCol = fromCol+1; destRow >= 0 && destCol <= 7; destRow--, destCol++) {
             var destPiece = this.getPiece(destCol, destRow);
             if(destPiece == NONE) {
-                this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
             } else {
-                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.acumulatePieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
+                if(this.getPieceOwner(destPiece) != this.getPieceOwner(currentPiece)) this.addPieceMoveWhenValidDestination(moves, fromRow, fromCol, destRow, destCol);
                 break;
             }
         }

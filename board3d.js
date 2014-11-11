@@ -582,6 +582,7 @@ Board3D.prototype =
             return;
         }
 
+
         playSound('select');
         var piece = game.getPiece(col,row);
         if(button == MOUSE_LEFT_BUTTON)  { 
@@ -593,12 +594,44 @@ Board3D.prototype =
               validMove = game.getValidMove(moveGen);
             }
 
-            if(game.getPieceOwner(piece) == game.getTurn() && (!moveGen || col!=moveGen.x1 || row!=moveGen.y1 || !validMove) ) {
+            var alternatives = 0;
+            if(moveGen) {
+              for(var index = 0; index < validMoves.length; index++) {
+                var move = validMoves[index];
+                if(game.getMoveString(move).indexOf(game.getMoveString(moveGen)) == 0) alternatives++;
+              }
+            }
+
+            if(alternatives == 0)  { 
                 // restart move when a cell has a piece of the player or is not being moved by the rules
                 moveGen = new Move();
                 moveGen.setFrom(col, row);
                 moveGenLast = moveGen;
+
             } else {
+
+                if(alternatives > 1 && game.constructor.name.indexOf("Chess") != -1) {  // Playing any chess variants 
+                   this.ui.mouseButtonsDown[MOUSE_LEFT_BUTTON] = false;
+                   var castle = confirm("Castle?");
+                   if(!castle) {
+                     var piece = game.getPiece(col,row);
+                     if(piece != NONE) {
+                       validMove = null;
+                       moveGen = null;
+                       moveGenLast = null;
+                     }
+                   } else {
+                     for(var index = 0; index < validMoves.length; index++) {
+                        var move = validMoves[index];
+                        if(game.getMoveString(move).indexOf(game.getMoveString(moveGen)) == 0 && move.getNextMove() != null) {
+			  validMove = move;
+                          break;
+                        } 
+                     }   
+                   }
+                }
+
+
                 // chain complex moves
                 if(validMove) {
 		    window.undoManager.add(game.toString());
@@ -608,7 +641,7 @@ Board3D.prototype =
                     movePieceOnBoard(validMove);
                     moveGen = null;
                     moveGenLast = null;
-                } else {
+                } else if(moveGenLast != null) {
                     moveGenLast.setNextMove(moveTemp);
                     moveGenLast = moveTemp;
                 }
@@ -1011,9 +1044,10 @@ Board3D.prototype =
                 }
 
                 if(validMoves) {
+
+
                     for(var index = 0; index < validMoves.length; index++) {
                         var move = validMoves[index];
-                        this.drawCellMark(gl, move.x1, move.y1, (moveGen? CELL_VALID1_TEXTURE : CELL_VALID_TEXTURE) );
                         if(moveGen && (game.getMoveString(move).indexOf(game.getMoveString(moveGen)) == 0) ) {
                             var tmp = moveGen;
                             if(tmp) tmp = tmp.getNextMove();
@@ -1024,6 +1058,15 @@ Board3D.prototype =
                             if(move) this.drawCellMark(gl, move.x2, move.y2, CELL_VALID_TEXTURE);
                         }
                     }
+
+
+                    for(var index = 0; index < validMoves.length; index++) {
+                        var move = validMoves[index];
+                        this.drawCellMark(gl, move.x1, move.y1, (moveGen? CELL_VALID1_TEXTURE : CELL_VALID_TEXTURE) );
+                    }
+
+
+
                 }
 
             }
