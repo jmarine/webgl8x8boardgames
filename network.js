@@ -326,6 +326,8 @@ group_opened: function(group) {
       });
       group.action = lastAction;
     }
+
+    UI.setGameState(game.toString());
 },
 
 group_changed: function(group) {
@@ -337,9 +339,7 @@ group_changed: function(group) {
     } 
 
     var action = group.action;
-    if(!action) {
-      UI.setGameState(game.toString());
-    } else {
+    if(action) {
       group.action = null;
       var currentSlot = Network.gameRoom.slotJoinedByClient;
       if(action.type == "CHAT") {
