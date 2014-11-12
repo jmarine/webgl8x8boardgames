@@ -279,7 +279,15 @@ Wamp2.prototype = {
             this.connectLP(realm, extra, onstatechange);
         }
     },
-    
+
+    send: function(msg) {
+        if(this._send) this._send(msg);
+    },
+
+    close: function(msg) {
+        if(this._close) this._close();
+    },
+
 
     connectWS: function(realm, extra, onstatechange) {
         var client = this;
@@ -302,8 +310,8 @@ Wamp2.prototype = {
         ws.onopen = function(e) {
             console.log("A connection to "+this.url+" has been opened.");
             client.ws = ws;
-            client.send = client.sendWS;
-            client.close = client.closeWS;
+            client._send = client.sendWS;
+            client._close = client.closeWS;
             this.state = ConnectionState.CONNECTED;
             onstatechange(ConnectionState.CONNECTED);
             client.hello(realm, extra);
@@ -366,8 +374,8 @@ Wamp2.prototype = {
            client.open = true;
            client.lpID = lpID;
            client.transport = response.transport;
-           client.send = client.sendLP;
-           client.close = client.closeLP;
+           client._send = client.sendLP;
+           client._close = client.closeLP;
            client.state = ConnectionState.CONNECTED;
            onstatechange(ConnectionState.CONNECTED);
            client.hello(realm, extra);           
