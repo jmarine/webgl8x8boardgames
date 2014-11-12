@@ -4,9 +4,6 @@ Common:
 - improve AI engine (speed optimizations, quiesence search, etc).
 - fix TouchScreen support? (pan gesture problems with iPad simulator)
 
-Chess960:
-- Ask user when a king move is ambigous (normal or castling).
-
 Shader: 
 - fix perspective shadows (problems on Mali 400 GPU and adjust glPolygonOffset parameters or fix calculation of bias to lower Moire's pattern).
 
