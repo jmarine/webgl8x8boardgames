@@ -5,29 +5,6 @@ UI.getGameType = function() {
   return $('select[id=game_type] > option:selected').text();
 }
 
-UI.openNetworkGame = function(state) {
-     try {
-        $('select[id=player1]').val(REMOTE_USER);
-        $('select[id=player2]').val(REMOTE_USER);
-
-        var gameType = UI.getGameType();
-        game = eval("new " + gameType + "()"); 
-        game.newGame();
-
-        var player1 = createPlayer(PLAYER1);
-        var player2 = createPlayer(PLAYER2);
-        UI.setGameState(state);
-        hideGameStorage();
-
-        $("#game_info").show();
-
-        console.log("Game created.");
-
-     } catch(e) {
-        alert("Error: " + e.message + "|" + JSON.stringify(e));
-     }
-}
-
 UI.createGame = function() {
      try {
         var gameType = UI.getGameType();

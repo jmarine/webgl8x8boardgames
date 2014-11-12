@@ -20,12 +20,12 @@
   margin: 0;
   padding: 0;
   color: #402b2a; 
-  font-size: 12px;
-  font-family: Helvetica, Verdana, Arial, sans-serif;
+  font-size: medium;
 }
 
 body {
   overflow:hidden;
+  font-family: Helvetica, Verdana, Arial, sans-serif;
 }
 
 #main {
@@ -37,7 +37,7 @@ body {
   position: absolute; 
   top: 0px; 
   left: 0px; 
-  width: 260px; 
+  width: 25em; 
   padding: 5px; 
   background-color: #f7e3a4; 
   border: 3px groove #402b2a; 
@@ -114,8 +114,8 @@ body {
   position: absolute; 
   bottom: 8px; 
   left: 50%; 
-  margin-left: -262px; 
-  width: 500px; 
+  margin-left: -15em; 
+  width: 29em; 
   height: 60px; 
   background-color: #f7e3a4; 
   padding: 10px; 
@@ -150,23 +150,23 @@ select.list {
 }
 
 H1 a {
-   font-size: 20px;
+   font-size: 1.8em;
 }
 
 A.author {
-   font-size: 14px;
+   font-size: 1.2em;
    font-weight: bold;
    text-decoration: none;
    line-height: 150%;
 }
 
 #message {
-   font-size: 16px;
+   font-size: 1.2em;
    font-weight: bold;
 }
 
 H4 {
-   font-size: 13px;
+   font-size: 1em;
    text-decoration: underline;
    clear:both;
    float:left;
@@ -177,14 +177,14 @@ H4 {
 dt {
    clear:both;
    float:left;
-   width: 70px;
+   width: 6em;
+   height: 1.6em;
    text-align:left;
-   margin:0 0 0.0em 0em;
+   margin: 0 0.3em 0.25em 0;
 }
 
 dd {
    float:left;
-   margin:0 0 0.3em 0.25em;
 }
 
 input {

@@ -35,6 +35,7 @@ $(window).bind('beforeunload', function() {
 
 $(document).ready(function(){
 
+
   function swapPlayerTypes() {
     var player1 = $('select[id=player1]');
     var player2 = $('select[id=player2]');
@@ -88,6 +89,14 @@ $(document).ready(function(){
         var links = [ "http://en.wikipedia.org/wiki/Draughts#Long-range_kings.3B_men_cannot_capture_backwards_.28Spanish_draughts_family.29", "http://en.wikipedia.org/wiki/English_draughts", "http://en.wikipedia.org/wiki/Chess", "http://en.wikipedia.org/wiki/Chess960", "http://en.wikipedia.org/wiki/Breakthrough_(board_game)" ];
 	window.open(links[game]);
 	return false;
+  });
+
+  $('input').keypress(function(e) {
+        var code = (e.keyCode ? e.keyCode : e.which);
+        if ( (code==13) || (code==10)) {
+            jQuery(this).blur();
+            return false;
+        }
   });
 
 

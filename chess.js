@@ -218,11 +218,15 @@ Chess.prototype.getWinner = function() {
 }
 
 
-Chess.prototype.getValidMove = function(m) {
+Chess.prototype.getValidMove = function(move) {
   var validMoves = this.getMovements();
+  var moveStr = this.getMoveString(move);
+  if(moveStr.length == 5) moveStr = moveStr.substring(0,4);
   for(var index = 0; index < validMoves.length; index++) {
       var vm = validMoves[index];
-      if(vm.x1 == m.x1 && vm.y1 == m.y1 && vm.x2 == m.x2 && vm.y2 == m.y2) return vm;
+      var vmStr = this.getMoveString(vm);
+      if(vmStr.length == 5) vmStr = vmStr.substring(0,4);
+      if(moveStr == vmStr) return vm;
   }
   return null;
 }

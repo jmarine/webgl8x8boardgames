@@ -259,7 +259,7 @@ group_opened: function(group) {
     $("#chat_section").show();
     $("#state0_info").show();
     $("#state1_info").show();
-    
+    hideCredits();    
 
     $('#start').hide();
     $('#games_section').hide();
@@ -269,8 +269,10 @@ group_opened: function(group) {
     $("#btnShowMatchingOptions").hide();
     $("#btnHideMatchingOptions").show();
     $("#btnDeleteFinishedGames").hide();
-    $("#btnRetractMove").show();
-    if(this.wgsclient.isMemberOfGroup(group.gid) && group.state != "FINISHED") $("#btnFinishGame").show();
+    if(this.wgsclient.isMemberOfGroup(group.gid) && group.state != "FINISHED") {
+         $("#btnFinishGame").show();
+         $("#btnRetractMove").show();
+    }
 
     $("select[id=game_type]").val(group.appName);
     if(group.appName.indexOf('chess') == 0) {

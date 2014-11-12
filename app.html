@@ -247,9 +247,9 @@ function showMessage(msg) {
   }
 }
 
-function showCredits() {
-  $('#title').show();
-  $('#imgBadge').show();
+function toggleCredits() {
+  $('#title').toggle();
+  $('#imgBadge').toggle();
   //showMessage("Test message");
 }
 
@@ -356,8 +356,8 @@ function authentication(state, msg) {
     console.log("authentication state: " + state);
 
     if(state == ConnectionState.ERROR) {
-        alert(msg);
         if(Network) Network.disconnect();
+        alert(msg);
         
     } else if(state == ConnectionState.CONNECTED) {
         $("#server_url").attr("disabled", "disabled");
@@ -581,21 +581,23 @@ function initApp() {
 <DIV id="main"> 
   <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
 
+  <form onsubmit="return false;">
   <div id="game_info" style="padding-left: 6px; padding-right: 6px">
     <H4><span id="type_info">Draughts players</span></H4>
-        <dl style="clear: both">
-           <dt style="width: 40px" id="lblPlayer1">White:</dt>
-           <dd> 
-                <img title="EMPTY" id="state0_info" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
-                <span id="member0_info" style="display: none">Local user</span>
-           </dd>
-
-           <dt style="width: 40px" id="lblPlayer2">Black:</dt>
-           <dd>
-                <img title="EMPTY" id="state1_info" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
-                <span id="member1_info" style="display: none">Computer engine</span>
-	   </dd>
-	 </dl>
+        <table style="clear: both; margin-bottom: 0.25em" border="0" cellspacing="0">
+          <tr>
+           <td valign="top"><span id="lblPlayer1">White:</span></td>
+           <td width="10px">&nbsp;</td>
+           <td valign="middle"><img title="EMPTY" id="state0_info" src="/images/empty.png" border="0" style="display: none;"/></td>
+           <td valign="top"><span id="member0_info" style="display: none">Local user</span></td>
+          </tr>
+          <tr>
+           <td valign="top"><span id="lblPlayer2">Black:</td>
+           <td width="10px">&nbsp;</td>
+           <td valign="middle"><img title="EMPTY" id="state1_info" src="/images/empty.png" border="0" style="display: none;"/></td>
+           <td valign="top"><span id="member1_info" style="display: none">Computer engine</span></td>
+	  </tr>
+	 </table>
   </div>
 
   <DIV id="title">
@@ -603,12 +605,14 @@ function initApp() {
      <div id="credits">
      <a class="author" href="mailto:jmarine@tinet.org">Copyright &copy; 2011 Jordi Marin&eacute; Fort</a><br>
      The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">source code</a> of this game is licensed<br>under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a> and uses the libraries:<br>
-     - <a href="http://www.spidergl.org" target="_blank">SpiderGL v0.1.1</a> <br>
-     - <a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> <br>
-     - <a href="http://jquery.com" target="_blank">jQuery v1.8.3</a><br>
-     - <a href="https://github.com/jmarine/wgs" target="_blank">WGS v2</a><br>
-     - <a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a><br>
-     - <a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a><br>
+     <ul style="margin: 0.25em 0 0 1.5em">
+     <li><a href="http://www.spidergl.org" target="_blank">SpiderGL v0.1.1</a> </li>
+     <li><a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> </li>
+     <li><a href="http://jquery.com" target="_blank">jQuery v1.8.3</a></li>
+     <li><a href="https://github.com/jmarine/wgs" target="_blank">WGS v2</a></li>
+     <li><a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a></li>
+     <li><a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a></li>
+     </ul>
      </div>
   </DIV>
 
@@ -616,12 +620,11 @@ function initApp() {
   <DIV id="controls">
         <button id='btnGame' onclick="javascript:showGames(); return false;" style="float: left; clear: left">Games</button>
         <button id="btnOptions" onclick="javascript:showOptions(); return false;" style="float: left">Options</button>
-        <button id="btnAbout" onclick="javascript:showCredits(); return false;" style="float: left">About</button>
-        <img id="imgBadge" style="float: left; margin: 6 0 6 6; clear: both" src="resources/images/chromeexperiments-badge-trans.png"/>
+        <button id="btnAbout" onclick="javascript:toggleCredits(); return false;" style="float: left">About</button>
+        <table style="clear: both; width: 100%"><tr><td align="center"><img id="imgBadge" src="resources/images/chromeexperiments-badge-trans.png"/></td></tr></table>
   </DIV>
  
   <DIV id="config">
-    <form>
       <div id="options">
       <DIV id="ui">
       <H4><a href="javascript:hideOptions()">UI configuration</a></H4>
@@ -824,6 +827,7 @@ function initApp() {
               </select>
           </dd>
 
+<!--
           <dt><label for="new_grp_observable">Observable</label></dt>
           <dd><input type="checkbox" name="new_grp_observable" id="new_grp_observable" /></dd>
 
@@ -832,6 +836,7 @@ function initApp() {
 
           <dt><label for="new_grp_password">Password:</label></dt>
           <dd><input type="password" name="new_grp_password" id="new_grp_password" /></dd>
+-->
 
         </dl>
       </div>
@@ -891,7 +896,6 @@ function initApp() {
       </div>
 
     </div>
-  </form>
   </DIV>
 
   <DIV id="messageBox">
@@ -906,6 +910,7 @@ function initApp() {
     </table>
   </DIV>
 
+  </form>
 </DIV>
 
 <audio id="move" src="resources/sounds/move.ogg" preload="auto">
