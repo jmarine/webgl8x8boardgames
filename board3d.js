@@ -610,25 +610,21 @@ Board3D.prototype =
 
             } else {
 
-                if(alternatives > 1 && game.constructor.name.indexOf("Chess") != -1) {  // Playing any chess variants 
-                   this.ui.mouseButtonsDown[MOUSE_LEFT_BUTTON] = false;
-                   var castle = confirm("Castle?");
-                   if(!castle) {
-                     var piece = game.getPiece(col,row);
-                     if(piece != NONE) {
-                       validMove = null;
-                       moveGen = null;
-                       moveGenLast = null;
-                     }
-                   } else {
-                     for(var index = 0; index < validMoves.length; index++) {
-                        var move = validMoves[index];
-                        if(game.getMoveString(move).indexOf(game.getMoveString(moveGen)) == 0 && move.getNextMove() != null) {
-			  validMove = move;
-                          break;
-                        } 
-                     }   
+                if(game.constructor.name.indexOf("Chess") != -1) {
+                   var searchCastle = true;
+                   if(alternatives > 1) {  
+                     this.ui.mouseButtonsDown[MOUSE_LEFT_BUTTON] = false;
+                     searchCastle = confirm("Castle?");
                    }
+
+                   for(var index = 0; index < validMoves.length; index++) {
+                       var move = validMoves[index];
+                       if(game.getMoveString(move).indexOf(game.getMoveString(moveGen)) == 0 
+                              && (alternatives == 1 || (searchCastle && move.getNextMove() != null) || (!searchCastle && move.getNextMove() == null)) ) {
+		 	   validMove = move;
+                           break;
+                       } 
+                   }   
                 }
 
 
