@@ -95,10 +95,11 @@ WgsClient.prototype.openIdConnectFromSubject = function(realm, subject, redirect
 }
 
 
-WgsClient.prototype.openIdConnectAuthCode = function(realm, provider, redirectUri, code, notificationChannel, onstatechange) {
+WgsClient.prototype.openIdConnectAuthCode = function(realm, provider, wgsRedirectUri, redirectUri, code, notificationChannel, onstatechange) {
     var client = this;
     var details = { }
     details.authprovider = provider;
+    details._wgs_redirect_uri = wgsRedirectUri;
     details._oauth2_redirect_uri = redirectUri;
     
     // TODO: check client.url

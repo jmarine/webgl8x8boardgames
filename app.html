@@ -348,8 +348,9 @@ var gid = null;
 var provider = null;
 var providerAuthUrl = null;
 var oauth2Code = null;
-var oauth2RedirectUri = null;
 var oauth2Provider = null;
+var oauth2RedirectUri = null;
+var wgsRedirectUri = null;
 
 
 function authentication(state, msg) {
@@ -370,7 +371,7 @@ function authentication(state, msg) {
             var url = $("#server_url").val();
             var wgsclient = Network.getWgsClient(url);
             var realm = wgsclient.getDefaultRealm();
-            wgsclient.openIdConnectAuthCode(realm, oauth2Provider, oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
+            wgsclient.openIdConnectAuthCode(realm, oauth2Provider, wgsRedirectUri, oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
             oauth2Code = null;
 
         } else if(msg._oauth2_provider_url) {
@@ -472,6 +473,7 @@ function openid_connect(redirectUri) {
         if(oauth2Code != null) {
             oauth2Provider = get_url_param(redirectUri, "provider");
             oauth2RedirectUri = clear_openid_connect_params(redirectUri, false);
+            wgsRedirectUri = oauth2RedirectUri;
             
             var url = $("#server_url").val();
             var wgsclient = Network.getWgsClient(url);
@@ -479,7 +481,7 @@ function openid_connect(redirectUri) {
                openid_connect_menu(null);
             } else {
                var realm = wgsclient.getDefaultRealm();
-               wgsclient.openIdConnectAuthCode(realm, oauth2Provider, oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
+               wgsclient.openIdConnectAuthCode(realm, oauth2Provider, wgsRedirectUri, oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
                oauth2Code = null;
             }
         } else {
@@ -567,6 +569,17 @@ function initApp() {
       $('button.btnStartGame').hide();
       $('#connect_section').show();
       $('#network').fadeIn();
+
+      oauth2Code = get_url_param(document.location.href, "code");
+      if(oauth2Code != null) {
+          oauth2Provider = provider;
+          wgsRedirectUri = clear_openid_connect_params(document.location.href, false);
+          var pos = wgsRedirectUri.indexOf("&gid");
+          if(pos != -1) wgsRedirectUri = wgsRedirectUri.substring(0, pos);  // without gid parameter for Facebook integration
+          pos = wgsRedirectUri.indexOf("/app.html");
+          if(pos != -1) wgsRedirectUri = wgsRedirectUri.substring(0, pos) + "/oauth2callback.html" + wgsRedirectUri.substring(pos+9);
+          oauth2RedirectUri = "https://apps.facebook.com/webglchessboardgames/app.html?provider=facebook.com";
+      }
 
       openid_connect_menu(null);
   }
