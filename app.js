@@ -27,8 +27,7 @@ $(window).error(function(err) {
 
 $(window).bind('beforeunload', function() {
   if(Network) {
-    var wgsclient = Network.getWgsClient(null);
-    if(wgsclient) wgsclient.goodbye("wamp.close.normal");
+    Network.disconnect();
   }
 });
 
@@ -198,7 +197,7 @@ $(document).ready(function(){
         if(confirm("Do you really want to resign?")) {
           //Network.group_finished();
           Network.resign();
-          Network.exitGame();
+          Network.exitGame(false);
         }
         return false;
   });
@@ -263,7 +262,7 @@ $(document).ready(function(){
 
 
   $("#btnHideMatchingOptions").click(function() {
-        Network.exitGame(true);
+        Network.exitGame(false);
         return false;
   });
 

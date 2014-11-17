@@ -141,7 +141,7 @@ getOpponentNick: function()
   return "opponent";
 },
 
-exitGame: function(waitNewGame)
+exitGame: function(disconnecting)
 {
     acceptHumanMove(false);
 
@@ -166,9 +166,10 @@ exitGame: function(waitNewGame)
     $("#btnDeleteFinishedGames").show();
     $('#btnRetractMove').hide();
 
-    if(this.gameRoom) {
+    var client = this.wgsclient;
+    if(this.gameRoom && !disconnecting) {
       var gid = this.gameRoom.gid;
-      this.wgsclient.exitGroup(gid, function(id,details,errorURI,result,resultKw) {});
+      this.wgsclient.exitGroup(gid, function(id,details,errorURI,result,resultKw) {} );
     }
 
     this.gameRoom = null;
@@ -300,14 +301,13 @@ group_opened: function(group) {
       var sim = game.clone();
       var lastAction = null;
       group.actions.forEach(function(action, index) {
+        game.initFromStateStr(sim.toString());
         if(action.type == "MOVE") {
-          game.initFromStateStr(sim.toString());
           if(action.slot == Network.gameRoom.slotJoinedByClient) window.undoManager.add(sim.toString());
           var move = sim.parseMoveString(action.value);
           sim.makeMove(move);
 
         } else if(action.type == "RETRACT_ACCEPTED") {
-          game.initFromStateStr(sim.toString());
           sim.initFromStateStr(action.value);
           if(index+1 < group.actions.length && Network.gameRoom.slotJoinedByClient >= 0 
              && (action.slot != Network.gameRoom.slotJoinedByClient || (1+action.slot)!=game.getTurn()) ) { // member
@@ -354,6 +354,7 @@ group_changed: function(group) {
       } else if(action.type == "RESIGN") {
           showMessage("Player " + (action.slot+1) + " has resigned!");
           $("#btnRetractMove").hide();
+          $("#btnFinishGame").hide();
           acceptHumanMove(false);
 
       } else if(action.type == "RETRACT_REJECTED") {
@@ -603,7 +604,7 @@ disconnect: function() {
     console.log("Disconnecting.");
     if(this.wgsclient) {
         //Network.wgsclient.unsubscribe("wgs.apps_event", Network.update_groups, null, {});
-        this.exitGame(false);
+        this.exitGame(true);
         this.wgsclient.close();
         this.wgsclient = null;
 
