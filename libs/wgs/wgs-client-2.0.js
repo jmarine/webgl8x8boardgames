@@ -68,9 +68,9 @@ WgsClient.prototype.registerUser = function(realm, user, password, email, onstat
 }
 
 
-WgsClient.prototype.openIdConnectProviders = function(realm, redirectUri, onstatechange) {
+WgsClient.prototype.openIdConnectProviders = function(realm, clientName, redirectUri, onstatechange) {
     var client = this;
-    var details = { "authmethods": ["oauth2-providers-list"], "_oauth2_redirect_uri": redirectUri };
+    var details = { "authmethods": ["oauth2-providers-list"], "_oauth2_redirect_uri": redirectUri, "_oauth2_client_name": clientName };
     client.connect(realm, details, function(state, msg) {
             onstatechange(state, msg);          
             if(state == ConnectionState.WELCOMED) {
@@ -86,20 +86,20 @@ WgsClient.prototype.openIdConnectProviders = function(realm, redirectUri, onstat
         });
 }
 
-WgsClient.prototype.openIdConnectFromSubject = function(realm, subject, redirectUri, notificationChannel, onstatechange) {
+WgsClient.prototype.openIdConnectFromSubject = function(realm, subject, clientName, redirectUri, notificationChannel, onstatechange) {
     var client = this;
     
-    var details = { "authmethods": ["oauth2"], "_oauth2_redirect_uri": redirectUri, "_oauth2_subject": subject };    
+    var details = { "authmethods": ["oauth2"], "_oauth2_client_name": clientName, "_oauth2_redirect_uri": redirectUri, "_oauth2_subject": subject };    
     client.abort();
     client.hello(realm, details);
 }
 
 
-WgsClient.prototype.openIdConnectAuthCode = function(realm, provider, wgsRedirectUri, redirectUri, code, notificationChannel, onstatechange) {
+WgsClient.prototype.openIdConnectAuthCode = function(realm, provider, clientName, redirectUri, code, notificationChannel, onstatechange) {
     var client = this;
     var details = { }
     details.authprovider = provider;
-    details._wgs_redirect_uri = wgsRedirectUri;
+    details._oauth2_client_name = clientName;
     details._oauth2_redirect_uri = redirectUri;
     
     // TODO: check client.url
