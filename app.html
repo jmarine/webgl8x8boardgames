@@ -579,6 +579,10 @@ function initApp() {
       oauth2Code = get_url_param(document.location.href, "code");
       if(oauth2Code != null) {
           oauth2Provider = provider;
+          oauth2RedirectUri = document.location.href;
+          var pos = oauth2RedirectUri.indexOf("code=");
+          if(pos != -1) oauth2RedirectUri = oauth2RedirectUri.substring(0, pos-1);
+
           if(provider=="facebook.com") {
               oauth2ClientName = "WebGL 8x8 board games on Facebook";
               oauth2RedirectUri = "https://apps.facebook.com/webglchessboardgames/app.html?provider=facebook.com";
