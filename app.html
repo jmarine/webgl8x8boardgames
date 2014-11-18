@@ -367,16 +367,9 @@ function authentication(state, msg) {
 
     } else if(state == ConnectionState.CHALLENGED) {        
         console.log("Challenge: " + msg);
-        if(oauth2Code != null) {
-            var url = $("#server_url").val();
-            var wgsclient = Network.getWgsClient(url);
-            var realm = wgsclient.getDefaultRealm();
-            wgsclient.openIdConnectAuthCode(realm, oauth2Provider, wgsRedirectUri, oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
-            oauth2Code = null;
-
-        } else if(msg._oauth2_provider_url) {
-            var authUrl = msg._oauth2_provider_url + "&state=" + escape(notificationChannel);
-            window.open(authUrl, '_blank');
+        if(msg._oauth2_provider_url) {
+            providerAuthUrl = msg._oauth2_provider_url + "&state=" + escape(notificationChannel);
+            if(oauth2Code == null) window.open(providerAuthUrl, '_blank');
             
         } else if(msg._oauth2_providers) {  
             // OAuth 2.0 / OpenID Connect selector
@@ -401,7 +394,7 @@ function authentication(state, msg) {
                 if(provider == item.name) {
                    if(providerAuthUrl == null) {
 			providerAuthUrl = item.url + "&state=" + escape(notificationChannel);
-			window.open(providerAuthUrl,'_blank');  // it may be blocked by anti-popup software
+			if(oauth2Code == null) window.open(providerAuthUrl,'_blank');  // it may be blocked by anti-popup software
                    }
 		}
               } 
@@ -421,7 +414,16 @@ function authentication(state, msg) {
                     //wgsclient.close();
                     //wgsclient = null;
                 });
-            }
+
+            }          
+        }
+
+        if(providerAuthUrl != null && oauth2Code != null) {
+            var url = $("#server_url").val();
+            var wgsclient = Network.getWgsClient(url);
+            var realm = wgsclient.getDefaultRealm();
+            wgsclient.openIdConnectAuthCode(realm, oauth2Provider, wgsRedirectUri, oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
+            oauth2Code = null;
         }
 
         
