@@ -193,7 +193,14 @@ $(document).ready(function(){
 	return false;
   });
 
-  $('#btnFinishGame').click(function() {
+  $('#btnDrawGame').click(function() {
+        if(confirm("Do you really want to offer a draw?")) {
+          Network.offerDraw();
+        }
+        return false;
+  });
+
+  $('#btnResignGame').click(function() {
         if(confirm("Do you really want to resign?")) {
           //Network.group_finished();
           Network.resign();

@@ -37,9 +37,8 @@ UI.setGameState = function(state) {
   acceptHumanMove(false);
   stopEnginePlayer();
   game.initFromStateStr(state, PLAYER1);
-  UI.setTurn(game.getTurn());
   BlenderExport = eval(game.constructor.name.toLowerCase() + "Theme");
-  board.invalidate();
+  UI.setTurn(game.getTurn());
   getPlayer(PLAYER1).sendCommand(game, PLAYER1, 'STATE', state);
   getPlayer(PLAYER2).sendCommand(game, PLAYER2, 'STATE', state);
   checkGameStatus();
@@ -83,6 +82,7 @@ UI.setTurn = function(player) {
   $('#lblPlayer1').css('font-weight', 'normal');
   $('#lblPlayer2').css('font-weight', 'normal');
   $('#lblPlayer' + player).css('font-weight', 'bold');
+  board.invalidate();
 }
 
 UI.sendChatLine = function() {

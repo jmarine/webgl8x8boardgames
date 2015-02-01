@@ -145,7 +145,7 @@ select.list {
 
 
 
-#connect_section, #list_games, #btnDisconnect, #btnFinishGame, #btnShowMatchingOptions, #btnHideMatchingOptions, #btnCreateGame, #btnDeleteFinishedGames, #matching_options {
+#connect_section, #list_games, #btnDisconnect, #btnResignGame, #btnDrawGame, #btnShowMatchingOptions, #btnHideMatchingOptions, #btnCreateGame, #btnDeleteFinishedGames, #matching_options {
   display: none;
 }
 

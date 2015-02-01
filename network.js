@@ -156,7 +156,8 @@ exitGame: function(disconnecting)
     $("#player2").removeAttr("disabled");
 
     $('#network_status').hide();
-    $("#btnFinishGame").hide();
+    $("#btnResignGame").hide();
+    $("#btnDrawGame").hide();
 
     $("#matching_options").hide();
     $("#btnCreateGame").hide();
@@ -228,6 +229,16 @@ resign: function() {
   }
 },
 
+offerDraw: function() {
+  var group = Network.gameRoom;
+  if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
+    var slot = this.wgsclient.getSlotOfGroup(group.gid);
+    var data = ""; 
+    this.wgsclient.addAction(group.gid, slot, "DRAW_QUESTION", data);
+  }
+},
+
+
 group_finished: function() {
   var group = Network.gameRoom;
   if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {
@@ -271,7 +282,8 @@ group_opened: function(group) {
     $("#btnHideMatchingOptions").show();
     $("#btnDeleteFinishedGames").hide();
     if(this.wgsclient.isMemberOfGroup(group.gid) && group.state != "FINISHED") {
-         $("#btnFinishGame").show();
+         $("#btnResignGame").show();
+         $("#btnDrawGame").show();
          $("#btnRetractMove").show();
     }
 
@@ -315,9 +327,7 @@ group_opened: function(group) {
             document.execCommand("undo");
             setNumUndosToIgnore(0);
           }
-
         } 
-
 
         if(action.type == "CHAT") {
 	  UI.addChatLine(action);
@@ -354,13 +364,15 @@ group_changed: function(group) {
       } else if(action.type == "RESIGN") {
           showMessage("Player " + (action.slot+1) + " has resigned!");
           $("#btnRetractMove").hide();
-          $("#btnFinishGame").hide();
+          $("#btnResignGame").hide();
+          $("#btnDrawGame").hide();
           acceptHumanMove(false);
 
       } else if(action.type == "RETRACT_REJECTED") {
           UI.setGameState(action.value);
           if(isFinite(currentSlot) && action.slot != currentSlot) {
             showMessage("Move retraction has been rejected");
+            checkGameStatus();
           }
 
       } else if(action.type == "RETRACT_ACCEPTED") {
@@ -386,7 +398,8 @@ group_changed: function(group) {
           //setNumUndosToIgnore(1);
           //document.execCommand("undo");
           //setNumUndosToIgnore(0);
-        } else {
+
+        } else if(this.wgsclient.isMemberOfGroup(group.gid)) {
 
           var player = 1+(1-action.slot);
           var answer = getPlayer(player).sendCommand(game, player, 'RETRACT', {data: action.value});
@@ -395,7 +408,39 @@ group_changed: function(group) {
           var data = answer? action.value : currentState;
           this.wgsclient.addAction(group.gid, currentSlot, response, data);
         }
+
+      } else if(action.type == "DRAW_QUESTION") {
+        var currentState = game.toString();
+        if(isFinite(currentSlot) && action.slot == currentSlot) {
+          showMessage("Waiting draw offer response from opponent");
+          acceptHumanMove(false);
+
+        } else if(this.wgsclient.isMemberOfGroup(group.gid)) {
+
+          var player = 1+(1-action.slot);
+          var answer = getPlayer(player).sendCommand(game, player, 'DRAW', {data: action.value});
+
+          var response = answer? "DRAW_ACCEPTED" : "DRAW_REJECTED";
+          var data = answer? action.value : currentState;
+          this.wgsclient.addAction(group.gid, currentSlot, response, data);
+        }
+
+
+      } else if(action.type == "DRAW_REJECTED") {
+          if(isFinite(currentSlot) && action.slot != currentSlot) {
+            showMessage("Draw offer has been rejected");
+            UI.setGameState(game.toString());
+          }
+
+      } else if(action.type == "DRAW_ACCEPTED") {
+          showMessage("Draw offer has been accepted");
+          acceptHumanMove(false);
+          UI.setTurn(0);
+          $("#btnRetractMove").hide();
+          $("#btnResignGame").hide();
+          $("#btnDrawGame").hide();
       }
+
     }
 
 
@@ -636,7 +681,8 @@ disconnect: function() {
         $('#btnShowMatchingOptions').hide();
         $('#btnHideMatchingOptions').hide();
         $('#btnDeleteFinishedGames').hide();
-        $("#btnFinishGame").hide();
+        $("#btnResignGame").hide();
+        $("#btnDrawGame").hide();
         $('#games_section').hide();
         $('#network_status').hide();
         $('#connect_section').fadeIn();

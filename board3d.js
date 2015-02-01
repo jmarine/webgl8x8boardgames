@@ -161,6 +161,8 @@ function acceptHumanMove(ac) {
         moveGenLast = null;
         moveStartTime = 0;
     }
+
+    board.invalidate();
 }
 
 

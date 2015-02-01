@@ -115,6 +115,15 @@ LocalPlayer.prototype.sendCommand = function(game, player, cmd, args) {
                 return false;
             }
             break;
+
+	case 'DRAW':
+            if(confirm("Accept draw offer?") ) {
+                return true;
+            } else {
+                return false;
+            }
+            break;
+
     }
 }
 
@@ -158,6 +167,15 @@ EnginePlayer.prototype.sendCommand = function(game, player, cmd, args) {
                 return false;
            }
            break;
+
+	case 'DRAW':
+            if(confirm("Accept draw offer?") ) {
+                return true;
+            } else {
+                return false;
+            }
+            break;
+
     }
 }
 
@@ -223,6 +241,13 @@ NetworkPlayer.prototype.sendCommand = function(game, player, cmd, args) {
             }
             return false;
             break;
+
+	case 'DRAW':
+            // send question to opponent
+            showMessage("Waiting draw confirmation from " + Network.getOpponentNick());
+            return false;
+            break;
+
     }
 }
 
