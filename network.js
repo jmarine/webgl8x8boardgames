@@ -241,12 +241,20 @@ offerDraw: function() {
 
 group_finished: function() {
   var group = Network.gameRoom;
+
+  $("#btnResignGame").hide();
+  $("#btnDrawGame").hide();
+  $("#btnRetractMove").hide();  // TODO: clear achievements on retract
+
+/*
   if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {
     var newState = "FINISHED";
     this.wgsclient.updateGroup(group.appId, group.gid, newState, false, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
        if(errorURI) alert(errorURI);
     });
   }
+*/
+
 },
 
 group_opened: function(group) {
@@ -285,6 +293,10 @@ group_opened: function(group) {
          $("#btnResignGame").show();
          $("#btnDrawGame").show();
          $("#btnRetractMove").show();
+    } else {
+         $("#btnResignGame").hide();
+         $("#btnDrawGame").hide();
+         $("#btnRetractMove").hide();
     }
 
     $("select[id=game_type]").val(group.appName);
@@ -378,14 +390,19 @@ group_changed: function(group) {
       } else if(action.type == "RETRACT_ACCEPTED") {
         showMessage("");
         if(this.wgsclient.isMemberOfGroup(group.gid) && (isFinite(currentSlot) && action.slot != currentSlot) ) {
-          showMessage("Move retraction has been accepted");
           getPlayer(1+action.slot).retractConfirmed = true;
           document.execCommand("undo");
+          showMessage("Move retraction has been accepted");
+          $("#btnResignGame").show();
+          $("#btnDrawGame").show();
         } else {
           if(this.wgsclient.isMemberOfGroup(group.gid) && (isFinite(currentSlot) && (1+action.slot) != game.getTurn()) ) {
             setNumUndosToIgnore(1);
             document.execCommand("undo");
             setNumUndosToIgnore(0);
+            showMessage("");
+            $("#btnResignGame").show();
+            $("#btnDrawGame").show();
           }
           UI.setGameState(action.value);
         }
@@ -393,8 +410,8 @@ group_changed: function(group) {
       } else if(action.type == "RETRACT_QUESTION") {
         var currentState = game.toString();
         if(isFinite(currentSlot) && action.slot == currentSlot) {
-          showMessage("Waiting retract confirmation from opponent");
           acceptHumanMove(false);
+          showMessage("Waiting retract confirmation from opponent");
           //setNumUndosToIgnore(1);
           //document.execCommand("undo");
           //setNumUndosToIgnore(0);
