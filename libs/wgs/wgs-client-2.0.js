@@ -40,6 +40,12 @@ WgsClient.prototype.getDefaultRealm = function() {
     return document.location.hostname;
 }
 
+
+WgsClient.prototype.getProfile = function(user, callback) {
+    this.call("wgs.get_profile", [user], {}).then(callback, callback);
+}
+
+
 WgsClient.prototype.registerUser = function(realm, user, password, email, onstatechange) {
     var client = this;
     var details = { "authmethods": ["anonymous"] };
