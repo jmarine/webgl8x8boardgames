@@ -282,62 +282,9 @@ function showGames() {
   $('#controls').hide();
   $('#games').show();
   $('#config').show();
-  adjustScrollTable('groups');
-  adjustScrollTable('history');
 }
 
 
-
-
-function adjustScrollTable(tableName){
- 
-  var colCount = $('#' + tableName + 'Header .columnHeader').length; //get total number of column
- 
-  var m = 0;
-  var n = 0;
-  var brow = 'mozilla';
- 
-  jQuery.each(jQuery.browser, function(i, val) {
-    if(val == true){
-      brow = i.toString();
-    }
-  });
- 
- 
-  if($('#' + tableName + 'Table tr').size() <= 0) {
-    $('#' + tableName + 'Header table').width("100%");
-  } else {
-    $('#' + tableName + 'Header table').width("0");
-    $('#' + tableName + 'Header .columnHeader').each(function(i){
-      if (m < colCount-1){
-
-        if (brow == 'mozilla'){
-          $('#firstTd').css("width",$('.tableFirstCol').innerWidth());//for adjusting first td
-          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').innerWidth());  //for assigning width to table Header div
-        }
-        else if (brow == 'msie'){
-          $('#firstTd').css("width",$('.tableFirstCol').width());
-          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').width()-2);  //In IE there is difference of 2 px
-        }
-        else if (brow == 'safari'){
-          $('#firstTd').css("width",$('.tableFirstCol').width());
-          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').width());
-        }
-        else {
-          $('#firstTd').css("width",$('.tableFirstCol').width());
-          $(this).css('width',$('#' + tableName + 'Table td:eq('+m+')').innerWidth());
-        }
-      }
-      m++;
-    });
-  }
-   
-}
-
-function fnScroll(tableName){
-  $('#' + tableName + 'Header').scrollLeft($('#' + tableName + 'Table').scrollLeft());
-  //$('#' + tableName + 'FirstRow').scrollTop($('#' + tableName + 'Table').scrollTop());
-}
 
 
 /*** WGS ***/
@@ -446,7 +393,7 @@ function authentication(state, msg) {
 
         $("#user_picture").attr("src", "/images/anonymous.png");
         if(msg.picture) $("#user_picture").attr("src", msg.picture);
-        $("#user_picture").show();
+        $("#btnProfile").show();
 
         Network.onConnect(msg); 
 
@@ -782,7 +729,7 @@ function initApp() {
         </dl>
 
 
-      <img id="user_picture" src="/images/anonymous.png" width="48" height="48" style="float: left; display: none; width: 48px; height: 48px">
+      <button id="btnProfile" style="float: left; margin: 0; padding: 0; display: none; width: 52px; height: 52px"><img id="user_picture" src="/images/anonymous.png" width="48" height="48" title="Profile"></button>
 
       <!--<DIV id="extend_list" style="width:100%">-->
       <button id="btnConnect" style="clear:left">Connect</button>
@@ -799,38 +746,48 @@ function initApp() {
       </DIV>
 
 
+      <div id="profile_section" style="display: none">
+        <H4>Profile</H4>
+        <a href="#" style="float: right; text-decoration: none" onclick="$('#profile_section').hide(); return false">x</a>
 
-
-      <div id="network_status">
-	Waiting connection
+        <dl>
+          <dt>Versus:</dt>
+          <dd><select id="profile_filter" onChange="Network.loadProfile(); return false;">
+                <option value="">All</option>
+              </select></dd>
+        </dl>
+        <table id="profile_apps" class="scrollTable" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 1em">
+           <thead>
+             <tr>
+               <th>Game</th>
+               <th>Active</th>
+               <th>Wins</th>
+               <th>Draws</th>
+               <th>Loses</th>
+	       <th>Resigns</th>
+             </tr>
+           </thead>
+           <tbody>
+           </tbody>
+       </table>
       </div>
 
 
 
-      <div id="games_section" style="width: 100%; display: none">
+      <div id="games_section" style="display: none">
       <H4>Select match:</H4>
-      <div id="groupsHeader" class="scrollTableHeader" style="overflow:hidden;width:100%">
-        <table cellspacing="0" cellpadding="0" border="0" >
-          <tr id='firstTr'>
-            <td>
-              <div class="columnHeader">Game</div>
-            </td>
-            <td>
-              <div class="columnHeader">Status</div>
-            </td>
-            <td>
-              <div class="columnHeader">#</div>
-            </td>
-            <td>
-              <div class="columnHeader">Members</div>
-            </td>
-          </tr>
+        <table id="groupsTable" class="scrollTable" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <thead>
+             <tr>
+              <th>Game</th>
+              <th>Status</th>
+              <th>#</th>
+              <th>Members</th>
+            </tr>
+          </thead> 
+          <tbody>
+          </tbody>
         </table>
-      </div>  
-      <div id="groupsTable" class="scrollTableData" style="width:100%;position:relative" onscroll="fnScroll('groups')" >
-        <table cellspacing="0" cellpadding="0" border="0" width="100%">
-        </table>
-      </div>
       </div>
 
       <div id="matching_options" style="display: none">
@@ -884,38 +841,6 @@ function initApp() {
       <button id="btnResignGame">Resign</button>
 
       <button id="btnDisconnect">Disconnect</button>
-
-
-
-
-      <!-- TODO -->
-      <div id="history" style="display: none">
-      <H4 style="clear: both">Match history:</H4>
-      <div id="historyHeader" class="scrollTableHeader" style="overflow:hidden;width:100%">
-        <table cellspacing="0" cellpadding="0" border="0" >
-          <tr id='firstTr'>
-            <td>
-              <div class="columnHeader">#</div>
-            </td>
-            <td>
-              <div class="columnHeader">White</div>
-            </td>
-            <td>
-              <div class="columnHeader">Black</div>
-            </td>
-          </tr>
-        </table>
-      </div>
-      <div id="historyTable" class="scrollTableData" style="width:100%;position:relative" onscroll="fnScroll('history')" >
-        <table cellspacing="0" cellpadding="0" border="0" width="100%">
-          <tr>
-            <td>1</td>
-            <td>a1a3</td>
-            <td>O-O-O</td>
-          </tr>
-        </table>
-        </div>
-      </div>
 
     </div>
   </DIV>

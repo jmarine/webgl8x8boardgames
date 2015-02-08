@@ -125,10 +125,6 @@ body {
   -webkit-user-select: none; -moz-user-select: none; user-select: none;
 }
 
-#join, #join2, #network_status {
-  clear:both;
-  display: none;
-}
 
 select.list {
   width: 250px;
@@ -145,7 +141,7 @@ select.list {
 
 
 
-#connect_section, #list_games, #btnDisconnect, #btnResignGame, #btnDrawGame, #btnShowMatchingOptions, #btnHideMatchingOptions, #btnCreateGame, #btnDeleteFinishedGames, #matching_options {
+#connect_section, #profile_section, #btnDisconnect, #btnResignGame, #btnDrawGame, #btnShowMatchingOptions, #btnHideMatchingOptions, #btnCreateGame, #btnDeleteFinishedGames, #matching_options {
   display: none;
 }
 
@@ -263,19 +259,32 @@ option:active {
 }
 
 
-.scrollTableHeader {
+.scrollTable {
+  clear: both; float: 
+  left; border: 1px #6c3000 solid; 
+  border-top-left-radius: 6px; 
+  border-top-right-radius: 6px;
+}
+
+.scrollTable > thead {
   clear:both;
   background: #dac394;
   border: 1px #6c3000 solid; border-top-left-radius: 6px; border-top-right-radius: 6px;
 }
 
-.scrollTableData {
+.scrollTable > thead > tr > th {
+  border-bottom: 1px #6c3000 solid; 
+  text-align: left;
+  text-weight: bold;
+  padding-right: 0.5em;
+}
+
+.scrollTable > tbody {
   clear:both;
   border: 1px #6c3000 solid;
 }
 
-.scrollTableRow > td {
+.scrollTable > tbody > tr > td {
   border-bottom: 1px #6c3000 solid; 
+  padding-right: 0.5em;
 }
-
-

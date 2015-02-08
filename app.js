@@ -160,6 +160,13 @@ $(document).ready(function(){
 
   onPlayerTypeChange();
 
+  $('#btnProfile').click(function() {
+        Network.loadProfile(null);
+	return false;
+  });
+
+
+
   $('#btnSendChatLine').click(function() {
         UI.sendChatLine();
 	return false;
@@ -232,7 +239,7 @@ $(document).ready(function(){
         } else {
           $("#user").val("");
           $("#password").val("");
-          $("#user_picture").hide();
+          $("#btnProfile").hide();
        
           var wgsclient = Network.getWgsClient(url);
           var realm = wgsclient.getDefaultRealm(); 

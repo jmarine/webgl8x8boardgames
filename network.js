@@ -77,7 +77,6 @@ isConnected: function() {
 onConnect: function(msg) {
     console.log("connected");
     $('#connect_section').hide();
-    $('#network_status').hide();
     $('#matching_options').hide();
     $('#btnCreateGame').hide();
     $('#reject').hide();
@@ -99,6 +98,36 @@ onConnect: function(msg) {
     }
 },
 
+loadProfile: function(user) {
+  var user = $("#profile_filter").val();
+  this.wgsclient.getProfile(user, function(id,details,errorURI,result,resultKw) {
+
+      $("#profile_filter > option[value!='']").remove();
+      if(Network.user.friends) {
+          Network.user.friends.forEach(function(item) {
+            var option = $('<option>').attr('value',item.user).text(item.name);
+            if(item.user == user) option.attr("selected","selected");
+            if(item.picture) option.attr("style","height:34px;background-repeat:no-repeat;background-image:url("+item.picture+");padding-left:35px;background-size: auto 30px;background-position:2px 2px;vertical-align: middle");
+            $("#profile_filter").append(option);
+          });
+      }
+
+      $("#profile_apps>tbody>tr").remove();
+      $.each(resultKw.apps, function(app, appStats) {
+          var tr = $('<tr>');
+          tr.attr('class', "scrollTableRow");
+          tr.append('<td>' + app + '</td>');
+          tr.append('<td>' + appStats.active + '</td>');
+          tr.append('<td>' + appStats.win + '</td>');
+          tr.append('<td>' + appStats.draw + '</td>');
+          tr.append('<td>' + appStats.lose + '</td>');
+          tr.append('<td>' + appStats.resign + '</td>');
+
+          $("#profile_apps>tbody").append(tr);
+      });
+      $('#profile_section').show();
+  });
+},
 
 sendLoadRequest: function(game, state, toPlayerNumber)
 {
@@ -126,7 +155,7 @@ sendRetractMoveRequest: function(game, state, toPlayerNumber)
 
 deleteFinishedGroups: function() {
   this.wgsclient.deleteFinishedGroups();
-  $("#groupsTable>table>tbody>tr[state='FINISHED']").remove();
+  $("#groupsTable>tbody>tr[state='FINISHED']").remove();
 },
 
 getUserNick: function(user_session)
@@ -146,6 +175,7 @@ exitGame: function(disconnecting)
     acceptHumanMove(false);
 
     $("#chat_section").hide();
+    $("#profile_section").hide();
     $("#game_info").hide();
     $("#member0_info").hide();
     $("#member1_info").hide();
@@ -155,7 +185,6 @@ exitGame: function(disconnecting)
     $("#player1").removeAttr("disabled");
     $("#player2").removeAttr("disabled");
 
-    $('#network_status').hide();
     $("#btnResignGame").hide();
     $("#btnDrawGame").hide();
 
@@ -518,6 +547,8 @@ update_group_member: function(memberId, member, currentUserSelected, roleFixed) 
 
 
 open_group: function(appId, gid, options) {
+    $('#profile_section').hide();
+
     Network.wgsclient.openGroup(appId, gid, options, function(id,details,errorURI,result,resultKw) {
        if(!errorURI) {
             Network.group_changed(resultKw); 
@@ -586,9 +617,9 @@ addGroupListItem: function(group) {
 
    if(localPlayerTurn) {
      opt.attr("bgcolor", "#EAB13D");  // remark current turn
-     $("#groupsTable>table").prepend(opt);
+     $("#groupsTable>tbody").prepend(opt);
    } else {
-     $("#groupsTable>table").append(opt);
+     $("#groupsTable>tbody").append(opt);
    }
 
 },
@@ -596,7 +627,7 @@ addGroupListItem: function(group) {
 update_groups: function(id,details,errorURI,payload,payloadKw) {
       if(payloadKw.groups) {
         //$("#groups option").remove();
-        $("#groupsTable>table>tbody>tr").remove();
+        $("#groupsTable>tbody>tr").remove();
         
 
      console.log("**** update_groups ****");
@@ -618,13 +649,13 @@ update_groups: function(id,details,errorURI,payload,payloadKw) {
                 
       } else if(payloadKw.cmd == "group_deleted") {
        
-        $("#groupsTable>table>tbody>tr[gid='"+payloadKw.gid+"']").remove();
+        $("#groupsTable>tbody>tr[gid='"+payloadKw.gid+"']").remove();
         
       } else {  // "group_created" || "group_updated" || user_joined || user_exit || user_updated
         
         if(payloadKw.hidden) {
             //$("#groups option[value='"+response.gid+"']").remove();
-            $("#groupsTable>table>tbody>tr[gid='"+payloadKw.gid+"']").remove();
+            $("#groupsTable>tbody>tr[gid='"+payloadKw.gid+"']").remove();
         } else {
             // if($("#groups option[value='"+response.gid+"']").size() <= 0) {  // insert group
             //   $("#groups").append($("<option>").attr("value", response.gid));
@@ -632,14 +663,12 @@ update_groups: function(id,details,errorURI,payload,payloadKw) {
             //$("#groups option[value='"+response.gid+"']").text(Network.getGroupDescription(response));
             //$("#groups option[value='"+response.gid+"']").attr("observable", response.observable);
             
-            $("#groupsTable>table>tbody>tr[gid='"+payloadKw.gid+"']").remove();
+            $("#groupsTable>tbody>tr[gid='"+payloadKw.gid+"']").remove();
             Network.addGroupListItem(payloadKw);
         }
         
       }
     
-      adjustScrollTable("groups");
-      adjustScrollTable("history");
 },
 
 
@@ -647,7 +676,7 @@ listGames: function()
 {
     $('#start').hide();
     $('#games_section').fadeIn();
-    $("#groupsTable>table>tbody>tr").remove();
+    $("#groupsTable>tbody>tr").remove();
     this.wgsclient.listGroups(null, null, null, function(id,details,errorURI,result,resultKw) {
         if(!errorURI) {
             Network.update_groups(id,details,errorURI,result,resultKw);
@@ -670,7 +699,7 @@ disconnect: function() {
         this.wgsclient.close();
         this.wgsclient = null;
 
-        $("#user_picture").hide();
+        $("#btnProfile").hide();
         $("#user").val("");
         $("#password").removeAttr("disabled");
         $("#password").val("");
@@ -701,12 +730,9 @@ disconnect: function() {
         $("#btnResignGame").hide();
         $("#btnDrawGame").hide();
         $('#games_section').hide();
-        $('#network_status').hide();
         $('#connect_section').fadeIn();
 
-        $("#groupsTable>table>tbody>tr").remove();
-
-        adjustScrollTable('history');
+        $("#groupsTable>tbody>tr").remove();
 
 	//wait sending of unavailable presence stanzas
 	showMessage("User disconnected.");
