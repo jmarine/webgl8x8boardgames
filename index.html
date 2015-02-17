@@ -20,7 +20,13 @@ if(provider.indexOf("&") != -1) provider = provider.substring(0, provider.indexO
 
 if(provider == "facebook.com" || window.top != window.self) {
   provider = "facebook.com";
-  window.top.location.href="https://www.facebook.com/dialog/apprequests?app_id=249148035263387&message=Request to play with WebGL 8x8 board games!&redirect_uri=https://apps.facebook.com/webglchessboardgames/facebook.html" + escape("?provider=" + escape(provider) + "&gid=" + escape(gid)); 
+
+  //App promotion (it works, but sometimes it doesn't redirects to the application)
+  //window.top.location.href="https://www.facebook.com/dialog/apprequests?app_id=249148035263387&message=Request to play with WebGL 8x8 board games!&redirect_uri=https://apps.facebook.com/webglchessboardgames/facebook.html" + escape("?provider=" + escape(provider) + "&gid=" + escape(gid)); 
+
+  //Authenticate and load application:
+  window.top.location.href="https://www.facebook.com/dialog/oauth?response_type=code&access_type=offline&scope=email%2Cpublish_actions%2Cmanage_notifications&client_id=249148035263387&approval_prompt=force&redirect_uri=https://apps.facebook.com/webglchessboardgames/app.html"+escape("?provider=facebook.com"); 
+
 } else {
   document.location.href="app.html?provider=" + escape(provider) + "&gid=" + escape(gid);
 }
