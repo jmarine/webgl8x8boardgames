@@ -312,21 +312,26 @@ function authentication(state, msg) {
         //Network.getWgsClient().heartbeat(5000, "*****DISCARDED HEARTBEAT PAYLOAD*******");
 
     } else if(state == ConnectionState.CHALLENGED) {        
-        console.log("Challenge: " + msg);
-        if(msg._oauth2_provider_url) {
+        console.log("Challenge: " + JSON.stringify(msg));
+        if(msg._oauth2_provider_url && oauth2Code != null) {
             var authUrl = msg._oauth2_provider_url + "&state=" + escape(notificationChannel);
-            if(oauth2Code == null) window.open(authUrl, '_blank');
-            else providerAuthUrl = authUrl;
+            if(oauth2Code != null) providerAuthUrl = authUrl;
+            //else window.open(authUrl, '_blank');
             
         } else if(msg._oauth2_providers) {  
             // OAuth 2.0 / OpenID Connect selector
             var providers = $("#openid_providers_menu");
-            providers.find("li:gt(0)").each(function(){
+            //providers.find("li:gt(0)")
+            providers.find("li").each(function(){
                 $(this).remove();
             });
            
             var selected = false; 
-            msg._oauth2_providers.forEach(function(item) {
+            if(msg._oauth2_providers.length == 0) {
+                var li = $("<li>");
+                li.attr("class", "ui-menu-item").append("Unknown OpenID Connect providers");
+                providers.append(li);
+            } else msg._oauth2_providers.forEach(function(item) {
               if(provider.length == 0 || provider == item.name) {
                 var link = $("<a>");
                 link.text(item.name);
@@ -341,7 +346,7 @@ function authentication(state, msg) {
                 if(provider == item.name) {
                    if(providerAuthUrl == null) {
 			providerAuthUrl = item.url + "&state=" + escape(notificationChannel);
-			if(oauth2Code == null) window.open(providerAuthUrl,'_blank');  // it may be blocked by anti-popup software
+			//if(oauth2Code == null) window.open(providerAuthUrl,'_blank');  // it may be blocked by anti-popup software
                    }
 		}
               } 
@@ -490,10 +495,10 @@ function openid_connect_menu(self) {
     var url = $("#server_url").val();
     var redirectUri = get_openid_connect_callback_url();
     
-    var url = $("#server_url").val();
+    var user = $("#user").val();
     var wgsclient = Network.getWgsClient(url);
     var realm = wgsclient.getDefaultRealm();
-    wgsclient.openIdConnectProviders(realm, getOAuth2ClientName(), redirectUri, authentication);
+    wgsclient.openIdConnectProviders(user, realm, getOAuth2ClientName(), redirectUri, authentication);
 }
 
 
@@ -737,7 +742,7 @@ function initApp() {
       <button id="btnRegister">Register</button>
 
       <ul id="openid_providers_menu" style="display: none;">
-        <li><a href="javascript:openid_connect(false);">OpenID Connect provider</a></li>
+        <!--<li><a href="javascript:openid_connect(false);">OpenID Connect provider</a></li>-->
       </ul>    
       <!--</DIV>-->
 

@@ -74,9 +74,9 @@ WgsClient.prototype.registerUser = function(realm, user, password, email, onstat
 }
 
 
-WgsClient.prototype.openIdConnectProviders = function(realm, clientName, redirectUri, onstatechange) {
+WgsClient.prototype.openIdConnectProviders = function(subjectToDiscover, realm, clientName, redirectUri, onstatechange) {
     var client = this;
-    var details = { "authmethods": ["oauth2"], "_oauth2_redirect_uri": redirectUri, "_oauth2_client_name": clientName };
+    var details = { "authmethods": ["oauth2"], "_oauth2_redirect_uri": redirectUri, "_oauth2_client_name": clientName, "_oauth2_subject": subjectToDiscover};
     client.connect(realm, details, function(state, msg) {
             onstatechange(state, msg);          
             if(state == ConnectionState.WELCOMED) {
