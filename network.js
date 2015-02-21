@@ -275,15 +275,6 @@ group_finished: function() {
   $("#btnDrawGame").hide();
   $("#btnRetractMove").hide();  // TODO: clear achievements on retract
 
-/*
-  if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {
-    var newState = "FINISHED";
-    this.wgsclient.updateGroup(group.appId, group.gid, newState, false, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
-       if(errorURI) alert(errorURI);
-    });
-  }
-*/
-
 },
 
 group_opened: function(group) {
@@ -348,7 +339,7 @@ group_opened: function(group) {
     //alert("ACK: unsubscribe from MUC");
 
     UI.createGame();
-    if(group.data && group.data.length > 0) game.initFromStateStr(group.data);
+    if(group.initial_data && group.initial_data.length > 0) game.initFromStateStr(group.initial_data);
 
     if(group.actions && group.actions.length > 0) {
       var sim = game.clone();
