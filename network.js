@@ -339,7 +339,7 @@ group_opened: function(group) {
     //alert("ACK: unsubscribe from MUC");
 
     UI.createGame();
-    if(group.initial_data && group.initial_data.length > 0) game.initFromStateStr(group.initial_data);
+    if(group.initialData && group.initialData.length > 0) game.initFromStateStr(group.initialData);
 
     if(group.actions && group.actions.length > 0) {
       var sim = game.clone();
