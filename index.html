@@ -18,7 +18,7 @@ if(gid.indexOf("&") != -1) gid = gid.substring(0, gid.indexOf("&"));
 var provider = (document.location.href.indexOf("provider=") != -1) ? document.location.href.substring(document.location.href.indexOf("provider=")+9) : "";
 if(provider.indexOf("&") != -1) provider = provider.substring(0, provider.indexOf("&"));
 
-if(provider == "facebook.com" || window.top != window.self) {
+if(provider == "facebook.com" || document.referrer.indexOf("facebook.com") != -1) {
   provider = "facebook.com";
 
   //App promotion (it works, but sometimes it doesn't redirects to the application)
