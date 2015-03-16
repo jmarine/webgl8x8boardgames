@@ -253,8 +253,8 @@ option:active {
     padding-right: 0px;
     background-image: url(resources/images/oic.png) ;
     background-repeat: no-repeat;
-    background-position: left center;
-    background-size: 14px,14px;
+    background-position: center center;
+    background-size: 16px,16px;
     width: 20px;
 }
 
