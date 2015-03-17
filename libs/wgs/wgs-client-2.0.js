@@ -232,16 +232,17 @@ WgsClient.prototype.openGroup = function(appId, gid, options, callback) {
     args[1] = gid? gid : null;
     args[2] = options;
 
+    this.openedGroupSubscriptionId = null;
     this.call("wgs.open_group", args).then(function(id,details,errorURI,result,resultKw) {
-        client.subscribe("wgs.group_event." + resultKw.gid, client._update_group_users, null, {} );
+        client.subscribe("wgs.group_event." + resultKw.gid, client._update_group_users, null, {} ).then(function(id) { client.openedGroupSubscriptionId = id; });
         client._update_group_users(id,details,errorURI,result,resultKw, null, callback, true);
     }, callback);
 }
 
 WgsClient.prototype.exitGroup = function(gid, callback) {
     var client = this;
+    this.unsubscribe(this.openedGroupSubscriptionId, client._update_group_users, null, {});    
     this.call("wgs.exit_group", gid).then(callback, callback);
-    this.unsubscribe("wgs.group_event." + gid, client._update_group_users, null, {});
     delete this.groups[gid];
 }
 

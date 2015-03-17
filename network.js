@@ -685,7 +685,7 @@ listGames: function()
 disconnect: function() {
     console.log("Disconnecting.");
     if(this.wgsclient) {
-        //Network.wgsclient.unsubscribe("wgs.apps_event", Network.update_groups, null, {});
+
         this.exitGame(true);
         this.wgsclient.close();
         this.wgsclient = null;

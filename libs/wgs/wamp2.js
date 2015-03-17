@@ -29,10 +29,10 @@ Wamp2.prototype = {
     rpcRegistrationsById: new Array(),
     rpcRegistrationsByURI: new Array(),
     rpcHandlers: new Array(),
-    subscriptionsById: new Array(),
-    subscriptionsByTopicAndOptions: new Array(),
+    topicPatternsBySubscriptionId: new Array(),
     eventHandlers: new Array(),
     metaeventHandlers: new Array(),
+
 
     setState: function(state) {
         this.state = state;
@@ -182,28 +182,19 @@ Wamp2.prototype = {
         arr[1] = this.newSessionScopeId();
         arr[2] = options;
         arr[3] = topic;      
-        var topicAndOptionsKey = this._getTopicAndOptionsKey(topic,options);
-        this.pendingRequests[arr[1]] = [dfd, topicAndOptionsKey, event_cb, metaevent_cb, options];
+        var topicPattern = this.getTopicPattern(topic, options);
+        this.pendingRequests[arr[1]] = [dfd, topicPattern, event_cb, metaevent_cb, options];
         this.send(JSON.stringify(arr));
         return dfd.promise();
     },
 
-    unsubscribe: function(topic, event_cb, metaevent_cb, options) {
-        var client = this;
-
-        if(!options) options = {};
-
-        if(!options.match && topic.indexOf("..") != -1) {
-            options.match = "wildcard";
-        }
-
+    unsubscribe: function(subscriptionId, event_cb, metaevent_cb) {
         var dfd = $.Deferred();            
         var arr = [];
         arr[0] = 34;  // UNSUBSCRIBE
         arr[1] = this.newSessionScopeId();
-        arr[2] = this._getSubscriptionIdByTopicAndOptions(topic,options);
-        var topicAndOptionsKey = this._getTopicAndOptionsKey(topic,options);
-        this.pendingRequests[arr[1]] = [dfd, arr[2], topicAndOptionsKey, event_cb, metaevent_cb];
+        arr[2] = subscriptionId;
+        this.pendingRequests[arr[1]] = [dfd, arr[2], event_cb, metaevent_cb];
         this.send(JSON.stringify(arr));
 
         return dfd.promise();
@@ -223,12 +214,8 @@ Wamp2.prototype = {
         return dfd.promise();
     }, 
     
-    _getSubscriptionIdByTopicAndOptions: function(topicPattern, options) {
-        var topicAndOptionsKey = this._getTopicAndOptionsKey(topicPattern, options);
-        return this.subscriptionsByTopicAndOptions[topicAndOptionsKey];
-    },
     
-    _getTopicAndOptionsKey: function(topicPattern, options) {
+    getTopicPattern: function(topicPattern, options) {
         if(!options) options = {};
         if(!options.match) options.match = (topicPattern.indexOf("..") != -1)? "wildcard" : "exact";
         else if(options.match=="prefix") topicPattern = topicPattern + "..";
@@ -456,8 +443,8 @@ Wamp2.prototype = {
             var requestType = arr[1];
             var requestId = arr[2];
             if(client.pendingRequests[requestId]) {
-                var details = arr[3];
-                var errorURI = arr[4];
+                var details = (arr.length>3)? arr[3] : null;
+                var errorURI = (arr.length>4)? arr[4] : null;
                 var args = (arr.length>5)? arr[5] : [];
                 var argsKw = (arr.length>6)? arr[6] : {};
                 var promise = client.pendingRequests[requestId][0];
@@ -487,19 +474,19 @@ Wamp2.prototype = {
             if(requestId && client.pendingRequests[requestId]) {
                 var subscriptionId = arr[2];
                 var promise = client.pendingRequests[requestId][0];
-                var topicAndOptionsKey = client.pendingRequests[requestId][1];
-                var options = client.pendingRequests[requestId][4];
-                client.subscriptionsById[subscriptionId] = topicAndOptionsKey;
-                client.subscriptionsByTopicAndOptions[topicAndOptionsKey] = subscriptionId;
+                var topicPattern = client.pendingRequests[requestId][1];
+                var event_cb = client.pendingRequests[requestId][2];
+                var metaevent_cb = client.pendingRequests[requestId][3];
+                client.topicPatternsBySubscriptionId[subscriptionId] = topicPattern;
                 if(client.pendingRequests[requestId][2]) {
                   if(!client.eventHandlers[subscriptionId]) client.eventHandlers[subscriptionId] = [];
-                  client.eventHandlers[subscriptionId].push(client.pendingRequests[requestId][2]);
+                  client.eventHandlers[subscriptionId].push(event_cb);
                 }
                 if(client.pendingRequests[requestId][3]) {                  
                   if(!client.metaeventHandlers[subscriptionId]) client.metaeventHandlers[subscriptionId] = [];
-                  client.metaeventHandlers[subscriptionId].push(client.pendingRequests[requestId][3]);
+                  client.metaeventHandlers[subscriptionId].push(metaevent_cb);
                 }
-                promise.resolve(requestId,subscriptionId);
+                promise.resolve(subscriptionId);
                 delete client.pendingRequests[requestId];
             }
 
@@ -508,10 +495,8 @@ Wamp2.prototype = {
             if(requestId && client.pendingRequests[requestId]) {
                 var promise = client.pendingRequests[requestId][0];
                 var subscriptionId = client.pendingRequests[requestId][1];
-                var topicAndOptionsKey = client.pendingRequests[requestId][2];
-
-                var event_cb = client.pendingRequests[requestId][3];
-                var metaevent_cb = client.pendingRequests[requestId][4];
+                var event_cb = client.pendingRequests[requestId][2];
+                var metaevent_cb = client.pendingRequests[requestId][3];
                 var callbacks = client.eventHandlers[subscriptionId];
                 if(callbacks && callbacks.length>0) {
                     var indexOfEventHandlerToClear = callbacks.indexOf(event_cb);
@@ -526,10 +511,9 @@ Wamp2.prototype = {
                     else if(indexOfMetaHandlerToClear != -1) client.metaeventHandlers[subscriptionId].splice(indexOfMetaHandlerToClear,1);
                 }
 
-                promise.resolve(requestId,subscriptionId);
+                promise.resolve(subscriptionId);
                 delete client.pendingRequests[requestId];
                 //delete client.subscriptionsById[subscriptionId];
-                //delete client.subscriptionsByTopicAndOptions[topicAndOptionsKey];              
             }
 
         } else if(arr[0] == 17) {  // PUBLISHED
@@ -545,7 +529,7 @@ Wamp2.prototype = {
             var details = arr[3];
             var payload   = (arr.length>4)? arr[4] : null;
             var payloadKw = (arr.length>5)? arr[5] : null;
-            var topicURI = client.subscriptionsById[subscriptionId];
+            var topicURI = client.topicPatternsBySubscriptionId[subscriptionId];
             if(details && details.topic) topicURI = details.topic;
 
             if(details && details.metatopic) {
