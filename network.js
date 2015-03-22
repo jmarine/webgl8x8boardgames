@@ -56,15 +56,16 @@ getWgsClient: function(url) {
 },
 
 
-login: function(url, user, pass) {
+login: function(appName, url, user, pass, notificationChannel) {
     showMessage("Connecting...");
 
     this.wgsclient = this.getWgsClient(url);
     var realm = this.wgsclient.getDefaultRealm();
+    var details = { "_notification_channel": notificationChannel, "_oauth2_client_name": appName };
     if(user.length > 0) {
-            this.wgsclient.login(realm, user, pass, authentication);
+            this.wgsclient.login(realm, details, user, pass, authentication);
     } else {
-            this.wgsclient.login(realm, null, null, authentication);
+            this.wgsclient.login(realm, details, null, null, authentication);
     }
 }, 
 

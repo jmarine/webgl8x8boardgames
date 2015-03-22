@@ -244,7 +244,7 @@ $(document).ready(function(){
           var wgsclient = Network.getWgsClient(url);
           var realm = wgsclient.getDefaultRealm(); 
           var email = prompt("Enter e-mail:");
-          if(email) wgsclient.registerUser(realm, user, pass, email, authentication);
+          if(email) wgsclient.registerUser(getOAuth2ClientName(), realm, user, pass, email, notificationChannel, authentication);
         }
         return false;
   });
@@ -326,7 +326,7 @@ $(document).ready(function(){
                 } else {
                   var pass = $("#password").val();
                   $("#password").val("");  // clear credentials
-                  Network.login(url, user, pass);
+                  Network.login(getOAuth2ClientName(), url, user, pass, notificationChannel);
                 }
               }
               return false;

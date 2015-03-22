@@ -232,9 +232,9 @@ Wamp2.prototype = {
     },
 
 
-    login: function(realm, user, password, onstatechange) {
+    login: function(realm, extra, user, password, onstatechange) {
         var client = this;
-        var details = {};
+        var details = extra || {};
         details.authmethods = [ "wampcra", "anonymous" ];
         details.authid = user;
 
@@ -246,8 +246,10 @@ Wamp2.prototype = {
                     var key = CryptoJS.PBKDF2(password, msg.salt, { keySize: msg.keylen / 4, iterations: msg.iterations, hasher: CryptoJS.algo.SHA256 });
                     password = key.toString(CryptoJS.enc.Base64);                        
                 }
+                
+                if(!extra) extra = {};
                 var signature = CryptoJS.HmacSHA256(msg.challenge, password).toString(CryptoJS.enc.Base64);
-                client.authenticate(signature, {});
+                client.authenticate(signature, extra);
                 
             } else if(state == ConnectionState.WELCOMED) {
                 client.authid = msg.authid;

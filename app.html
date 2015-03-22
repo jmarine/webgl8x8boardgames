@@ -24,6 +24,7 @@
 <meta name="description" content="Play draughts/checkers, chess or breakthrough games against your computer, or with a local/remote friend. It only works in browsers with WebGL support.">
 
 <link rel="stylesheet" href="styles.css" />
+<link rel="manifest" href="manifest.json">
 
 <script src='libs/spidergl.js'></script>
 <SCRIPT type="text/javascript" src="libs/sylvester.js"></SCRIPT>
@@ -501,7 +502,104 @@ function openid_connect_menu(self) {
     wgsclient.openIdConnectProviders(user, realm, getOAuth2ClientName(), redirectUri, authentication);
 }
 
+function updateNotificationChannel(subscription) {
+  notificationChannel = (subscription != null) ? JSON.stringify(subscription) : null;
+  if(Network) {
+	var wgsclient = Network.getWgsClient(null);
+	if(wgsclient != null) wgsclient.setUserPushChannel(getOAuth2ClientName(), notificationChannel);
+  }
+}
 
+function initPushNotifications() {  
+  // Are Notifications supported in the service worker?  
+  console.log('initPushNotifications');  
+
+  if (!('showNotification' in ServiceWorkerRegistration.prototype)) {  
+    console.warn('Notifications aren\'t supported.');  
+    return;  
+  }
+
+  // Check the current Notification permission.  
+  // If its denied, it's a permanent block until the  
+  // user changes the permission  
+  if (Notification.permission === 'denied') {  
+    console.warn('The user has blocked notifications.');  
+    return;  
+  }
+
+  // Check if push messaging is supported  
+  if (!('PushManager' in window)) {  
+    console.warn('Push messaging isn\'t supported.');  
+    return;  
+  }
+
+  // We need the service worker registration to check for a subscription  
+  navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {  
+    // Do we already have a push message subscription?  
+    serviceWorkerRegistration.pushManager.getSubscription()  
+      .then(function(subscription) {  
+        $("#push").show();
+
+        if (!subscription) {  
+          return;  
+        }
+        
+        updateNotificationChannel(subscription);
+        console.log("NOTIFICATION1:" + JSON.stringify(subscription));
+        //sendSubscriptionToServer(subscription);
+
+        $("#push_notifications").prop('checked', true);
+      })  
+      .catch(function(err) {  
+        console.warn('Error during getSubscription()', err);  
+      });  
+  });  
+}
+
+function subscribe() {  
+  navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {  
+    serviceWorkerRegistration.pushManager.subscribe()  
+      .then(function(subscription) {  
+        // The subscription was successful  
+        updateNotificationChannel(subscription);
+        console.log("NOTIFICATION2: " + JSON.stringify(subscription));
+      })  
+      .catch(function(e) {  
+        $("#push_notifications").prop('checked', false);  
+        if (Notification.permission === 'denied') {  
+          console.warn('Permission for Notifications was denied');  
+        } else {  
+          console.error('Unable to subscribe to push.', e);  
+        }  
+      });  
+  });  
+}
+
+
+function unsubscribe() {  
+  updateNotificationChannel(null);
+  navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {  
+    // To unsubscribe from push messaging, you need get the  
+    // subscription object, which you can call unsubscribe() on.  
+    serviceWorkerRegistration.pushManager.getSubscription().then(  
+      function(subscription) {  
+        // Check we have a subscription to unsubscribe  
+        if (!subscription) {  
+          return;  
+        }  
+          
+        var subscriptionId = subscription.subscriptionId;  
+        // We have a subscription, so call unsubscribe on it  
+        subscription.unsubscribe().then(function(successful) {  
+          console.log("Unsubscribed: " + subscriptionId);
+        }).catch(function(e) {  
+          console.log('Unsubscription error: ', e);  
+        });  
+      }).catch(function(e) {  
+        console.error('Error thrown while unsubscribing from push messaging.', e);  
+      });  
+  });  
+}
 
 function initApp() {
   initBoard3D(); 
@@ -543,6 +641,23 @@ function initApp() {
 
       openid_connect_menu(null);
   }
+
+
+
+  $("#push_notifications").change(function() {  
+    var enabled = $(this).attr('checked');
+    if(notificationChannel != null) {  
+      unsubscribe();  
+    } else {  
+      subscribe();  
+    }  
+  });
+
+  if('serviceWorker' in navigator) {  
+    navigator.serviceWorker.register('service-worker.js').then(initPushNotifications);  
+  } else {  
+    console.warn('Service workers aren\'t supported in this browser.');  
+  } 
 
 }
 
@@ -629,6 +744,14 @@ function initApp() {
         <dl>
            <dt><label for="sounds">Effects:</label></dt>
            <dd><input id='sounds' type="checkbox" value="1"></dd>
+	</dl>
+      </DIV>
+
+      <DIV id="push" style="display: none">
+      <H4>App notifications</H4>
+        <dl>
+           <dt><label for="push_notifications">Allow:</label></dt>
+           <dd><input id='push_notifications' type="checkbox" value="0"></dd>
 	</dl>
       </DIV>
 
@@ -865,7 +988,7 @@ function initApp() {
   </form>
 </DIV>
 
-<audio id="move" src="resources/sounds/move.ogg" preload="auto">
+<audio id="move" src="resources/sounds/move.ogg" preload="auto"/>
 
 </BODY>
 </HTML>

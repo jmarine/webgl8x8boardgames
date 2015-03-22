@@ -1,13 +1,16 @@
 {
   "name":"WebGL 8x8 board games",
+  "short_name":"WebGL 8x8 board games",
   "xwalk_version": "0.0.0.1",
   "start_url": "app.html",
   "icons": [
     {
       "src": "resources/images/logo.png",
       "sizes": "128x128",
-      "type": "image/png",
-      "density": "4.0"
+      "type": "image/png"
     }
-  ]
+  ],
+  "display": "standalone",  
+  "gcm_sender_id": "775929649001",  
+  "gcm_user_visible_only": true 
 }
