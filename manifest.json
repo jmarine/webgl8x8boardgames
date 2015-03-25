@@ -10,7 +10,7 @@
       "type": "image/png"
     }
   ],
-  "display": "standalone",  
+  "display": "fullscreen",
   "gcm_sender_id": "775929649001",  
   "gcm_user_visible_only": true 
 }
