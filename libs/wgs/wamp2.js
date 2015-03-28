@@ -22,9 +22,6 @@ Wamp2.prototype = {
     state: ConnectionState.DISCONNECTED,
     goodbyeRequested: false,
     sessionScopeId: 0,
-    incomingHeartbeatSeq: 0,
-    outgoingHeartbeatSeq: 0,
-    heartbeatIntervalHandler: null,
     pendingRequests: new Array(),
     rpcRegistrationsById: new Array(),
     rpcRegistrationsByURI: new Array(),
@@ -96,26 +93,6 @@ Wamp2.prototype = {
             arr[2] = reason;
             this.send(JSON.stringify(arr));
         }
-    },
-
-    heartbeat: function(timeout, discard) {
-        var client = this;
-
-        var sendHeartbeat = function() {
-            var arr = [];
-            arr[0] = 7;   // HEARTBEAT
-            arr[1] = client.incomingHeartbeatSeq;
-            arr[2] = ++client.outgoingHeartbeatSeq;
-            arr[3] = discard;
-            client.send(JSON.stringify(arr));
-        }
-
-        if(client.heartbeatIntervalHandler != null) {
-            clearInterval(client.heartbeatIntervalHandler);
-            client.heartbeatIntervalHandler = null;
-        }
-
-        if(timeout != 0) client.heartbeatIntervalHandler = setInterval(sendHeartbeat, timeout);
     },
 
     // Caller API
@@ -338,10 +315,6 @@ Wamp2.prototype = {
 
 
     closeWS: function() {
-        if(this.heartbeatIntervalHandler != null) {
-            clearInterval(this.heartbeatIntervalHandler);
-            this.heartbeatIntervalHandler = null;
-        }
         if(this.ws /* && this.ws.state == this.ws.OPEN */) {
             this.ws.close();
             this.ws = null;
@@ -380,8 +353,9 @@ Wamp2.prototype = {
 
 
         var lpOnReceive = function(response) {
-            console.log("lp.onmessage: " + JSON.stringify(response));
-            client.onWampMessage(response, onstatechange);
+            // Note: response can be null on timeout response            
+            console.log("lp.onmessage: " + JSON.stringify(response));  
+            if(response != null) client.onWampMessage(response, onstatechange);
             if(client.open && lpID == client.lpID) lpReceive();
         };
         
@@ -436,10 +410,6 @@ Wamp2.prototype = {
             client.state = ConnectionState.CLOSED;
             onstatechange(ConnectionState.CLOSED, reason);
             client.goodbye(reason, {});
-
-        } else if (arr[0] == 7) {  // HEARTBEAT
-            client.incomingHeartbeatSeq = arr[2];
-            // TODO: request unreceived EVENTs ?
 
         } else if (arr[0] == 8) {  // ERROR
             var requestType = arr[1];
