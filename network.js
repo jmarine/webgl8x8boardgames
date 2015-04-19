@@ -86,6 +86,7 @@ onConnect: function(msg) {
     $('#btnDisconnect').fadeIn();
 
 
+    $('.logon').show();
     $('#start').fadeIn();
     $('select[id=games]').empty();
     showMessage(false);
@@ -122,7 +123,6 @@ loadProfile: function(user) {
           tr.append('<td>' + appStats.win + '</td>');
           tr.append('<td>' + appStats.draw + '</td>');
           tr.append('<td>' + appStats.lose + '</td>');
-          tr.append('<td>' + appStats.resign + '</td>');
 
           $("#profile_apps>tbody").append(tr);
       });
@@ -691,6 +691,7 @@ disconnect: function() {
         this.wgsclient.close();
         this.wgsclient = null;
 
+        $('.logon').hide();
         $("#btnProfile").hide();
         $("#user").val("");
         $("#password").removeAttr("disabled");

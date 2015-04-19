@@ -528,7 +528,7 @@ function initPushNotifications() {
 
   // Check if push messaging is supported  
   if (!('PushManager' in window)) {  
-    console.warn('Push messaging isn\'t supported.');  
+    console.warn('PushManager isn\'t supported.');  
     return;  
   }
 
@@ -537,7 +537,7 @@ function initPushNotifications() {
     // Do we already have a push message subscription?  
     serviceWorkerRegistration.pushManager.getSubscription()  
       .then(function(subscription) {  
-        $("#push").show();
+        $("#push_notifications").show();
 
         if (!subscription) {  
           return;  
@@ -547,7 +547,7 @@ function initPushNotifications() {
         console.log("NOTIFICATION1:" + JSON.stringify(subscription));
         //sendSubscriptionToServer(subscription);
 
-        $("#push_notifications").prop('checked', true);
+        $("#allow_push_notifications").prop('checked', true);
       })  
       .catch(function(err) {  
         console.warn('Error during getSubscription()', err);  
@@ -564,7 +564,7 @@ function subscribe() {
         console.log("NOTIFICATION2: " + JSON.stringify(subscription));
       })  
       .catch(function(e) {  
-        $("#push_notifications").prop('checked', false);  
+        $("#allow_push_notifications").prop('checked', false);  
         if (Notification.permission === 'denied') {  
           console.warn('Permission for Notifications was denied');  
         } else {  
@@ -643,7 +643,7 @@ function initApp() {
 
 
 
-  $("#push_notifications").change(function() {  
+  $("#allow_push_notifications").change(function() {  
     var enabled = $(this).attr('checked');
     if(notificationChannel != null) {  
       unsubscribe();  
@@ -746,12 +746,14 @@ function initApp() {
 	</dl>
       </DIV>
 
-      <DIV id="push" style="display: none">
+      <DIV class="logon">
+      <DIV id="push_notifications" style="display: none">
       <H4>App notifications</H4>
         <dl>
-           <dt><label for="push_notifications">Allow:</label></dt>
-           <dd><input id='push_notifications' type="checkbox" value="0"></dd>
+           <dt><label for="allow_push_notifications">Allow:</label></dt>
+           <dd><input id='allow_push_notifications' type="checkbox" value="0"></dd>
 	</dl>
+      </DIV>
       </DIV>
 
 
@@ -891,7 +893,6 @@ function initApp() {
                <th>Wins</th>
                <th>Draws</th>
                <th>Loses</th>
-	       <th>Resigns</th>
              </tr>
            </thead>
            <tbody>
