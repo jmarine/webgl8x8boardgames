@@ -1,12 +1,12 @@
 TODO list:
 
 Common:
-- improve AI engine (speed optimizations, quiesence search, etc).
+- improve AI engine (add Monte Carlo Tree Search, quiesence search, speed optimizations, etc).
 - fix TouchScreen support? (pan gesture problems with iPad simulator)
 
 Shader: 
 - fix perspective shadows (problems on Mali 400 GPU and adjust glPolygonOffset parameters or fix calculation of bias to lower Moire's pattern).
 
 Network: 
-- show player names. 
-- observable network games.
+- tournament manager.
+- game observation mode.
