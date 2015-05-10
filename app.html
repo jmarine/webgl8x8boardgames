@@ -587,12 +587,11 @@ function unsubscribe() {
           return;  
         }  
           
-        var subscriptionId = subscription.subscriptionId;  
         // We have a subscription, so call unsubscribe on it  
         subscription.unsubscribe().then(function(successful) {  
-          console.log("Unsubscribed: " + subscriptionId);
+          console.log("PushAPI unsubscribed.");
         }).catch(function(e) {  
-          console.log('Unsubscription error: ', e);  
+          console.log('PushAPI unsubscription error: ', e);  
         });  
       }).catch(function(e) {  
         console.error('Error thrown while unsubscribing from push messaging.', e);  
