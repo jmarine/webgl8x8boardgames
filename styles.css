@@ -20,12 +20,12 @@
   margin: 0;
   padding: 0;
   color: #402b2a; 
-  font-size: medium;
+  font-size: 22px;
+  font-family: "Comic Sans MS", Arial, sans-serif;
 }
 
 body {
   overflow:hidden;
-  font-family: Helvetica, Verdana, Arial, sans-serif;
 }
 
 #main {
@@ -33,25 +33,16 @@ body {
   height: 100%;
 }
 
-#title {
-  position: absolute; 
-  top: 0px; 
-  left: 0px; 
-  width: 25em; 
-  padding: 5px; 
-  background-color: #f7e3a4; 
-  border: 3px groove #402b2a; 
-  border-bottom-right-radius: 10px; -webkit-border-bottom-right-radius: 10px; -khtml-border-bottom-right-radius: 10px; 
-  user-select: none; -webkit-user-select: none; -moz-user-select: none;
-}
+
 
 #game_info {
   position: absolute;
   top: 0px;
   left: 0px;
   width: auto;
+  padding: 5px 10px 5px 10px; 
   background-color: #f7e3a4;
-  border: 3px groove #402b2a;
+  border: 1px solid #402b2a;
   border-bottom-right-radius: 10px; -webkit-border-bottom-right-radius: 10px; -khtml-border-bottom-right-radius: 10px;
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
@@ -63,8 +54,6 @@ body {
   right: 0;
 }
 
-#credits {
-}
 
 #help {
   text-decoration: none
@@ -73,9 +62,9 @@ body {
 #controls {
   position: absolute; 
   right: 0px; 
+  padding: 5px 20px 5px 20px; 
   background-color: #f7e3a4; 
-  padding: 5px; 
-  border: 3px groove #402b2a; 
+  border: 1px solid #402b2a; 
   border-bottom-left-radius: 10px;-webkit-border-bottom-left-radius: 10px; -khtml-border-bottom-left-radius: 10px;
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
@@ -84,16 +73,18 @@ body {
   position: absolute; 
   right: 0px; 
   background-color: #f7e3a4; 
-  border-left: 3px groove #402b2a; 
+  border-left: 3px solid #402b2a; 
   height: 100%;
   //overflow-x: hidden;
   overflow-y: auto;
   display: none;
+  z-index: 1;
+  user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
 
-#options, #games {
+#options, #games, #title {
   display: none;
-  margin: 5px 10px 5px 10px;
+  margin: 10px 20px 10px 20px;
 }
 
 #players {
@@ -120,7 +111,7 @@ body {
   background-color: #f7e3a4; 
   padding: 10px; 
   text-align: center;
-  border: 3px groove #402b2a; 
+  border: 3px solid #402b2a; 
   border-radius: 10px; -webkit-border-radius: 10px; -khtml-border-radius: 10px;
   -webkit-user-select: none; -moz-user-select: none; user-select: none;
 }
@@ -145,15 +136,9 @@ select.list {
   display: none;
 }
 
-H1 a {
-   font-size: 1.8em;
-}
-
 A.author {
-   font-size: 1.2em;
    font-weight: bold;
    text-decoration: none;
-   line-height: 150%;
 }
 
 #message {
@@ -174,6 +159,7 @@ dt {
    clear:both;
    float:left;
    width: 6em;
+   white-space: nowrap;
    height: 1.6em;
    text-align:left;
    margin: 0 0.3em 0.25em 0;
@@ -195,13 +181,20 @@ button {
   float: left;
 }
 
-button, input[type=submit] {
+button, select, input, textarea {
   padding: 2px 4px 2px 4px;
-  border: 1px #6c3000 solid;
+  border: 1px #6c3000 solid; 
   border-radius: 6px;
   margin-top: 5px;
   margin-bottom: 2px;
   margin-right: 4px;
+  background-color: #dac394;
+  color: #402b2a;
+}
+
+option {
+  background-color: #dac394;
+  color: #402b2a;
 }
 
 button::-moz-focus-inner { 
@@ -210,7 +203,8 @@ button::-moz-focus-inner {
 }
 
 button:active {
-  background: #dac394;
+  background-color: #402b2a;
+  color: #dac394;
 }
 
 button:disabled, input:disabled {
@@ -224,11 +218,11 @@ button:disabled, input:disabled {
 }
 
 .ui-corner-all { border-radius: 4px; }
-.ui-menu { list-style:none; padding: 2px; margin: 0px; outline: none; display: block; background-color: #fff0c0; width: 98% }
+.ui-menu { list-style:none; padding: 2px; margin: 0px; outline: none; display: block; background-color: #dac394; width: 98% }
 .ui-menu .ui-menu-item { margin: 0px; padding: 0px; zoom: 1; }
 .ui-menu .ui-menu-item a { text-decoration: none; display: block; padding: 2px 1px; line-height: 1.5; zoom: 1;  }
 .ui-menu .ui-menu-item a.ui-state-focus,
-.ui-menu .ui-menu-item a.ui-state-active { background:#dac394; }
+.ui-menu .ui-menu-item a.ui-state-active { background: CornflowerBlue; }
 
 option:active {
   background-color: #dac394;
@@ -253,7 +247,7 @@ option:active {
     padding-right: 0px;
     background-image: url(resources/images/oic.png) ;
     background-repeat: no-repeat;
-    background-position: center center;
+    background-position: left center;
     background-size: 16px,16px;
     width: 20px;
 }
