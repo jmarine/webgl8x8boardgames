@@ -105,8 +105,8 @@ loadProfile: function(user) {
   this.wgsclient.getProfile(user, function(id,details,errorURI,result,resultKw) {
 
       $("#profile_filter > option[value!='']").remove();
-      if(Network.user.friends) {
-          Network.user.friends.forEach(function(item) {
+      if(resultKw.opponents) {
+          resultKw.opponents.forEach(function(item) {
             var option = $('<option>').attr('value',item.user).text(item.name);
             if(item.user == user) option.attr("selected","selected");
             if(item.picture) option.attr("style","height:34px;background-repeat:no-repeat;background-image:url("+item.picture+");padding-left:35px;background-size: auto 30px;background-position:2px 2px;vertical-align: middle");
