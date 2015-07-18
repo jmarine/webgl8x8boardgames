@@ -17,12 +17,20 @@
 */
 
 var game;
-var board;
 
+var app = app || {};
+app.view = app.view || {};
+app.view.board = (function() {
+
+var board;
 var gl;
 var canvas;
 var redraw;
 var debugShadowBuffer;
+
+var shadowMatrix;
+var xform;
+var fb;
 
 var currentFirstMove = null;
 var currentMove = null;
@@ -64,16 +72,81 @@ var yRot = 0;
 var zRot = 0;
 var z = 8;
 
+
 var nullcolor = sglV4C(0.0, 0.0, 0.0, 0.0);
 
+var withShadows = true;
+var withReflections = false;
+var cellUnderMouse = [-1, -1];
+var shadowModelScaling;
+var worldLightPos;
+var biasToLowerMoirePattern = 0.01;
 
-/**********************/
-//sglRegisterCanvas("gameCanvas", new Board3D(), 25.0);
+var ambientColor;
+var diffuseLightColor;
+var specularLightColor;
+var pieceShininess;    
+var trackball;
+
+
+function Board3D()
+{
+  return this;
+}
+
+Board3D.prototype =
+{
+  checkGameStatus: function() {
+    validMoves = game.getMovements();
+    if(validMoves.length == 0) {
+        var winner = game.getWinner();
+        if(winner) app.view.UI.showMessage("Player " + winner + " won the game");
+        else app.view.UI.showMessage("The game is stalled");
+        $("#btnResignGame").hide();
+        $("#btnDrawGame").hide();
+        $("#btnRetractMove").hide();
+    }
+  },
+
+  acceptHumanMove: function(ac) {
+    waitingHumanMove = false;
+    this.checkGameStatus();
+    
+    if(ac) {
+        waitingHumanMove = true;
+        moveGen = null;
+        moveGenLast = null;
+        moveStartTime = 0;
+    }
+
+    this.invalidate();
+  },
+
+
+  movePieceOnBoard: function(move, isReplay) {
+
+    this.acceptHumanMove(false); 
+    app.view.UI.setTurn(game.getOpponent());
+
+    if(!isReplay) {
+        var player = app.controller.Players.getPlayer(game.getOpponent());
+        player.sendCommand(game, game.getOpponent(), 'MOVE', move);
+        console.log("movePiceOnBoard: sentMoveToOpponent");
+    }
+
+    playSound('move');
+    app.view.UI.showMessage(false);
+    validMoves = null;
+    currentMove = move;
+    currentFirstMove = currentMove;
+    moveElapsedTime = 0;
+    moveStartTime = new Date().getTime();
+
+  },
 
 
 
-function initBoard3D() {
-    board = new Board3D();
+  init: function() {
     sglRegisterLoadedCanvas("gameCanvas", board, 25.0);
     var canvas = document.getElementById("gameCanvas");
     canvas.contentEditable = false;
@@ -139,66 +212,8 @@ function initBoard3D() {
     window.onresize = function(e)      {
         board.ui._manager.resize(e);
     }
-}
+},
 
-function checkGameStatus() {
-    validMoves = game.getMovements();
-    if(validMoves.length == 0) {
-        var winner = game.getWinner(); 
-        if(winner) showMessage("Player " + winner + " won the game");
-        else showMessage("The game is stalled");
-        if(Network) Network.group_finished();
-    }
-}
-
-function acceptHumanMove(ac) {
-    waitingHumanMove = false;
-    checkGameStatus();
-    
-    if(ac) {
-        waitingHumanMove = true;
-        moveGen = null;
-        moveGenLast = null;
-        moveStartTime = 0;
-    }
-
-    board.invalidate();
-}
-
-
-function movePieceOnBoard(move, isReplay) {
-
-    acceptHumanMove(false); 
-    UI.setTurn(game.getOpponent());
-
-    if(!isReplay) {
-        var player = getPlayer(game.getOpponent());
-        player.sendCommand(game, game.getOpponent(), 'MOVE', move);
-        console.log("movePiceOnBoard: sentMoveToOpponent");
-    }
-
-    playSound('move');
-    showMessage(false);
-    validMoves = null;
-    currentMove = move;
-    currentFirstMove = currentMove;
-    moveElapsedTime = 0;
-    moveStartTime = new Date().getTime();
-
-}
-
-
-
-function Board3D()
-{
-    this.withShadows = true;
-    this.withReflections = false;
-    this.cellUnderMouse = [-1, -1];
-    return this;
-}
-
-Board3D.prototype =
-{
 
     load : function(gl)
     {
@@ -206,15 +221,12 @@ Board3D.prototype =
 
         /*************************************************************/
 
-        this.xform = new SglTransformStack();
-        this.xform.projection.loadIdentity();
-        this.xform.projection.perspective(sglDegToRad(45.0), 1.4, 0.1, 40000.0);
-        this.xform.view.loadIdentity();
-        this.xform.view.lookAt(0.0, -z, z, 0.0,0.0,0.0, 0.0,1.0,0.0);
-        this.xform.model.loadIdentity();
-
-
-        this.lightAngle = 0.0;
+        xform = new SglTransformStack();
+        xform.projection.loadIdentity();
+        xform.projection.perspective(sglDegToRad(45.0), 1.4, 0.1, 40000.0);
+        xform.view.loadIdentity();
+        xform.view.lookAt(0.0, -z, z, 0.0,0.0,0.0, 0.0,1.0,0.0);
+        xform.model.loadIdentity();
         /*************************************************************/
 
 
@@ -248,25 +260,22 @@ Board3D.prototype =
 
 
         /*************************************************************/
-        var fbOpt = {
-            depthAsRenderbuffer : true
-        };
-        var fb = new SglFramebuffer(gl, 2048, 2048, [ gl.RGBA ], gl.DEPTH_COMPONENT16, null, fbOpt);
+        var fbOpt = { depthAsRenderbuffer : true };
+        fb = new SglFramebuffer(gl, 2048, 2048, [ gl.RGBA ], gl.DEPTH_COMPONENT16, null, fbOpt);
         console.log("Framebuffer Valid : " + fb.isValid);
-        this.fb = fb;
         /*************************************************************/
 
 
         /*************************************************************/
-        this.shadowMatrix  = sglIdentityM4();
-        //this.worldLightPos = sglV3C(-5.0, -10.0, 10.0);      // Perspective shadows (when distance < 400)
-        this.worldLightPos = sglV3C(-500.0, -1000.0, 1000.0);  // Orthogonal shadows  (when distance >= 400)
-        this.ambientColor = sglV3C(0.4, 0.4, 0.4);
-        this.diffuseLightColor = sglV3C(0.5, 0.5, 0.5 );
-        this.specularLightColor = sglV3C(0.7, 0.7, 0.7 );
-        this.pieceShininess = 4.0; 
+        shadowMatrix = sglIdentityM4();
+        //worldLightPos = sglV3C(-5.0, -10.0, 10.0);     // Perspective shadows (when distance < 400)
+        worldLightPos = sglV3C(-500.0, -1000.0, 1000.0); // Orthogonal shadows  (when distance >= 400)
+        ambientColor = sglV3C(0.4, 0.4, 0.4);
+        diffuseLightColor = sglV3C(0.5, 0.5, 0.5 );
+        specularLightColor = sglV3C(0.7, 0.7, 0.7 );
+        pieceShininess = 4.0; 
         /*************************************************************/
-        this.trackball = new SglTrackball();
+        trackball = new SglTrackball();
         this.resize(null,null,null);
     },
 
@@ -322,9 +331,9 @@ Board3D.prototype =
             onload    : function() { 
               board.loadedTextures++; 
               if(board.loadedTextures < board.textures.length) {
-                showMessage("Loading textures: " + Math.floor(board.loadedTextures*100/board.textures.length) + "%");
+                app.view.UI.showMessage("Loading textures: " + Math.floor(board.loadedTextures*100/board.textures.length) + "%");
               } else {
-                showMessage("");
+                app.view.UI.showMessage("");
 		ui.requestDraw();
               }
             }
@@ -334,13 +343,13 @@ Board3D.prototype =
 
 
     setShadows : function(enabled) {
-        this.withShadows = enabled;
+        withShadows = enabled;
         this.invalidate();
     },
 
 
     setReflections : function(enabled) {
-        this.withReflections = enabled;
+        withReflections = enabled;
         this.invalidate();
     },
 
@@ -384,7 +393,7 @@ Board3D.prototype =
 
         if (this.ui.keysDown[ALT_KEYCODE] && keyString == "L") {  // ALT+L: load game state
             var state = prompt("debug state:");
-            UI.setGameState(state);
+            app.view.UI.setGameState(state);
             this.invalidate();
         }
 
@@ -454,10 +463,10 @@ Board3D.prototype =
         matrix.rotate(sglDegToRad(xRot), 1.0,0.0,0.0);
         matrix.rotate(sglDegToRad(yRot), 0.0,1.0,0.0);
         matrix.rotate(sglDegToRad(zRot), 0.0,0.0,1.0);
-        this.trackball._matrix = matrix.top;
+        trackball._matrix = matrix.top;
 
-        this.xform.view.loadIdentity();
-        this.xform.view.lookAt(0.0, -z, z, 0.0,0.0,0.0, 0.0,1.0,0.0);
+        xform.view.loadIdentity();
+        xform.view.lookAt(0.0, -z, z, 0.0,0.0,0.0, 0.0,1.0,0.0);
     },
 
 
@@ -510,8 +519,8 @@ Board3D.prototype =
     {
         var ui = this.ui;
         var cell = this.getBoardCoordinatesForMousePosition(x, y);
-        if(cell[0]!=this.cellUnderMouse[0] || cell[1]!=this.cellUnderMouse[1]) {
-            this.cellUnderMouse = cell;
+        if(cell[0]!=cellUnderMouse[0] || cell[1]!=cellUnderMouse[1]) {
+            cellUnderMouse = cell;
             this.invalidate();
 	}
 
@@ -588,7 +597,7 @@ Board3D.prototype =
         playSound('select');
         var piece = game.getPiece(col,row);
         if(button == MOUSE_LEFT_BUTTON)  { 
-            var moveTemp = new Move();
+            var moveTemp = new app.model.Move();
             var validMove = false;
             if(moveGen != null) {
               moveGenLast.x2 = moveTemp.x1 = col;
@@ -606,7 +615,7 @@ Board3D.prototype =
 
             if(alternatives == 0)  { 
                 // restart move when a cell has a piece of the player or is not being moved by the rules
-                moveGen = new Move();
+                moveGen = new app.model.Move();
                 moveGen.setFrom(col, row);
                 moveGenLast = moveGen;
 
@@ -634,9 +643,9 @@ Board3D.prototype =
                 if(validMove) {
 		    window.undoManager.add(game.toString());
                     waitingHumanMove = false;
-                    this.cellUnderMouse = [-1, -1];
+                    cellUnderMouse = [-1, -1];
 		    if(game.isPawnPromotion && game.isPawnPromotion(validMove)) validMove.promotion = game.parsePieceType($('#promotion_piece').val());
-                    movePieceOnBoard(validMove);
+                    this.movePieceOnBoard(validMove);
                     moveGen = null;
                     moveGenLast = null;
                 } else if(moveGenLast != null) {
@@ -732,7 +741,7 @@ Board3D.prototype =
 
     getWorldCoordinates : function(screenPositionX, screenPositionY, zPos) {
         // Calculates homogenius 4D world coordinate for 2D mouse point in camera view (in certain z position):
-        var mvp = sglInverseM4(sglMulM4(this.xform.modelViewProjectionMatrix,this.trackball.matrix));
+        var mvp = sglInverseM4(sglMulM4(xform.modelViewProjectionMatrix, trackball.matrix));
         var inverseViewProjectionMatrix = $M([ [mvp[0],mvp[4],mvp[8],mvp[12]],[mvp[1],mvp[5],mvp[9],mvp[13]],[mvp[2],mvp[6],mvp[10],mvp[14]],[mvp[3],mvp[7],mvp[11],mvp[15]] ]);
 
         var camPos4D = $V([ (screenPositionX/this.ui.width)*2-1, (screenPositionY/this.ui.height)*2-1, zPos*2-1, 1 ]);
@@ -800,7 +809,7 @@ Board3D.prototype =
         if (!m) return;
 
         var uniforms = {
-            u_mvp : t.xform.modelViewProjectionMatrix
+            u_mvp : xform.modelViewProjectionMatrix
         };
 
         sglRenderMeshGLPrimitives(m, "triangles", t.shadowProg, null, uniforms);
@@ -810,27 +819,27 @@ Board3D.prototype =
     drawMeshLightPass : function(gl, m, color, tex, shininess, opacity, t) {
         if (!m) return;
 
-        var shadowMat = sglMulM4(t.shadowMatrix, t.xform.modelMatrix);
-        shadowMat = sglMulM4(shadowMat, t.shadowModelScaling);
+        var shadowMat = sglMulM4(shadowMatrix, xform.modelMatrix);
+        shadowMat = sglMulM4(shadowMat, shadowModelScaling);
 
         var uniforms = {
-            u_mv                  : t.xform.modelViewMatrix,
-            u_mvp                 : t.xform.modelViewProjectionMatrix,
-            u_worldNormalMatrix   : t.xform.worldSpaceNormalMatrix,
+            u_mv                  : xform.modelViewMatrix,
+            u_mvp                 : xform.modelViewProjectionMatrix,
+            u_worldNormalMatrix   : xform.worldSpaceNormalMatrix,
             u_shadowMatrix        : shadowMat,
-            u_worldLightPos       : t.worldLightPos,
-            u_ambientColor	  : t.ambientColor,
-            u_diffuseLightColor   : t.diffuseLightColor,
-            u_specularLightColor  : t.specularLightColor,
+            u_worldLightPos       : worldLightPos,
+            u_ambientColor	  : ambientColor,
+            u_diffuseLightColor   : diffuseLightColor,
+            u_specularLightColor  : specularLightColor,
             u_materialShininess   : shininess,
             u_opacity	          : opacity,
             u_color               : color,
-            u_biasToLowerMoirePattern : t.biasToLowerMoirePattern
+            u_biasToLowerMoirePattern : biasToLowerMoirePattern
         };
 
         var samplers = {
             u_texture   : tex,
-            u_shadowMap : t.fb.colorTargets[0]
+            u_shadowMap : fb.colorTargets[0]
         };
 
         sglRenderMeshGLPrimitives(m, "triangles", t.lightProg, null, uniforms, samplers);
@@ -838,9 +847,9 @@ Board3D.prototype =
 
 
     drawModel : function(gl, func, mesh, color, tex, shininess, opacity, t) {
-        this.xform.model.push();
+        xform.model.push();
         func(gl, mesh, color, tex, shininess, opacity, t);
-        this.xform.model.pop();
+        xform.model.pop();
     },
 
 
@@ -851,16 +860,16 @@ Board3D.prototype =
                 var piece = game.getPiece(x,y);
 		var model = this.getPieceModel(piece);
                 if(model != null) {
-                    this.xform.model.push();
-                    this.xform.model.translate(x-3.5, y-3.5, 0.00);
+                    xform.model.push();
+                    xform.model.translate(x-3.5, y-3.5, 0.00);
                     if(moveStartTime) this.pieceAnimation(moveElapsedTime, x, y, piece); 
-		    if(game.getPieceType(piece) == KNIGHT) this.xform.model.rotate((game.getPieceOwner(piece) == PLAYER1) ? PI/2 : -PI/2, 0, 0, 1);
-                    this.xform.model.scale(0.3, 0.3, 0.3);
+		    if(game.getPieceType(piece) == KNIGHT) xform.model.rotate((game.getPieceOwner(piece) == PLAYER1) ? PI/2 : -PI/2, 0, 0, 1);
+                    xform.model.scale(0.3, 0.3, 0.3);
                     if(func == this.drawMeshShadowPass) {
                         this.drawModel(gl, func, model.mesh, nullcolor, 0, 0.0, 1.0, this);
                     } else {
                         if( (moveGen) && ( (x == moveGen.x1) && (y == moveGen.y1) ) ) {
-	 		    this.xform.model.translate(0.0, 0.0, 0.25);
+	 		    xform.model.translate(0.0, 0.0, 0.25);
                         }
 
                         /* Transparent effect:
@@ -872,10 +881,10 @@ Board3D.prototype =
 
                         var player = game.getPieceOwner(piece);
                         var color = (player == PLAYER1) ? this.color1 : this.color2;
-                        this.drawModel(gl, func, model.mesh, color, this.textures[player == PLAYER1 ? PLAYER1_TEXTURE : PLAYER2_TEXTURE], this.pieceShininess, 1.0, this);
+                        this.drawModel(gl, func, model.mesh, color, this.textures[player == PLAYER1 ? PLAYER1_TEXTURE : PLAYER2_TEXTURE], pieceShininess, 1.0, this);
                         // gl.disable(gl.BLEND);
                     }
-                    this.xform.model.pop();
+                    xform.model.pop();
                 }
             }
         }
@@ -884,22 +893,22 @@ Board3D.prototype =
 
 
     drawSceneShadowPass : function(gl) {
-        this.xform.model.push();
-        this.xform.model.multiply(this.trackball.matrix);
+        xform.model.push();
+        xform.model.multiply(trackball.matrix);
         this.drawPieces(gl, this.drawMeshShadowPass, this); 
-        this.xform.model.pop();
+        xform.model.pop();
     },
 
 
     drawCellMark : function(gl, x, y, texIndex) {
-        this.xform.model.push();
-        this.xform.model.translate(x-3.5, y-3.5, 0.01);
-        this.xform.model.scale(1.0/8.0, 1.0/8.0, 1.0/8.0);
+        xform.model.push();
+        xform.model.translate(x-3.5, y-3.5, 0.01);
+        xform.model.scale(1.0/8.0, 1.0/8.0, 1.0/8.0);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
         this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, nullcolor, this.textures[texIndex], 0.0, 0.0, this);
         gl.disable(gl.BLEND);
-        this.xform.model.pop();
+        xform.model.pop();
     },
 
 
@@ -934,10 +943,10 @@ Board3D.prototype =
 
 
     drawFloor : function(gl, opacity) {
-        this.xform.model.push();
-        this.xform.model.rotate(sglDegToRad(game.getBoardRotationDegrees()), 0.0,0.0,1.0);
+        xform.model.push();
+        xform.model.rotate(sglDegToRad(game.getBoardRotationDegrees()), 0.0,0.0,1.0);
         this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, nullcolor, this.textures[GRID_TEXTURE], 0.0, opacity, this);
-        this.xform.model.pop();
+        xform.model.pop();
     },
 
 
@@ -965,10 +974,10 @@ Board3D.prototype =
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
 
-        this.xform.model.push();
+        xform.model.push();
 
         // Inverse Z plane to simulate relection. 
-        this.xform.model.scale(1.0, 1.0, -1.0);
+        xform.model.scale(1.0, 1.0, -1.0);
 
         // Avoid back face culling for reflected model
         gl.cullFace(gl.FRONT);
@@ -980,7 +989,7 @@ Board3D.prototype =
         // Enable back face culling. 
         gl.disable(gl.CULL_FACE);
 
-        this.xform.model.pop();
+        xform.model.pop();
 
 
         // Disable stenciling 
@@ -1000,38 +1009,38 @@ Board3D.prototype =
 
 
     drawSceneLightPass : function(gl) {
-        this.xform.model.push();
-        this.xform.model.multiply(this.trackball.matrix);
+        xform.model.push();
+        xform.model.multiply(trackball.matrix);
 
-        if(this.withReflections) {
-            this.shadowModelScaling = sglScalingM4C(1.0, 1.0, -1.0);
+        if(withReflections) {
+            shadowModelScaling = sglScalingM4C(1.0, 1.0, -1.0);
 	    this.drawReflectionPass(gl);
         }
 
 
-        this.shadowModelScaling = sglScalingM4C(1.0, 1.0, 1.0);
+        shadowModelScaling = sglScalingM4C(1.0, 1.0, 1.0);
 
         //debugShadowBuffer = true;
         if(debugShadowBuffer) {
-            this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, nullcolor, this.fb.colorTargets[0], 0.0, 1.0, this);
+            this.drawModel(gl, this.drawMeshLightPass, BlenderExport.BoardCell.mesh, nullcolor, fb.colorTargets[0], 0.0, 1.0, this);
 
         } else {
 
-            this.xform.model.push();
-            this.xform.model.rotate(sglDegToRad(game.getBoardRotationDegrees()), 0.0,0.0,1.0);
+            xform.model.push();
+            xform.model.rotate(sglDegToRad(game.getBoardRotationDegrees()), 0.0,0.0,1.0);
             this.drawModel(gl, this.drawMeshLightPass, BlenderExport.Board.mesh, nullcolor, this.textures[BOARD_TEXTURE], 0.0, 1.0, this);
-            this.xform.model.pop();
+            xform.model.pop();
 
             if(waitingHumanMove) {
                 // MARK SELECTED CELLS
-                if( (this.cellUnderMouse[0] >= 0) && (this.cellUnderMouse[0] < 8)  
-                        && (this.cellUnderMouse[1] >= 0) && (this.cellUnderMouse[1] < 8) ) {
+                if( (cellUnderMouse[0] >= 0) && (cellUnderMouse[0] < 8)  
+                        && (cellUnderMouse[1] >= 0) && (cellUnderMouse[1] < 8) ) {
                     var texIndex = CELL_INVALID_TEXTURE;
-                    if(this.isSelectedCell(this.cellUnderMouse[0], this.cellUnderMouse[1]) 
-			|| this.isValidCell(this.cellUnderMouse[0], this.cellUnderMouse[1])) {
+                    if(this.isSelectedCell(cellUnderMouse[0], cellUnderMouse[1]) 
+			|| this.isValidCell(cellUnderMouse[0], cellUnderMouse[1])) {
                         texIndex = CELL_HOVER_TEXTURE;	
                     }
-                    if(!this.dragging) this.drawCellMark(gl, this.cellUnderMouse[0], this.cellUnderMouse[1], texIndex);
+                    if(!this.dragging) this.drawCellMark(gl, cellUnderMouse[0], cellUnderMouse[1], texIndex);
                 }
  
                 // MARK MOVEMENT CELLS
@@ -1074,7 +1083,7 @@ Board3D.prototype =
         }
 
 
-        this.xform.model.pop();
+        xform.model.pop();
     },
 
     getPieceModel: function(piece) {
@@ -1111,7 +1120,7 @@ Board3D.prototype =
         var radians = (diff * PI) / TIME_BEFORE_JUMP_IN_MILLIS;
         var sinRadians = Math.sin(radians);
 
-        this.xform.model.scale(1.0 + sinRadians*FACTOR_COMPRESION_EXTENSION, 1.0 + sinRadians*FACTOR_COMPRESION_EXTENSION, 1.0 - sinRadians*FACTOR_COMPRESION_EXTENSION);
+        xform.model.scale(1.0 + sinRadians*FACTOR_COMPRESION_EXTENSION, 1.0 + sinRadians*FACTOR_COMPRESION_EXTENSION, 1.0 - sinRadians*FACTOR_COMPRESION_EXTENSION);
     },
 
 
@@ -1123,7 +1132,7 @@ Board3D.prototype =
         var radians = PI * diff/MOVE_TIME_IN_MILLIS;
         var sinRadians = Math.sin(radians);
 
-        this.xform.model.translate((diffCol * diff) / MOVE_TIME_IN_MILLIS, (diffRow * diff) / MOVE_TIME_IN_MILLIS, JUMP_HEIGHT * sinRadians);
+        xform.model.translate((diffCol * diff) / MOVE_TIME_IN_MILLIS, (diffRow * diff) / MOVE_TIME_IN_MILLIS, JUMP_HEIGHT * sinRadians);
 
         // FX: Inclinar un poco (segun la distancia del moviminento):
         var radians2 = (2.0 * PI * diff ) / MOVE_TIME_IN_MILLIS;
@@ -1131,10 +1140,10 @@ Board3D.prototype =
 
         var modulus = Math.sqrt(diffRow*diffRow + diffCol*diffCol);
         var aRot = (MAX_INCLINATION * sinRadians2) * Math.log(1.0 + 9.0*Math.abs(modulus)/7.0) / Math.log(10);
-        this.xform.model.rotate(aRot, -diffRow, diffCol, 0.0);
+        xform.model.rotate(aRot, -diffRow, diffCol, 0.0);
 
         // FX: extender y comprimir hasta tamaño normal (para que parezca que la pieza está saltando):
-        this.xform.model.scale(1.0 - sinRadians*FACTOR_COMPRESION_EXTENSION, 1.0 - sinRadians*FACTOR_COMPRESION_EXTENSION, 1.0 + sinRadians*FACTOR_COMPRESION_EXTENSION);
+        xform.model.scale(1.0 - sinRadians*FACTOR_COMPRESION_EXTENSION, 1.0 - sinRadians*FACTOR_COMPRESION_EXTENSION, 1.0 + sinRadians*FACTOR_COMPRESION_EXTENSION);
     },
 
 
@@ -1143,7 +1152,7 @@ Board3D.prototype =
         // FX (ajedrez): reducir altura de la pieza para que parezca que está siendo aplastada:
         var QUARTER_MOVE_TIME_IN_MILLIS = MOVE_TIME_IN_MILLIS / 4.0;
         if(diff > MOVE_TIME_IN_MILLIS - QUARTER_MOVE_TIME_IN_MILLIS) {
-            this.xform.model.scale(1.0, 1.0, (MOVE_TIME_IN_MILLIS - diff)/QUARTER_MOVE_TIME_IN_MILLIS);
+            xform.model.scale(1.0, 1.0, (MOVE_TIME_IN_MILLIS - diff)/QUARTER_MOVE_TIME_IN_MILLIS);
         }
     },
 
@@ -1171,10 +1180,10 @@ Board3D.prototype =
             game.toggleTurn();
             console.log("CompletePieceMovement: Turn changed");
 
-    	    checkGameStatus();
+    	    this.checkGameStatus();
 
 	    var firstMove = currentFirstMove;
-	    var player = getPlayer(game.getTurn());
+	    var player = app.controller.Players.getPlayer(game.getTurn());
 	    currentFirstMove = null;
 	    player.sendCommand(game, game.getTurn(), 'MOVED', firstMove);
 
@@ -1186,51 +1195,51 @@ Board3D.prototype =
     shadowPass : function(gl) {
         // TODO: auto calculation of bias to lower moire pattern (or correct glPolygonOffset parameters)
 
-        this.fb.bind();
+        fb.bind();
 
         gl.clearColor(1.0, 1.0, 1.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
-        this.xform.projection.push();
-        this.xform.view.push();
-        this.xform.view.loadIdentity();
+        xform.projection.push();
+        xform.view.push();
+        xform.view.loadIdentity();
 
-        var lightPos = new SglVec3(this.worldLightPos);
+        var lightPos = new SglVec3(worldLightPos);
         var lightDistance = lightPos.length;
         var lightIsNear = (lightDistance < 400);
 
         if(lightIsNear) {
           // perspective projection
           var fov = 60 * 10 / lightDistance;
-          this.biasToLowerMoirePattern = 0.00007;    // light:[-0,-0,10], distance: 10, FOV: 60, polyOffset(0,1800) 
+          biasToLowerMoirePattern = 0.00007;    // light:[-0,-0,10], distance: 10, FOV: 60, polyOffset(0,1800) 
 
           //TODO: auto calculation of bias to lower moire pattern (or fix glPolygonOffset parameters)
-          //this.biasToLowerMoirePattern = 0.00020;    // light:[-0,-0,5], distance: 5, FOV: 120, polyOffset(0,1000)
-          //this.biasToLowerMoirePattern = 0.00007;    // light:[-0,-0,10], distance: 10, FOV: 60, polyOffset(0,1800) 
-          //this.biasToLowerMoirePattern = 0.00002;    // light:[-0,-0,100], distance: 100, FOV: 6 
-          //this.biasToLowerMoirePattern = 0.0000187;  // light:[-50,-80,100], distance: 137.47
-          //this.biasToLowerMoirePattern = 0.0000160;  // light:[-100,-400,400], distance: 574.45, FOV: 1.044
+          //biasToLowerMoirePattern = 0.00020;    // light:[-0,-0,5], distance: 5, FOV: 120, polyOffset(0,1000)
+          //biasToLowerMoirePattern = 0.00007;    // light:[-0,-0,10], distance: 10, FOV: 60, polyOffset(0,1800) 
+          //biasToLowerMoirePattern = 0.00002;    // light:[-0,-0,100], distance: 100, FOV: 6 
+          //biasToLowerMoirePattern = 0.0000187;  // light:[-50,-80,100], distance: 137.47
+          //biasToLowerMoirePattern = 0.0000160;  // light:[-100,-400,400], distance: 574.45, FOV: 1.044
 
-          this.xform.projection.loadIdentity();
-          this.xform.projection.perspective(sglDegToRad(fov), 1.0, 0.1,40000.0);
-          this.xform.view.lookAt(this.worldLightPos[0],this.worldLightPos[1],this.worldLightPos[2], 0.0,0.0,0.0, 0.0,1.0,0.0);
+          xform.projection.loadIdentity();
+          xform.projection.perspective(sglDegToRad(fov), 1.0, 0.1,40000.0);
+          xform.view.lookAt(worldLightPos[0],worldLightPos[1],worldLightPos[2], 0.0,0.0,0.0, 0.0,1.0,0.0);
         } else {
           // orthographic projection (to avoid resolution problems with depth values of the shadow map)
-          this.biasToLowerMoirePattern = 0.01;
-          var lightDir = sglNormalizedV3(sglNegV3(this.worldLightPos));
-          this.xform.projection.loadIdentity(); 
-          this.xform.projection.ortho(-5.5, 5.5, -5.5, 5.5, -5.5, 5.5);
-          this.xform.view.lookAt(0.0,0.0,0.0, lightDir[0],lightDir[1],lightDir[2], 0.0,1.0,0.0);
+          biasToLowerMoirePattern = 0.01;
+          var lightDir = sglNormalizedV3(sglNegV3(worldLightPos));
+          xform.projection.loadIdentity(); 
+          xform.projection.ortho(-5.5, 5.5, -5.5, 5.5, -5.5, 5.5);
+          xform.view.lookAt(0.0,0.0,0.0, lightDir[0],lightDir[1],lightDir[2], 0.0,1.0,0.0);
         }
 
 
-        //this.xform.view.multiply(sglInverseM4(this.trackball.matrix));
+        //xform.view.multiply(sglInverseM4(trackball.matrix));
 
-        //this.xform.model.push();
-        //this.xform.model.loadIdentity();
+        //xform.model.push();
+        //xform.model.loadIdentity();
 
-        this.shadowMatrix = sglMulM4(sglTranslationM4C(0.5, 0.5, 0.5), sglScalingM4C(0.5, 0.5, 0.5));
-        this.shadowMatrix = sglMulM4(this.shadowMatrix, this.xform.modelViewProjectionMatrix);
+        shadowMatrix = sglMulM4(sglTranslationM4C(0.5, 0.5, 0.5), sglScalingM4C(0.5, 0.5, 0.5));
+        shadowMatrix = sglMulM4(shadowMatrix, xform.modelViewProjectionMatrix);
 
         gl.polygonOffset(0.0, 1.0);  // can also be used to lower moire pattern,
                                      // but how the offset parameters should be calculated?
@@ -1241,17 +1250,17 @@ Board3D.prototype =
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
 
-        if(this.withShadows) this.drawSceneShadowPass(gl);
+        if(withShadows) this.drawSceneShadowPass(gl);
 
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
-        //this.xform.model.pop();
-        this.xform.view.pop();
-        this.xform.projection.pop();
+        //xform.model.pop();
+        xform.view.pop();
+        xform.projection.pop();
 
-        this.fb.unbind();
+        fb.unbind();
     },
 
     lightPass : function(gl) {
@@ -1296,10 +1305,15 @@ Board3D.prototype =
         var parent = canvas.parentNode;
         canvas.width = parent.clientWidth;
         canvas.height = parent.clientHeight;
-        this.xform.projection.loadIdentity();
-        this.xform.projection.perspective(sglDegToRad(45.0), canvas.width/canvas.height, 0.1, 40000.0);
+        xform.projection.loadIdentity();
+        xform.projection.perspective(sglDegToRad(45.0), canvas.width/canvas.height, 0.1, 40000.0);
         this.invalidate();
         return true;
     }
 };
+
+board = new Board3D();
+return board;
+
+})();
 

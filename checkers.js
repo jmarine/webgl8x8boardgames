@@ -16,15 +16,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-Checkers.prototype = new Draughts();
-Checkers.prototype.constructor = Checkers;
-Checkers.prototype.constructor.name = "Checkers";
+var app = app || {}
+app.model = app.model || {}
+app.model.Checkers = (function() {
 
 function Checkers() {
   this.firstCellOccupied = 1;
   return this;
 }
+
+Checkers.prototype = new app.model.Draughts();
+Checkers.prototype.constructor = Checkers;
+Checkers.prototype.constructor.name = "Checkers";
 
 
 Checkers.prototype.getBoardRotationDegrees = function() {
@@ -68,7 +71,7 @@ Checkers.prototype.getUniDirPieceMovements = function(player, x,y, dx,dy, parent
     var piece = this.getPiece(x2,y2);
     if(piece == NONE) { 
       if(!parentMove) {
- 	move = new Move();
+ 	move = new app.model.Move();
         move.setFrom(x,y);
 	move.setTarget(x2,y2);
         this.addMoveIfPriorityIsGreaterOrEqual(movs, move);
@@ -84,7 +87,7 @@ Checkers.prototype.getUniDirPieceMovements = function(player, x,y, dx,dy, parent
       y2=y2+dy;
       if( this.inRange(x2,y2) && (this.getPiece(x2,y2) == NONE) ) {
         var movRecurs = [];
-        move = new Move();
+        move = new app.model.Move();
         move.setKilledPiece(killedX,killedY);
         move.setKills(PAWN, killedPawns, killedQueens);
         move.setFrom(x,y);
@@ -103,7 +106,7 @@ Checkers.prototype.getUniDirPieceMovements = function(player, x,y, dx,dy, parent
           while(movRecurs.length > 0) {
             nextMove = movRecurs.pop();
             if(nextMove == null) break;
-            move = new Move();
+            move = new app.model.Move();
 	    move.setFrom(x,y);
 	    move.setTarget(x2,y2);
             move.setNextMove(nextMove);
@@ -132,4 +135,6 @@ Checkers.prototype.addMoveIfPriorityIsGreaterOrEqual = function(a, m) {
   }
 }
 
+return Checkers;
+})();
 

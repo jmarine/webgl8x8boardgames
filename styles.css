@@ -60,24 +60,25 @@ body {
 }
 
 #controls {
-  position: absolute; 
-  right: 0px; 
-  padding: 5px 20px 5px 20px; 
-  background-color: #f7e3a4; 
-  border: 1px solid #402b2a; 
-  border-bottom-left-radius: 10px;-webkit-border-bottom-left-radius: 10px; -khtml-border-bottom-left-radius: 10px;
+  position: absolute;
+  right: 0px;
+  height: 100%;
+  //padding: 5px 10px 5px 10px; 
+  //background-color: #f7e3a4; 
+  //border: 1px solid #402b2a; 
+  //border-bottom-left-radius: 10px;-webkit-border-bottom-left-radius: 10px; -khtml-border-bottom-left-radius: 10px;
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
 
 #config {
-  position: absolute; 
-  right: 0px; 
+  //position: absolute; 
+  //right: 0px; 
   background-color: #f7e3a4; 
   border-left: 3px solid #402b2a; 
-  height: 100%;
   //overflow-x: hidden;
   overflow-y: auto;
   display: none;
+  height: 100%;
   z-index: 1;
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
@@ -183,7 +184,7 @@ button {
 
 button, select, input, textarea {
   padding: 2px 4px 2px 4px;
-  border: 1px #6c3000 solid; 
+  border: 1px #402b2a solid; 
   border-radius: 6px;
   margin-top: 5px;
   margin-bottom: 2px;
@@ -210,6 +211,12 @@ button:active {
 button:disabled, input:disabled {
   background: #f7e3a4;
   color: #777777;
+}
+
+#btnGame, #btnOptions, #btnAbout, #btnClose {
+  clear: both;   
+  background-color: #f7e3a4; 
+  border: 1px solid
 }
 
 .ui-buttonset { 

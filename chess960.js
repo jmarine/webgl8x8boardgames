@@ -16,13 +16,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-Chess960.prototype = new Chess();
-Chess960.prototype.constructor = Chess960;
-Chess960.prototype.constructor.name = "Chess960";
+var app = app || {}
+app.model = app.model || {}
+app.model.Chess960 = (function() {
 
 function Chess960() {
   return this;
 }
+
+Chess960.prototype = new app.model.Chess();
+Chess960.prototype.constructor = Chess960;
+Chess960.prototype.constructor.name = "Chess960";
+
 
 Chess960.prototype.toString = function() {
    var retval = [];
@@ -106,3 +111,5 @@ Chess960.prototype.newGame = function() {
 }
 
 
+return Chess960;
+})();

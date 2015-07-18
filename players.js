@@ -20,77 +20,24 @@ var LOCAL_USER  = 1;
 var REMOTE_USER = 2;
 var ENGINE = 3;
 
-var worker = null;
-var players = Array();
+var app = app || {};
+app.controller = app.controller || {};
 
-function stopEnginePlayer() {
-    if(worker) {
-        worker.terminate(); 
-        worker = null;
-    }
-}
+app.controller.LocalPlayer = (function() {
 
-function runEnginePlayer(args) {
-    if(!worker) {
-        worker = new Worker("ai-worker.js");
-
-        worker.onmessage = function(event) {
-            var moveStr = event.data;
-            console.log("AI Engine: move received: " + moveStr);
-
-            if(moveStr == "null") {
-                checkGameStatus();
-            } else {
-                var move = game.parseMoveString(moveStr);
-                movePieceOnBoard(move);
-            }
-        };
-    }
-
-    worker.postMessage(args);
-}
-
-function getPlayer(turn) {
-  return players[turn];
-}
-
-function createPlayer(playerNumber) {
-    var retval = null;
-    var playerType = $('select[id=player'+playerNumber+'] > option:selected').attr('value');
-
-    if( (playerType == REMOTE_USER) && (!Network.isConnected()) ) {
-        playerType = LOCAL_USER;
-    }
-
-    switch(parseInt(playerType)) {
-        case LOCAL_USER:
-            retval = new LocalPlayer(playerNumber);
-            break;
-        case REMOTE_USER:
-            retval = new NetworkPlayer(playerNumber);
-            break;
-        case ENGINE:
-            retval = new EnginePlayer(playerNumber);
-            break;
-    }
-
-    players[playerNumber] = retval;
-    return retval;
-}
-
-
-function LocalPlayer(playerNumber) { 
+  function LocalPlayer(playerNumber) { 
     this.playerNumber = playerNumber;
     return this; 
-}
+  }
 
+  LocalPlayer.prototype.constructor.name = "LocalPlayer";
 
-LocalPlayer.prototype.sendCommand = function(game, player, cmd, args) {
+  LocalPlayer.prototype.sendCommand = function(game, player, cmd, args) {
     switch(cmd) {
         case 'LOAD':
             if( this.loadConfirmed || confirm("Play opponent's new game?") ) {
                 this.loadConfirmed = false;
-                UI.setGameState(args.data);
+                app.view.UI.setGameState(args.data);
                 return true;
             } else {
                 args.returnValue = false;
@@ -102,13 +49,13 @@ LocalPlayer.prototype.sendCommand = function(game, player, cmd, args) {
             if(player != game.getTurn()) break;
 
         case 'MOVED':
-            acceptHumanMove(true);
+            app.view.board.acceptHumanMove(true);
             break;
 
 	case 'RETRACT':
             if( this.retractConfirmed || confirm("Retract move?") ) {
                 this.retractConfirmed = false;
-                UI.setGameState(args.data);
+                app.view.UI.setGameState(args.data);
                 return true;
             } else {
                 args.returnValue = false;
@@ -125,16 +72,22 @@ LocalPlayer.prototype.sendCommand = function(game, player, cmd, args) {
             break;
 
     }
-}
+  }
+
+  return LocalPlayer;
+})();
 
 
-function EnginePlayer(playerNumber) { 
+app.controller.EnginePlayer = (function() {
+
+  function EnginePlayer(playerNumber) { 
     this.playerNumber = playerNumber;
     return this; 
-}
+  }
 
+  EnginePlayer.prototype.constructor.name = "EnginePlayer";
 
-EnginePlayer.prototype.sendCommand = function(game, player, cmd, args) {
+  EnginePlayer.prototype.sendCommand = function(game, player, cmd, args) {
    switch(cmd) {
        case 'LOAD':
        case 'STATE':
@@ -153,14 +106,14 @@ EnginePlayer.prototype.sendCommand = function(game, player, cmd, args) {
            //alert("Done");
            //END DEBUG
 
-           runEnginePlayer({ alg: alg, level:level, game: game.toString()});
+           app.controller.Players.runEnginePlayer({ alg: alg, level:level, game: game.toString()});
            console.log("AI Engine: move requested");
            break;
 
        case 'RETRACT':
            if( this.retractConfirmed || confirm("Retract move?") ) {
                 this.retractConfirmed = false;
-                UI.setGameState(args.data);
+                app.view.UI.setGameState(args.data);
                 return true;
            } else {
                 args.returnValue = false;
@@ -177,26 +130,35 @@ EnginePlayer.prototype.sendCommand = function(game, player, cmd, args) {
             break;
 
     }
-}
+  
+  }
+
+  return EnginePlayer;
+})();
 
 
-function NetworkPlayer(playerNumber) { 
+
+app.controller.NetworkPlayer = (function() {
+
+  function NetworkPlayer(playerNumber) { 
     this.playerNumber = playerNumber;
     this.retractConfirmed = false;
     return this; 
-}
+  }
 
-NetworkPlayer.prototype.sendCommand = function(game, player, cmd, args) {
+  NetworkPlayer.prototype.constructor.name = "NetworkPlayer";
+
+  NetworkPlayer.prototype.sendCommand = function(game, player, cmd, args) {
     switch(cmd) {
         case 'LOAD':
             if(!this.loadConfirmed) {
                var state = args;
-               showMessage("Waiting load confirmation from " + Network.getOpponentNick());
-               Network.sendLoadRequest(game, state, player);
+               app.view.UI.showMessage("Waiting load confirmation from " + app.lobby.getOpponentNick());
+               app.lobby.sendLoadRequest(game, state, player);
                args.returnValue = false;
             } else {
                this.loadConfirmed = false;
-               UI.setGameState(args.data);
+               app.view.UI.setGameState(args.data);
                return true;
             }
             return false;
@@ -205,7 +167,7 @@ NetworkPlayer.prototype.sendCommand = function(game, player, cmd, args) {
 	case 'MOVE':
             try {
                 var move = args;
-                Network.sendMoveRequest(game, move, this.playerNumber);
+                app.lobby.sendMoveRequest(game, move, this.playerNumber);
             } catch(e) {
                 alert(e.message);
             }
@@ -213,17 +175,17 @@ NetworkPlayer.prototype.sendCommand = function(game, player, cmd, args) {
 
         case 'MOVED':
             if(!game.isOver() && player == game.getTurn()) {
-                var opponent = Network.getOpponentNick();
-                if(opponent) showMessage("Waiting move from " + opponent);
+                var opponent = app.lobby.getOpponentNick();
+                if(opponent) app.view.UI.showMessage("Waiting move from " + opponent);
             } else {
-                //showMessage("");
+                //app.view.UI.showMessage("");
             }
             break;
 
         case 'STATE':
             if(!game.isOver() && player == game.getTurn()) {
-                var opponent = Network.getOpponentNick();
-                if(opponent) showMessage("Waiting move from " + opponent);
+                var opponent = app.lobby.getOpponentNick();
+                if(opponent) app.view.UI.showMessage("Waiting move from " + opponent);
             }
             break;
 
@@ -231,12 +193,12 @@ NetworkPlayer.prototype.sendCommand = function(game, player, cmd, args) {
             // send question to opponent
             if(!this.retractConfirmed) {
                 var state = args.data;
-                showMessage("Waiting retract confirmation from " + Network.getOpponentNick());
-                Network.sendRetractMoveRequest(game, state, player);
+                app.view.UI.showMessage("Waiting retract confirmation from " + app.lobby.getOpponentNick());
+                app.lobby.sendRetractMoveRequest(game, state, player);
                 args.returnValue = false;
             } else {
                 this.retractConfirmed = false;
-                UI.setGameState(args.data);
+                app.view.UI.setGameState(args.data);
                 return true;
             }
             return false;
@@ -244,11 +206,80 @@ NetworkPlayer.prototype.sendCommand = function(game, player, cmd, args) {
 
 	case 'DRAW':
             // send question to opponent
-            showMessage("Waiting draw confirmation from " + Network.getOpponentNick());
+            app.view.UI.showMessage("Waiting draw confirmation from " + app.lobby.getOpponentNick());
             return false;
             break;
 
     }
-}
+  }
 
+  return NetworkPlayer;
+})();
+
+
+
+app.controller.Players = {
+
+  worker: null,
+  players : Array(),
+
+  getPlayer: function(playerNumber) {
+      return this.players[playerNumber];
+  },
+
+  createPlayer: function(playerNumber) {
+    var retval = null;
+    var playerType = $('select[id=player'+playerNumber+'] > option:selected').attr('value');
+
+    if( (playerType == REMOTE_USER) && (!app.lobby.isConnected()) ) {
+        playerType = LOCAL_USER;
+    }
+
+    switch(parseInt(playerType)) {
+        case LOCAL_USER:
+            retval = new app.controller.LocalPlayer(playerNumber);
+            break;
+        case REMOTE_USER:
+            retval = new app.controller.NetworkPlayer(playerNumber);
+            break;
+        case ENGINE:
+            retval = new app.controller.EnginePlayer(playerNumber);
+            break;
+    }
+
+    this.players[playerNumber] = retval;
+    return retval;
+  },
+
+
+  runEnginePlayer: function(args) {
+    if(!this.worker) {
+        this.worker = new Worker("ai-worker.js");
+
+        this.worker.onmessage = function(event) {
+            var moveStr = event.data;
+            console.log("AI Engine: move received: " + moveStr);
+
+            if(moveStr == "null") {
+                app.view.board.checkGameStatus();
+            } else {
+                var move = game.parseMoveString(moveStr);
+                app.view.board.movePieceOnBoard(move);
+            }
+        };
+    }
+
+    this.worker.postMessage(args);
+  },
+
+
+  stopEnginePlayer: function() {
+    if(this.worker) {
+        this.worker.terminate(); 
+        this.worker = null;
+    }
+  }
+
+
+};
 

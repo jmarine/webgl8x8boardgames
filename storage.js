@@ -16,6 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+var app = app || {}
+app.controller = app.controller || {}
+app.controller.Storage = (function() {
+
 var saved_games_form = 0;
 
 function deleteGames() {
@@ -36,13 +41,13 @@ function loadGame() {
     var gameStr = game.toString();
     if($('#game_type').val() == gameStr.substring(0, gameStr.indexOf(':')).toLowerCase()) window.undoManager.add(gameStr);
     var state = document.forms[saved_games_form].saved_games.options[document.forms[saved_games_form].saved_games.selectedIndex].value;
-    var player1 = getPlayer(PLAYER1);
-    var player2 = getPlayer(PLAYER2);
+    var player1 = app.controller.Players.getPlayer(PLAYER1);
+    var player2 = app.controller.Players.getPlayer(PLAYER2);
     var type1 = player1.constructor.name;
     var type2 = player2.constructor.name;
     if(type1 == 'NetworkPlayer') player1.sendCommand(game, PLAYER1, 'LOAD', state);
     else if(type2 == 'NetworkPlayer') player2.sendCommand(game, PLAYER2, 'LOAD', state);
-    else UI.setGameState(state);
+    else app.view.UI.setGameState(state);
   }
 }
 
@@ -99,6 +104,19 @@ function listGames() {
   }
 }
 
+
+  return {
+    deleteGames: deleteGames,
+    deleteGame: deleteGame,
+    loadGame: loadGame,
+    saveGame: saveGame,
+    hideGameStorage: hideGameStorage,
+    showGameStorage: showGameStorage,
+    listGames: listGames
+  };
+
+})();
+
 function UndoManagerEvent(data, title) {
   this.data = data;
   this.title = title; 
@@ -150,7 +168,7 @@ window.undoManager = new UndoManager();
 window.onundo = function(event) {
   if(event.data) {
     if(numUndosToIgnore <= 0) {
-      UI.retractMove(event);
+      app.view.UI.retractMove(event);
     } else {
       numUndosToIgnore--;
     }
@@ -170,7 +188,7 @@ document.execCommand = function(commandId, doShowUI, value) {
       window.undoManager.length = window.undoManager.length - 1;
       window.undoManager.position = window.undoManager.position + window.undoManager.max - 1;
       if(window.undoManager.max > 0) window.undoManager.position = window.undoManager.position % window.undoManager.max;
-      UI.updateRetractMoveButton();
+      app.view.UI.updateRetractMoveButton();
 
       if(window.onundo) {
            window.onundo(event);

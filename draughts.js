@@ -17,14 +17,20 @@
 */
 
 
-Draughts.prototype = new Game();
-Draughts.prototype.constructor = Draughts;
-Draughts.prototype.constructor.name = "Draughts";
+var app = app || {}
+app.model = app.model || {}
+
+app.model.Draughts = (function() {
 
 function Draughts() {
   this.firstCellOccupied = 0;
   return this;
 }
+
+
+Draughts.prototype = new app.model.Game();
+Draughts.prototype.constructor = Draughts;
+Draughts.prototype.constructor.name = "Draughts";
 
 Draughts.prototype.getBoardRotationDegrees = function() {
   return 0;
@@ -35,7 +41,7 @@ Draughts.prototype.getPreferedLevelAI = function() {
 }
 
 Draughts.prototype.clone = function() {
-  var copy=Game.prototype.clone.call(this);
+  var copy=app.model.Game.prototype.clone.call(this);
   copy.pieceCount = this.pieceCount.slice(0);
 
   /* manual clone
@@ -341,7 +347,7 @@ Draughts.prototype.getUniDirPawnMovements = function(player, x,y, dx,dy, parentM
     var piece = this.getPiece(x2,y2);
     if(piece == NONE) { 
        if(!parentMove) {
- 	move = new Move();
+ 	move = new app.model.Move();
         move.setFrom(x,y);
 	move.setTarget(x2,y2);
 	this.addMoveIfPriorityIsGreaterOrEqual(movs, move);
@@ -356,7 +362,7 @@ Draughts.prototype.getUniDirPawnMovements = function(player, x,y, dx,dy, parentM
       if(this.getPieceType(piece) == QUEEN) killedQueens++;
       if( this.inRange(x2,y2) && (this.getPiece(x2,y2) == NONE) ) {
         var movRecurs = [];
-        move = new Move();
+        move = new app.model.Move();
         move.setKilledPiece(killedX,killedY);
         move.setKills(PAWN, killedPawns, killedQueens);
         move.setFrom(x,y);
@@ -368,7 +374,7 @@ Draughts.prototype.getUniDirPawnMovements = function(player, x,y, dx,dy, parentM
         while(movRecurs.length > 0) {
           nextMove = movRecurs.pop();
           if(nextMove == null) break;
-          move = new Move();
+          move = new app.model.Move();
 	  move.setFrom(x,y);
 	  move.setTarget(x2,y2);
           move.setNextMove(nextMove);
@@ -407,7 +413,7 @@ Draughts.prototype.getUniDirQueenMovements = function(player, x,y, dx,dy, parent
         if(someEaten)
           regRec = true;
         else if(!parentMove) {
-          move = new Move();
+          move = new app.model.Move();
           move.setFrom(x,y);
 	  move.setTarget(x2,y2); 
           this.addMoveIfPriorityIsGreaterOrEqual(movs, move);
@@ -437,7 +443,7 @@ Draughts.prototype.getUniDirQueenMovements = function(player, x,y, dx,dy, parent
         var dx2, dy2;
         var movRecurs = [];
 
-        move = new Move();
+        move = new app.model.Move();
         move.setFrom(x,y);
 	move.setTarget(x2,y2);
         move.setKills(QUEEN, killedPawns, killedQueens);
@@ -459,7 +465,7 @@ Draughts.prototype.getUniDirQueenMovements = function(player, x,y, dx,dy, parent
         while(movRecurs.length > 0) { 
           nextMove = movRecurs.pop();
           if(nextMove == null) break;
-          move = new Move();
+          move = new app.model.Move();
 	  move.setFrom(x,y);
 	  move.setTarget(x2,y2);
           move.setNextMove(nextMove);
@@ -471,4 +477,5 @@ Draughts.prototype.getUniDirQueenMovements = function(player, x,y, dx,dy, parent
   } 
 }
 
-
+return Draughts;
+})();

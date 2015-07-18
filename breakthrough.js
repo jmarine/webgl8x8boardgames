@@ -20,20 +20,26 @@
 Breakthrough was designed by William Daniel 'Dan' Troyka in 2000 and originally played on a 7x7 board. After the size of the board was changed, it won the 2001 8x8 Game Design Competition, sponsored by About Board Games, Abstract Games Magazine and the Strategy Gaming Society. 
 */
 
-Breakthrough.prototype = new Game();
-Breakthrough.prototype.constructor = Breakthrough;
-Breakthrough.prototype.constructor.name = "Breakthrough";
+
+var app = app || {}
+app.model = app.model || {}
+app.model.Breakthrough = (function() {
 
 function Breakthrough() {
   return this;
 }
+
+Breakthrough.prototype = new app.model.Game();
+Breakthrough.prototype.constructor = Breakthrough;
+Breakthrough.prototype.constructor.name = "Breakthrough";
+
 
 Breakthrough.prototype.getPreferedLevelAI = function() {
   return 4;
 }
 
 Breakthrough.prototype.clone = function() {
-  var copy=Game.prototype.clone.call(this);
+  var copy=app.model.Game.prototype.clone.call(this);
   copy.pieceCount = this.pieceCount.slice(0);
   return copy;
 }
@@ -348,7 +354,7 @@ Breakthrough.prototype.getUniDirPawnMovements = function(player, x,y, dx,dy, mov
   if(this.inRange(x2,y2)) {
     var piece = this.getPiece(x2,y2);
 
-    move = new Move();
+    move = new app.model.Move();
     move.setFrom(x,y);
     move.setTarget(x2,y2);
  
@@ -369,3 +375,5 @@ Breakthrough.prototype.getUniDirPawnMovements = function(player, x,y, dx,dy, mov
 }
 
 
+return Breakthrough;
+})();

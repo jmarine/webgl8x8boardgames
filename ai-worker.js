@@ -29,8 +29,9 @@ importScripts('ai.js');
 onmessage = function (event) {
   var alg  = event.data.alg;
   var level = event.data.level;
+  console.log("info: " + event.data.game.toString());
   var gameType = event.data.game.substring(0, event.data.game.indexOf(':'));
-  var game = eval(" new " + gameType + "()");
+  var game = app.model.GameFactory.createGame(gameType);
   game.initFromStateStr(event.data.game);
 
   var move = getBestMove(game, alg, level);

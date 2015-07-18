@@ -1,23 +1,25 @@
-var UI = UI || {};
+var app = app || {}
+app.view = app.view || {}
+app.view.UI = {
 
-
-UI.getGameType = function() {
+getGameType: function() {
   return $('select[id=game_type] > option:selected').text();
-}
+},
 
-UI.createGame = function() {
+createGame: function() {
      try {
-        var gameType = UI.getGameType();
-        game = eval("new " + gameType + "()"); 
+        var gameType = this.getGameType();
+        game = app.model.GameFactory.createGame(gameType);
         game.newGame();
 
-        var player1 = createPlayer(PLAYER1);
-        var player2 = createPlayer(PLAYER2);
-        UI.setGameState(game.toString());
+        var player1 = app.controller.Players.createPlayer(PLAYER1);
+        var player2 = app.controller.Players.createPlayer(PLAYER2);
+        this.setGameState(game.toString());
 
         window.undoManager.clearUndo();
-        showGameStorage();
+        app.controller.Storage.showGameStorage();
 
+        //$('#btnRetractMove').show();
         $("#type_info").html($('select[id=game_type] > option:selected').text() + " players");
         $("#member0_info").html($('select[id=player1] > option:selected').text());
         $("#member1_info").html($('select[id=player2] > option:selected').text());
@@ -30,34 +32,34 @@ UI.createGame = function() {
      } catch(e) {
         alert("Error: " + e.message + "|" + JSON.stringify(e));
      }
-}
+},
 
 
-UI.setGameState = function(state) {
-  acceptHumanMove(false);
-  stopEnginePlayer();
+setGameState: function(state) {
+  app.view.board.acceptHumanMove(false);
+  app.controller.Players.stopEnginePlayer();
   game.initFromStateStr(state, PLAYER1);
   BlenderExport = eval(game.constructor.name.toLowerCase() + "Theme");
-  UI.setTurn(game.getTurn());
-  getPlayer(PLAYER1).sendCommand(game, PLAYER1, 'STATE', state);
-  getPlayer(PLAYER2).sendCommand(game, PLAYER2, 'STATE', state);
-  checkGameStatus();
-}
+  this.setTurn(game.getTurn());
+  app.controller.Players.getPlayer(PLAYER1).sendCommand(game, PLAYER1, 'STATE', state);
+  app.controller.Players.getPlayer(PLAYER2).sendCommand(game, PLAYER2, 'STATE', state);
+  app.view.board.checkGameStatus();
+},
 
-UI.updateRetractMoveButton = function() {
+updateRetractMoveButton: function() {
   $('#btnRetractMove').each(function() {
-         var player1 = getPlayer(PLAYER1);
-         var player2 = getPlayer(PLAYER2);
+         var player1 = app.controller.Players.getPlayer(PLAYER1);
+         var player2 = app.controller.Players.getPlayer(PLAYER2);
          var type1 = player1.constructor.name;
          var type2 = player2.constructor.name;
          this.disabled = (window.undoManager.length<=0) || (type1=='NetworkPlayer' && type2=='NetworkPlayer') || (type1=='EnginePlayer' && type2=='EnginePlayer');
   });
-}
+},
 
-UI.retractMove = function(event) {
+retractMove: function(event) {
   if(event.data) {
-    var player1 = getPlayer(PLAYER1);
-    var player2 = getPlayer(PLAYER2);
+    var player1 = app.controller.Players.getPlayer(PLAYER1);
+    var player2 = app.controller.Players.getPlayer(PLAYER2);
     var type1 = player1.constructor.name;
     var type2 = player2.constructor.name;
     if( (type1 != 'NetworkPlayer' || type2 != 'NetworkPlayer')
@@ -76,26 +78,67 @@ UI.retractMove = function(event) {
     }
 
   }
-}
+},
 
-UI.setTurn = function(player) {
+setTurn: function(player) {
   $('#lblPlayer1').css('font-weight', 'normal');
   $('#lblPlayer2').css('font-weight', 'normal');
   $('#lblPlayer' + player).css('font-weight', 'bold');
-  board.invalidate();
-}
+  app.view.board.invalidate();
+},
 
-UI.sendChatLine = function() {
-  Network.wgsclient.addAction(Network.gameRoom.gid, -1, "CHAT", $('#line').val());
+sendChatLine: function() {
+  app.lobby.wgsclient.addAction(app.lobby.gameRoom.gid, -1, "CHAT", $('#line').val());
   $('#line').val('');
-}
+},
 
-UI.clearChat = function(action) {
+clearChat: function(action) {
   $("#chat").val('');
-}
+},
 
-UI.addChatLine = function(action) {
+addChatLine: function(action) {
   $("#chat").val( $("#chat").val() + action.user + "> " + action.value + "\n");
   document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
-  showGames();
+  app.view.UI.showGames();
+},
+
+showMessage: function(msg) {
+  if(msg) {
+        $('#message').html(msg);
+        $('#messageBox').show();
+  } else {
+        $('#messageBox').hide();
+  }
+},
+
+showCredits: function() {
+  $('#title').show();
+  $('#imgBadge').show();
+  $('#games').hide();
+  $('#options').hide();
+  $('#config').fadeIn();
+},
+
+showOptions: function() {
+  $('#title').hide();
+  $('#games').hide();
+  $('#options').show();
+  $('#config').fadeIn();
+},
+
+showGames: function() {
+  $('#title').hide();
+  $('#options').hide();
+  $('#games').show();
+  $('#config').fadeIn();
+},
+
+hideOptions: function() {
+  $('#title').hide();
+  $('#imgBadge').hide();
+  $('#config').hide();
+  $('#controls').show();
+}
+
+
 }

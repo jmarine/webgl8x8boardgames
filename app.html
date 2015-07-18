@@ -21,7 +21,7 @@
 <TITLE>WebGL 8x8 board games</TITLE> 
 
 <meta name="author" content="Jordi Mariné Fort <jmarine@tinet.org>">
-<meta name="description" content="Play draughts/checkers, chess or other games against your computer, or with a local/remote friend. It only works in browsers with WebGL support.">
+<meta name="description" content="Play draughts/checkers or chess games against your computer, or with a local/remote friend. It only works in browsers with WebGL support.">
 
 <link rel="stylesheet" href="styles.css" />
 <link rel="manifest" href="manifest.json" />
@@ -67,6 +67,7 @@ var checkersTheme = BlenderExport;
 <script type="text/javascript" src="libs/wgs/wamp2.js"></script>
 <script type="text/javascript" src="libs/wgs/wgs-client-2.0.js"></script>
 
+<script type="text/javascript" src='app.js'></script>
 <SCRIPT type="text/javascript" src="ai.js"></SCRIPT>  
 <script type="text/javascript" src='ui.js'></script>
 <SCRIPT type="text/javascript" src="game.js"></SCRIPT>  
@@ -77,7 +78,6 @@ var checkersTheme = BlenderExport;
 <SCRIPT type="text/javascript" src="chess960.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="breakthrough.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="players.js"></SCRIPT>  
-<script type="text/javascript" src='app.js'></script>
 <script type="text/javascript" src='board3d.js'></script>
 <script type="text/javascript" src='storage.js'></script>
 <script type="text/javascript" src='network.js'></script>
@@ -240,63 +240,6 @@ void main (void)
 
  
 <SCRIPT type="text/javascript"> 
-function showMessage(msg) {
-  if(msg) {
-	$('#message').html(msg);
-	$('#messageBox').fadeIn();
-  } else {
-        $('#messageBox').hide();
-  }
-}
-
-function showCredits() {
-  $('#title').show();
-  $('#imgBadge').show();
-  $('#games').hide();
-  $('#btnOptions').hide();
-  $('#controls').hide();
-  $('#options').hide();
-  $('#config').fadeIn();
-}
-
-function hideCredits() {
-  $('#title').hide();
-  $('#imgBadge').hide();
-  $('#config').hide();
-  $('#btnOptions').show();
-  $('#controls').show();
-}
-
-
-function hideOptions() {
-  $('#title').hide();
-  $('#imgBadge').hide();
-  $('#config').hide();
-  $('#btnOptions').show();
-  $('#controls').show();
-}
-
-function showOptions() {
-  $('#title').hide();
-  $('#games').hide();
-  $('#btnOptions').hide();
-  $('#controls').hide();
-  $('#options').show();
-  $('#config').fadeIn();
-}
-
-function showGames() {
-  $('#title').hide();
-  $('#options').hide();
-  $('#btnOptions').hide();
-  $('#controls').hide();
-  $('#games').show();
-  $('#config').fadeIn();
-}
-
-
-
-
 /*** WGS ***/
 var menu = null;
 var notificationChannel = null;
@@ -313,7 +256,7 @@ function authentication(state, msg) {
     console.log("authentication state: " + state);
 
     if(state == ConnectionState.ERROR) {
-        if(Network) Network.disconnect();
+        if(app.lobby) app.lobby.disconnect();
         alert(msg);
         
     } else if(state == ConnectionState.CONNECTED) {
@@ -380,7 +323,7 @@ function authentication(state, msg) {
 
         if(providerAuthUrl != null && oauth2Code != null) {
             var url = $("#server_url").val();
-            var wgsclient = Network.getWgsClient(url);
+            var wgsclient = app.lobby.getWgsClient(url);
             var realm = wgsclient.getDefaultRealm();
             wgsclient.openIdConnectAuthCode(realm, oauth2Provider, getOAuth2ClientName(), oauth2RedirectUri, oauth2Code, notificationChannel, authentication);
             oauth2Code = null;
@@ -408,10 +351,10 @@ function authentication(state, msg) {
         if(msg.picture) $("#user_picture").attr("src", msg.picture);
         $("#btnProfile").show();
 
-        Network.onConnect(msg); 
+        app.lobby.onConnect(msg); 
 
     } else if(state == ConnectionState.DISCONNECTED  || state == ConnectionState.CLOSED) {
-        if(Network) Network.disconnect();
+        if(app.lobby) app.lobby.disconnect();
     }
         
 }
@@ -430,7 +373,7 @@ function openid_connect(redirectUri) {
             alert("User name is empty");
         } else {
             var url = $("#server_url").val();
-            var wgsclient = Network.getWgsClient(url);
+            var wgsclient = app.lobby.getWgsClient(url);
             var realm = wgsclient.getDefaultRealm();
             wgsclient.openIdConnectFromSubject(realm, user, getOAuth2ClientName(), redirectUri, notificationChannel, authentication);
         }
@@ -438,11 +381,12 @@ function openid_connect(redirectUri) {
     } else {
         oauth2Code = get_url_param(redirectUri, "code");
         if(oauth2Code != null) {
+            app.view.UI.showMessage("Connecting...");
             oauth2Provider = get_url_param(redirectUri, "provider");
             oauth2RedirectUri = clear_openid_connect_params(redirectUri, false);
             
             var url = $("#server_url").val();
-            var wgsclient = Network.getWgsClient(url);
+            var wgsclient = app.lobby.getWgsClient(url);
             if(wgsclient.getState() != ConnectionState.CHALLENGED) {
                openid_connect_menu(null);
             } else {
@@ -452,8 +396,8 @@ function openid_connect(redirectUri) {
             }
         } else {
             var error = get_url_param(redirectUri, "error");
-            if(Network) {
-              var wgsclient = Network.getWgsClient(null);
+            if(app.lobby) {
+              var wgsclient = app.lobby.getWgsClient(null);
               if(wgsclient) wgsclient.goodbye(error);
             }
         }
@@ -504,15 +448,15 @@ function openid_connect_menu(self) {
     var redirectUri = get_openid_connect_callback_url();
     
     var user = $("#user").val();
-    var wgsclient = Network.getWgsClient(url);
+    var wgsclient = app.lobby.getWgsClient(url);
     var realm = wgsclient.getDefaultRealm();
     wgsclient.openIdConnectProviders(user, realm, getOAuth2ClientName(), redirectUri, authentication);
 }
 
 function updateNotificationChannel(subscription) {
   notificationChannel = (subscription != null) ? JSON.stringify(subscription) : null;
-  if(Network) {
-	var wgsclient = Network.getWgsClient(null);
+  if(app.lobby) {
+	var wgsclient = app.lobby.getWgsClient(null);
 	if(wgsclient != null) wgsclient.setUserPushChannel(getOAuth2ClientName(), notificationChannel);
   }
 }
@@ -608,9 +552,9 @@ function unsubscribe() {
 }
 
 function initApp() {
-  initBoard3D(); 
-  UI.createGame(); 
-  listGames(); 
+  app.view.board.init(); 
+  app.view.UI.createGame(); 
+  app.controller.Storage.listGames(); 
   preloadSounds();
 
   gid = (document.location.href.indexOf("gid=") != -1) ? document.location.href.substring(document.location.href.indexOf("gid=")+4) : "";
@@ -624,7 +568,7 @@ function initApp() {
       $('#password').hide();
       $('#user').attr('disabled','disabled');
 
-      showGames();
+      app.view.UI.showGames();
       $('#player2').val(2);
 
       $('#btnRetractMove').hide();
@@ -697,19 +641,20 @@ function initApp() {
 
 
   <DIV id="controls">
-        <button id='btnGame' onclick="javascript:showGames(); return false;" style="float: left; clear: left;">Games</button>
-        <button id="btnOptions" onclick="javascript:showOptions(); return false;" style="float: left; margin-left: 10px; margin-right: 10px">Options</button>
-        <button id="btnAbout" onclick="javascript:showCredits(); return false;" style="float: left;">About</button>
-        
-  </DIV>
- 
-  <DIV id="config">
+    <div id="menu" style="float: left">
 
+        <button id='btnGame' onclick="javascript:app.view.UI.showGames(); return false;"><img src="resources/images/games.png" width="24" height="24" title="Games"></button>
+        <button id="btnOptions" onclick="javascript:app.view.UI.showOptions(); return false;"><img src="resources/images/options.png" width="24" height="24" title="Options"></button>
+        <button id="btnAbout" onclick="javascript:app.view.UI.showCredits(); return false;"><img src="resources/images/about.png" width="24" height="24" title="About"></button>
+    </div>
+        
+ 
+  <DIV id="config" style="float: right;">
     <DIV id="title" height="100%">
-<table style="float: left; margin-right: 10px">
+<table style="float: left; margin-right: 0px" cellpadding="0" cellspacing="0" border="0">
 <tr valign="top">
   <td>
-     <H4 style="white-space: nowrap;"><a href="javascript:hideCredits()">WebGL 8x8 board games</a></H4><br>
+     <H4 style="white-space: nowrap;"><a href="javascript:app.view.UI.hideOptions()">WebGL 8x8 board games</a></H4><br>
      <a class="author" href="mailto:jmarine@tinet.org">
 Copyright &copy; 2011-2015<br>
 by Jordi Marin&eacute; Fort</a>
@@ -718,7 +663,7 @@ by Jordi Marin&eacute; Fort</a>
 <a href="https://www.chromeexperiments.com/experiment/draughts-game" target="_blank" ><img id="imgBadge" src="resources/images/chromeexperiments-badge-trans.png" style="margin: 10px 10px 10px 10px"/></a>
   </td>
   <td>
-<a href="#" id="hide_credits" style="text-decoration: none" onclick="javascript:hideCredits(); return false">&gt;</a>
+<a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.hideOptions(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
   </td>
 
 </tr>
@@ -740,8 +685,8 @@ by Jordi Marin&eacute; Fort</a>
 
       <div id="options">
       <DIV id="ui">
-      <H4><a href="javascript:hideOptions()">UI configuration</a></H4>
-      <a href="#" id="hide_options" style="float: right; text-decoration: none" onclick="javascript:hideOptions(); return false">&gt;</a>
+      <H4><a href="javascript:app.view.UI.hideOptions()">UI configuration</a></H4>
+      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideOptions(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
       <br>
 
 	<dl>
@@ -830,8 +775,8 @@ by Jordi Marin&eacute; Fort</a>
       </div>
 
       <div id="games">
-      <H4><a href="javascript:hideOptions()">Games &amp; players</a></H4>
-      <a href="#" id="hide_options" style="float: right; text-decoration: none" onclick="javascript:hideOptions(); return false">&gt;</a>
+      <H4><a href="javascript:app.view.UI.hideOptions()">Games &amp; players</a></H4>
+      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideOptions(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
       <br>
 
       <DIV id="players">
@@ -908,11 +853,11 @@ by Jordi Marin&eacute; Fort</a>
 
       <div id="profile_section" style="display: none">
         <H4>Profile</H4>
-        <a href="#" style="float: right; text-decoration: none" onclick="$('#profile_section').hide(); return false">x</a>
+        <a href="#" style="float: right; text-decoration: none" onclick="$('#profile_section').hide(); return false"><img src="resources/images/close.png" border="0" width="16" height="16" style="margin-top: 10px"/></a>
 
         <dl>
           <dt>Versus:</dt>
-          <dd><select id="profile_filter" onChange="Network.loadProfile(); return false;">
+          <dd><select id="profile_filter" onChange="app.lobby.loadProfile(); return false;">
                 <option value="">All</option>
               </select></dd>
         </dl>
@@ -980,7 +925,7 @@ by Jordi Marin&eacute; Fort</a>
 
       <div id="chat_section" style="display: none">
         <H4>Game chat</H4>
-        <textarea id="line" cols="28" style="height: 40px; float: left; clear: left" onkeypress="if(event.keyCode == 13) { UI.sendChatLine(); return false; }"></textarea><button id="btnSendChatLine" style="float: left; margin-left: 3px">Send</button></td>
+        <textarea id="line" cols="28" style="height: 40px; float: left; clear: left" onkeypress="if(event.keyCode == 13) { app.view.UI.sendChatLine(); return false; }"></textarea><button id="btnSendChatLine" style="float: left; margin-left: 3px">Send</button></td>
         <textarea id="chat" style="clear: both; float: left; width: 100%; height: 200px" readonly></textarea>
       </div>
 
@@ -1002,6 +947,8 @@ by Jordi Marin&eacute; Fort</a>
       <button id="btnDisconnect">Disconnect</button>
 
     </div>
+  </DIV>
+
   </DIV>
 
   <DIV id="messageBox">

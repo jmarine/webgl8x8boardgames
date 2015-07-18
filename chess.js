@@ -17,17 +17,21 @@
 */
 
 
+var app = app || {}
+app.model = app.model || {}
+app.model.Chess = (function() {
+
 var CASTLE_A_SIDE = 0;
 var CASTLE_H_SIDE = 1;
 var CHESS_PIECE_VALUES = [ 0, 30, 165, 10000, 80, 80, 90 ];
 
-Chess.prototype = new Game();
-Chess.prototype.constructor = Chess;
-Chess.prototype.constructor.name = "Chess";
-
 function Chess() {
   return this;
 }
+
+Chess.prototype = new app.model.Game();
+Chess.prototype.constructor = Chess;
+Chess.prototype.constructor.name = "Chess";
 
 Chess.prototype.getBoardRotationDegrees = function() {
   return 90;
@@ -38,7 +42,7 @@ Chess.prototype.getPreferedLevelAI = function() {
 }
 
 Chess.prototype.clone = function() {
-  var copy=Game.prototype.clone.call(this);
+  var copy=app.model.Game.prototype.clone.call(this);
 
   copy.lastPawnLargeMoveCol = this.lastPawnLargeMoveCol;
   copy.enrocsValids = Array();
@@ -443,12 +447,12 @@ Chess.prototype.addPieceMoveWhenValidDestination = function(moves, fromRow, from
         var killedPiece = this.getPiece(destCol, destRow);
         var killedPiecePlayer = this.getPieceOwner(killedPiece);
         if( (killedPiece == NONE) || (currentPiecePlayer != killedPiecePlayer) || (destCol == castleFromCol) ) {
-            var move = new Move();
+            var move = new app.model.Move();
             move.setFrom(fromCol, fromRow);
             move.setTarget(destCol, destRow);
 
             if(isFinite(castleFromCol) && isFinite(castleToCol)) {
-                castleRookMove = new Move();
+                castleRookMove = new app.model.Move();
   	        castleRookMove.setFrom(castleFromCol,fromRow);
 	        castleRookMove.setTarget(castleToCol, fromRow);
 
@@ -789,4 +793,6 @@ Chess.prototype.isCheckFrom = function(attacker)
     return false;
 }
 
+return Chess;
+})();
 

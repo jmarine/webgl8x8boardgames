@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+var app = app || {};
 
 
 /*
@@ -26,8 +26,8 @@ $(window).error(function(err) {
 */
 
 $(window).bind('beforeunload', function() {
-  if(Network) {
-    Network.disconnect();
+  if(app.lobby) {
+    app.lobby.disconnect();
   }
 });
 
@@ -40,7 +40,7 @@ $(document).ready(function(){
     var player2 = $('select[id=player2]');
     var tmp = player1.val();
     if(tmp != REMOTE_USER) {
-        acceptHumanMove(false);
+        app.view.board.acceptHumanMove(false);
 	player1.val(player2.val());
 	player2.val(tmp);	
     } else {
@@ -70,7 +70,7 @@ $(document).ready(function(){
 	            this.disabled = false;
                 });
 
-                Network.disconnect();
+                app.lobby.disconnect();
 	}
 
 
@@ -105,11 +105,11 @@ $(document).ready(function(){
 
   $('#game_type').change(function() {
         window.undoManager.clearUndo();
-        hideGameStorage();
+        app.controller.Storage.hideGameStorage();
         $('#promotion_option').hide();
 
-        var gameType = UI.getGameType();
-        var tmpGame = eval("new " + gameType + "()");
+        var gameType = app.view.UI.getGameType();
+        var tmpGame = app.model.GameFactory.createGame(gameType);
         var level = tmpGame.getPreferedLevelAI(); 
         $('input[id=level]').val(level);
 
@@ -120,12 +120,12 @@ $(document).ready(function(){
 
   $('#shadows').change(function() {
 	var enabled = $(this).attr('checked');
-	board.setShadows(enabled);
+	app.view.board.setShadows(enabled);
   });
 
   $('#reflections').change(function() {
 	var enabled = $(this).attr('checked');
-	board.setReflections(enabled);
+	app.view.board.setReflections(enabled);
   });
 
 
@@ -134,7 +134,7 @@ $(document).ready(function(){
     var r = parseInt(hexString.substr(0, 2), 16) / 255.0;
     var g = parseInt(hexString.substr(2, 2), 16) / 255.0;
     var b = parseInt(hexString.substr(4, 2), 16) / 255.0;
-    board.setBackgroundColor(r,g,b);
+    app.view.board.setBackgroundColor(r,g,b);
   });
 
   $('#color1').change(function(evt) {
@@ -142,8 +142,8 @@ $(document).ready(function(){
     var r = parseInt(hexString.substr(0, 2), 16) / 255.0;
     var g = parseInt(hexString.substr(2, 2), 16) / 255.0;
     var b = parseInt(hexString.substr(4, 2), 16) / 255.0;
-    board.setPlayer1PieceColor(r,g,b);
-    board.setCustomPieceColors(true);
+    app.view.board.setPlayer1PieceColor(r,g,b);
+    app.view.board.setCustomPieceColors(true);
   });
 
   $('#color2').change(function(evt) {
@@ -151,8 +151,8 @@ $(document).ready(function(){
     var r = parseInt(hexString.substr(0, 2), 16) / 255.0;
     var g = parseInt(hexString.substr(2, 2), 16) / 255.0;
     var b = parseInt(hexString.substr(4, 2), 16) / 255.0;
-    board.setPlayer2PieceColor(r,g,b);
-    board.setCustomPieceColors(true);
+    app.view.board.setPlayer2PieceColor(r,g,b);
+    app.view.board.setCustomPieceColors(true);
   });
 
 
@@ -161,20 +161,20 @@ $(document).ready(function(){
   onPlayerTypeChange();
 
   $('#btnProfile').click(function() {
-        Network.loadProfile(null);
+        app.lobby.loadProfile(null);
 	return false;
   });
 
 
 
   $('#btnSendChatLine').click(function() {
-        UI.sendChatLine();
+        app.view.UI.sendChatLine();
 	return false;
   });
 
 
   $('#btnSaveGame').click(function() {
-	saveGame();	
+	app.controller.Storage.saveGame();	
 	return false;
   });
 
@@ -183,7 +183,7 @@ $(document).ready(function(){
   });
 
   $('#btnRetractMove').click(function() {
-        stopEnginePlayer();
+        app.controller.Players.stopEnginePlayer();
 	document.execCommand("undo");
 	return false;
   });
@@ -191,41 +191,40 @@ $(document).ready(function(){
 
 
   $('#btnLoadGame').click(function() {
-        loadGame();
+        app.controller.Storage.loadGame();
 	return false;
   });
 
   $('#btnDeleteGame').click(function() {
-        deleteGame();
+        app.controller.Storage.deleteGame();
 	return false;
   });
 
   $('#btnDrawGame').click(function() {
         if(confirm("Do you really want to offer a draw?")) {
-          Network.offerDraw();
+          app.lobby.offerDraw();
         }
         return false;
   });
 
   $('#btnResignGame').click(function() {
         if(confirm("Do you really want to resign?")) {
-          //Network.group_finished();
-          Network.resign();
-          Network.exitGame(false);
+          app.lobby.resign();
+          app.lobby.exitGame(false);
         }
         return false;
   });
 
   $('#btnDeleteAllGames').click(function() {
-        deleteGames();
+        app.controller.Storage.deleteGames();
 	return false;
   });
 
 
   $('#btnDisconnect').click(function() {
 	try {
-	  showMessage(false);
-          if(Network) Network.disconnect();
+	  app.view.UI.showMessage(false);
+          if(app.lobby) app.lobby.disconnect();
         } catch(e) { alert(e.message); }
 	return false;
   });
@@ -241,7 +240,7 @@ $(document).ready(function(){
           $("#password").val("");
           $("#btnProfile").hide();
        
-          var wgsclient = Network.getWgsClient(url);
+          var wgsclient = app.lobby.getWgsClient(url);
           var realm = wgsclient.getDefaultRealm(); 
           var email = prompt("Enter e-mail:");
           if(email) wgsclient.registerUser(getOAuth2ClientName(), realm, user, pass, email, notificationChannel, authentication);
@@ -252,31 +251,31 @@ $(document).ready(function(){
 
   $('button.btnStartGame').click(function() {
         // Quick access button
-        showMessage(false);
-        hideOptions();
-	UI.createGame();
+        app.view.UI.showMessage(false);
+        app.view.UI.hideOptions();
+	app.view.UI.createGame();
         return false;
   });
 
 
   $("#btnCreateGame").click(function() {
 
-        // Network game creation
-        showMessage(false);
+        // app.lobby game creation
+        app.view.UI.showMessage(false);
         if( ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER )
             && ($('select[id=player2] > option:selected').attr('value') == REMOTE_USER ) ) {
 
-          showMessage("Only 1 remote player is allowed");
+          app.view.UI.showMessage("Only 1 remote player is allowed");
           return false;
         }
 
-        Network.new_group();
+        app.lobby.new_group();
         return false;
   });
 
 
   $("#btnHideMatchingOptions").click(function() {
-        Network.exitGame(false);
+        app.lobby.exitGame(false);
         return false;
   });
 
@@ -289,8 +288,8 @@ $(document).ready(function(){
         $("#btnHideMatchingOptions").show();
 
         $("#new_grp_opponent > option[value!='']").remove();
-        if(Network.user.friends) {
-          Network.user.friends.forEach(function(item) {
+        if(app.lobby.user.friends) {
+          app.lobby.user.friends.forEach(function(item) {
             var option = $('<option>').attr('value',item.user).text(item.name);
             if(item.picture) option.attr("style","height:34px;background-repeat:no-repeat;background-image:url("+item.picture+");padding-left:35px;background-size: auto 30px;background-position:2px 2px;vertical-align: middle");
             $("#new_grp_opponent").append(option);
@@ -301,12 +300,12 @@ $(document).ready(function(){
   });
 
   $("#btnDeleteFinishedGames").click(function() {
-        Network.deleteFinishedGroups();
+        app.lobby.deleteFinishedGroups();
         return false;  
   });
 
   $("#gameCanvas").mousedown(function() {
-      hideOptions();
+      app.view.UI.hideOptions();
       return false;
   });
 
@@ -316,7 +315,7 @@ $(document).ready(function(){
                 if(providerAuthUrl != null) window.open(providerAuthUrl,'_blank'); 
                 else openid_connect_menu(null);
               } else {
-                showMessage(false);
+                app.view.UI.showMessage(false);
                 $("#openid_providers_menu").hide();
 
                 var url = $("#server_url").val();
@@ -326,7 +325,7 @@ $(document).ready(function(){
                 } else {
                   var pass = $("#password").val();
                   $("#password").val("");  // clear credentials
-                  Network.login(getOAuth2ClientName(), url, user, pass, notificationChannel);
+                  app.lobby.login(getOAuth2ClientName(), url, user, pass, notificationChannel);
                 }
               }
               return false;

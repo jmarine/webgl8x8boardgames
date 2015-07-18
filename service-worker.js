@@ -8,7 +8,8 @@ self.addEventListener('push', function(event) {
   var body = 'Your game matches have been updated.';  
   var icon = 'resources/images/logo.png';  
   var tag = 'webgl8x8boardgames-updated';
-
+ 
+ try {
   event.waitUntil(  
     self.registration.showNotification(title, {  
       body: body,  
@@ -16,6 +17,10 @@ self.addEventListener('push', function(event) {
       tag: tag  
     })  
   );  
+  console.log("push done");
+ } catch(e) {
+  console.log('Error: ' + e);
+ }
 
 });
 

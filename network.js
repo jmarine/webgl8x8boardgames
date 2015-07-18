@@ -16,7 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var Network = {
+var app = app || {} 
+app.lobby = {
 
 wgsclient: null, 
 nick: null, 
@@ -57,7 +58,7 @@ getWgsClient: function(url) {
 
 
 login: function(appName, url, user, pass, notificationChannel) {
-    showMessage("Connecting...");
+    app.view.UI.showMessage("Connecting...");
 
     this.wgsclient = this.getWgsClient(url);
     var realm = this.wgsclient.getDefaultRealm();
@@ -71,7 +72,7 @@ login: function(appName, url, user, pass, notificationChannel) {
 
 
 isConnected: function() {
-  return (Network.wgsclient && Network.wgsclient.getState() != ConnectionState.DISCONNECTED);
+  return (app.lobby.wgsclient && app.lobby.wgsclient.getState() != ConnectionState.DISCONNECTED);
 },
 
 
@@ -89,9 +90,9 @@ onConnect: function(msg) {
     $('.logon').show();
     $('#start').fadeIn();
     $('select[id=games]').empty();
-    showMessage(false);
+    app.view.UI.showMessage(false);
 
-    Network.wgsclient.subscribe("wgs.apps_event", Network.update_groups, null, {"match": "exact"} );
+    app.lobby.wgsclient.subscribe("wgs.apps_event", app.lobby.update_groups, null, {"match": "exact"} );
 
     if(msg) {
       this.user = msg;
@@ -137,7 +138,7 @@ sendLoadRequest: function(game, state, toPlayerNumber)
 
 sendMoveRequest: function(game, move, toPlayerNumber)
 {
-  var group = Network.gameRoom;
+  var group = app.lobby.gameRoom;
   if(group && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
     var slot = game.getTurn()-1;
     var data = game.getMoveString(move);
@@ -147,7 +148,7 @@ sendMoveRequest: function(game, move, toPlayerNumber)
 
 sendRetractMoveRequest: function(game, state, toPlayerNumber)
 {
-  var group = Network.gameRoom;
+  var group = app.lobby.gameRoom;
   if(group && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
     var slot = group.slotJoinedByClient;
     this.wgsclient.addAction(group.gid, slot, "RETRACT_QUESTION", state);
@@ -173,7 +174,7 @@ getOpponentNick: function()
 
 exitGame: function(disconnecting)
 {
-    acceptHumanMove(false);
+    app.view.board.acceptHumanMove(false);
 
     $("#chat_section").hide();
     $("#profile_section").hide();
@@ -205,7 +206,7 @@ exitGame: function(disconnecting)
 
     this.gameRoom = null;
     this.networkGameType = null;
-    showMessage(null);
+    app.view.UI.showMessage(null);
 },
 
 
@@ -213,7 +214,7 @@ view_group: function(appId,gid) {
     var options = new Object();
     options.spectator = true;
     try {
-      Network.open_group(appId, gid, options);
+      app.lobby.open_group(appId, gid, options);
     } catch(e) {
       console.debug(e.stack);
     }
@@ -224,14 +225,14 @@ reserve_group_slot: function(appId,gid,slot) {
     var options = new Object();
     options.slot = slot;
     try {
-      Network.open_group(appId, gid, options);
+      app.lobby.open_group(appId, gid, options);
     } catch(e) {
       console.debug(e.stack);
     }
 },
 
 new_group: function() {
-    UI.createGame();
+    app.view.UI.createGame();
     var appId = $("#game_type").val();
     var gid = $("#new_grp_automatch").is(":checked") ? "automatch" : "";
     var opponent = $("#new_grp_opponent").val();
@@ -246,12 +247,12 @@ new_group: function() {
     options.password = $("#new_grp_password").val();
     options.role = $("#new_grp_role option:selected").val();
     if(options.role != "") options.slot = (options.role == "Black") ? 1 : 0;
-    Network.open_group(appId, gid, options);
+    app.lobby.open_group(appId, gid, options);
     return false;
 },
 
 resign: function() {
-  var group = Network.gameRoom;
+  var group = app.lobby.gameRoom;
   if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
     var slot = this.wgsclient.getSlotOfGroup(group.gid);
     var data = ""; 
@@ -260,7 +261,7 @@ resign: function() {
 },
 
 offerDraw: function() {
-  var group = Network.gameRoom;
+  var group = app.lobby.gameRoom;
   if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
     var slot = this.wgsclient.getSlotOfGroup(group.gid);
     var data = ""; 
@@ -268,15 +269,6 @@ offerDraw: function() {
   }
 },
 
-
-group_finished: function() {
-  var group = Network.gameRoom;
-
-  $("#btnResignGame").hide();
-  $("#btnDrawGame").hide();
-  $("#btnRetractMove").hide();  // TODO: clear achievements on retract
-
-},
 
 group_opened: function(group) {
     console.log("group change received: " + JSON.stringify(group));
@@ -296,11 +288,11 @@ group_opened: function(group) {
 
     }
 
-    UI.clearChat();
+    app.view.UI.clearChat();
     $("#chat_section").show();
     $("#state0_info").show();
     $("#state1_info").show();
-    hideCredits();    
+    app.view.UI.hideOptions();    
 
     $('#start').hide();
     $('#games_section').hide();
@@ -329,17 +321,19 @@ group_opened: function(group) {
 
 
     group.members.forEach(function(item) {
-      $("select[id=player" + (item.slot+1) + "]").val((Network.wgsclient.sid == item.sid)? LOCAL_USER : REMOTE_USER);
+      $("select[id=player" + (item.slot+1) + "]").val((app.lobby.wgsclient.sid == item.sid)? LOCAL_USER : REMOTE_USER);
     });
 
 
     $('#game_type').attr('disabled','disabled');
     $('#player1').attr('disabled','disabled');
     $('#player2').attr('disabled','disabled');
-    showMessage(false);
     //alert("ACK: unsubscribe from MUC");
 
-    UI.createGame();
+    app.view.UI.showMessage(false);
+    app.view.UI.createGame();
+
+
     if(group.initialData && group.initialData.length > 0) game.initFromStateStr(group.initialData);
 
     if(group.actions && group.actions.length > 0) {
@@ -348,14 +342,14 @@ group_opened: function(group) {
       group.actions.forEach(function(action, index) {
         game.initFromStateStr(sim.toString());
         if(action.type == "MOVE") {
-          if(action.slot == Network.gameRoom.slotJoinedByClient) window.undoManager.add(sim.toString());
+          if(action.slot == app.lobby.gameRoom.slotJoinedByClient) window.undoManager.add(sim.toString());
           var move = sim.parseMoveString(action.value);
           sim.makeMove(move);
 
         } else if(action.type == "RETRACT_ACCEPTED") {
           sim.initFromStateStr(action.value);
-          if(Network.gameRoom.slotJoinedByClient >= 0 
-             && (action.slot != Network.gameRoom.slotJoinedByClient || (1+action.slot)!=game.getTurn()) ) { // member
+          if(app.lobby.gameRoom.slotJoinedByClient >= 0 
+             && (action.slot != app.lobby.gameRoom.slotJoinedByClient || (1+action.slot)!=game.getTurn()) ) { // member
             setNumUndosToIgnore(1);
             document.execCommand("undo");
             setNumUndosToIgnore(0);
@@ -364,7 +358,7 @@ group_opened: function(group) {
         } 
 
         if(action.type == "CHAT") {
-	  UI.addChatLine(action);
+	  app.view.UI.addChatLine(action);
         } else {
           lastAction = action;
         }
@@ -373,62 +367,62 @@ group_opened: function(group) {
       group.action = lastAction;
     }
 
-    UI.setGameState(game.toString());
+    app.view.UI.setGameState(game.toString());
 },
 
 group_changed: function(group) {
     var opened = false;
-    if(!Network.gameRoom) {
-        Network.gameRoom = group;
-        Network.group_opened(group);
+    if(!app.lobby.gameRoom) {
+        app.lobby.gameRoom = group;
+        app.lobby.group_opened(group);
         opened = true;
     } 
 
     var action = group.action;
     if(action) {
       group.action = null;
-      var currentSlot = Network.gameRoom.slotJoinedByClient;
+      var currentSlot = app.lobby.gameRoom.slotJoinedByClient;
       if(action.type == "CHAT") {
-        UI.addChatLine(action);
+        app.view.UI.addChatLine(action);
       } else if(action.type == "MOVE" && (opened || action.slot != currentSlot) ) {
-        UI.setGameState(game.toString());
+        app.view.UI.setGameState(game.toString());
+        app.view.UI.showMessage(false);
         var move = game.parseMoveString(action.value);
-        if(move) movePieceOnBoard(move, true);
+        if(move) app.view.board.movePieceOnBoard(move, true);
 
       } else if(action.type == "RESIGN") {
-          showMessage("Player " + (action.slot+1) + " has resigned!");
+          app.view.UI.showMessage("Player " + (action.slot+1) + " has resigned!");
           $("#btnRetractMove").hide();
           $("#btnResignGame").hide();
           $("#btnDrawGame").hide();
-          acceptHumanMove(false);
+          app.view.board.acceptHumanMove(false);
 
       } else if(action.type == "RETRACT_REJECTED") {
-          UI.setGameState(action.value);
           if(isFinite(currentSlot) && action.slot != currentSlot) {
-            showMessage("Move retraction has been rejected");
-            checkGameStatus();
+            app.view.UI.showMessage("Move retraction has been rejected");
           }
+          app.view.UI.setGameState(action.value);
 
       } else if(action.type == "RETRACT_ACCEPTED") {
-        showMessage("");
-        UI.setGameState(action.value);
+        app.view.UI.showMessage("");
+        app.view.UI.setGameState(action.value);
         if(this.wgsclient.isMemberOfGroup(group.gid)) {
           $("#btnResignGame").show();
           $("#btnDrawGame").show();
           if(isFinite(currentSlot) && action.slot != currentSlot) {
             if(!action.undoned) {
-              getPlayer(1+action.slot).retractConfirmed = true;
+              app.controller.Players.getPlayer(1+action.slot).retractConfirmed = true;
               document.execCommand("undo");
             }
-            showMessage("Move retraction has been accepted");
+            app.view.UI.showMessage("Move retraction has been accepted");
           }
         }
 
       } else if(action.type == "RETRACT_QUESTION") {
         var currentState = game.toString();
         if(isFinite(currentSlot) && action.slot == currentSlot) {
-          acceptHumanMove(false);
-          showMessage("Waiting retract confirmation from opponent");
+          app.view.board.acceptHumanMove(false);
+          app.view.UI.showMessage("Waiting retract confirmation from opponent");
           //setNumUndosToIgnore(1);
           //document.execCommand("undo");
           //setNumUndosToIgnore(0);
@@ -437,7 +431,7 @@ group_changed: function(group) {
 
           var oldTurn = game.getTurn();
           var player = 1+(1-action.slot);
-          var answer = getPlayer(player).sendCommand(game, player, 'RETRACT', {data: action.value});
+          var answer = app.controller.Players.getPlayer(player).sendCommand(game, player, 'RETRACT', {data: action.value});
 
           var response = answer? "RETRACT_ACCEPTED" : "RETRACT_REJECTED";
           var data = answer? action.value : currentState;
@@ -453,14 +447,13 @@ group_changed: function(group) {
       } else if(action.type == "DRAW_QUESTION") {
         var currentState = game.toString();
         if(isFinite(currentSlot) && action.slot == currentSlot) {
-          showMessage("Waiting draw offer response from opponent");
-          acceptHumanMove(false);
+          app.view.UI.showMessage("Waiting draw offer response from opponent");
+          app.view.board.acceptHumanMove(false);
 
         } else if(this.wgsclient.isMemberOfGroup(group.gid)) {
 
           var player = 1+(1-action.slot);
-          var answer = getPlayer(player).sendCommand(game, player, 'DRAW', {data: action.value});
-
+          var answer = app.controller.Players.getPlayer(player).sendCommand(game, player, 'DRAW', {data: action.value});
           var response = answer? "DRAW_ACCEPTED" : "DRAW_REJECTED";
           var data = answer? action.value : currentState;
           this.wgsclient.addAction(group.gid, currentSlot, response, data);
@@ -469,14 +462,14 @@ group_changed: function(group) {
 
       } else if(action.type == "DRAW_REJECTED") {
           if(isFinite(currentSlot) && action.slot != currentSlot) {
-            showMessage("Draw offer has been rejected");
-            UI.setGameState(game.toString());
+            app.view.UI.showMessage("Draw offer has been rejected");
+            app.view.UI.setGameState(game.toString());
           }
 
       } else if(action.type == "DRAW_ACCEPTED") {
-          showMessage("Draw offer has been accepted");
-          acceptHumanMove(false);
-          UI.setTurn(0);
+          app.view.UI.showMessage("Draw offer has been accepted");
+          app.view.board.acceptHumanMove(false);
+          app.view.UI.setTurn(0);
           $("#btnRetractMove").hide();
           $("#btnResignGame").hide();
           $("#btnDrawGame").hide();
@@ -486,7 +479,7 @@ group_changed: function(group) {
 
 
     if(group.members) {
-        var currentUser = Network.wgsclient.user;
+        var currentUser = app.lobby.wgsclient.user;
         var currentUserIsOnlineMember = false;
         var currentUserIsOfflineMember = false;
         group.members.forEach(function(member, index) {
@@ -500,7 +493,7 @@ group_changed: function(group) {
             var roleFixed = false;
             var currentUserSelected = false;
             
-            if(member.sid==Network.wgsclient.sid) {
+            if(member.sid==app.lobby.wgsclient.sid) {
                 var selected = "";
                 if(currentUserIsOfflineMember && (!member.connected) && member.user==currentUser) {
                     currentUserSelected = true;;
@@ -516,7 +509,7 @@ group_changed: function(group) {
                 roleFixed = true;
             }
 
-            Network.update_group_member(memberId, member, currentUserSelected, roleFixed);
+            app.lobby.update_group_member(memberId, member, currentUserSelected, roleFixed);
 
         });
     }
@@ -528,7 +521,7 @@ update_group_member: function(memberId, member, currentUserSelected, roleFixed) 
     var memberType  = member.type  ? member.type  : "user";
     var memberName  = member.name  ? member.name  : "";
     if(memberName.length == 0) memberName = "Empty";
-    //if( member.sid && member.sid == Network.wgsclient.sid ) memberName = "Me";
+    //if( member.sid && member.sid == app.lobby.wgsclient.sid ) memberName = "Me";
     
     var status = memberState.toLowerCase();
     if(status != 'empty') status = memberType.toLowerCase() + "_" + status;
@@ -544,15 +537,15 @@ update_group_member: function(memberId, member, currentUserSelected, roleFixed) 
 open_group: function(appId, gid, options) {
     $('#profile_section').hide();
 
-    Network.wgsclient.openGroup(appId, gid, options, function(id,details,errorURI,result,resultKw) {
+    app.lobby.wgsclient.openGroup(appId, gid, options, function(id,details,errorURI,result,resultKw) {
        if(!errorURI) {
-            Network.group_changed(resultKw); 
+            app.lobby.group_changed(resultKw); 
        } else if(errorURI == "wgs.incorrectpassword") {
             var password = prompt("Introduce the password to access the group:");
             if(password) {
                 if(!options) options = {};
                 options.password = password;
-                Network.open_group(appId, gid, options);
+                app.lobby.open_group(appId, gid, options);
             }
        } else {
            alert(errorURI);
@@ -574,7 +567,7 @@ addGroupListItem: function(group) {
    opt.attr('state', group.state);
 
    var viewButton = "";
-   if(group.observable) viewButton = "<br><button onclick=\"javascript:Network.view_group('" + group.appId + "','" + group.gid + "'); return false;\">View</button>";
+   if(group.observable) viewButton = "<br><button onclick=\"javascript:app.lobby.view_group('" + group.appId + "','" + group.gid + "'); return false;\">View</button>";
    
    opt.append('<td>' + group.appName + '</td>');
    opt.append('<td>' + group.state + (group.password? "<br>(password)" : "" ) + '</td>');
@@ -592,13 +585,13 @@ addGroupListItem: function(group) {
        var playerLabel = "Player " + count; // + (member.role? " ("+ member.role +")" : "");
        if(group.state != "FINISHED" && index == group.turn) {
           playerLabel = "<b>" + playerLabel + "</b>"; 
-          if(group.members[group.turn].user == Network.wgsclient.user) localPlayerTurn = true;
+          if(group.members[group.turn].user == app.lobby.wgsclient.user) localPlayerTurn = true;
        }
 
        var row = $("<tr>");
-       row.append("<td>" + playerLabel + ":</td>");
-       if(isFinite(member.sid) && (member.user == "" || member.user == Network.wgsclient.user) ) {
-           row.append("<td><button onclick=\"javascript:Network.reserve_group_slot('" + group.appId + "','" + group.gid + "'," + member.slot + "); return false;\">Play</button></td>");
+       row.append("<td nowrap='true'>" + playerLabel + ":</td>");
+       if(isFinite(member.sid) && (member.user == "" || member.user == app.lobby.wgsclient.user) ) {
+           row.append("<td><button onclick=\"javascript:app.lobby.reserve_group_slot('" + group.appId + "','" + group.gid + "'," + member.slot + "); return false;\">Play</button></td>");
        } else {
            row.append("<td>" + member.name + "</td>");       
        }
@@ -629,14 +622,14 @@ update_groups: function(id,details,errorURI,payload,payloadKw) {
         payloadKw.groups.forEach(function(item) {
             /*
             var opt = $('<option>')
-            opt.attr('value',item.gid).text(Network.getGroupDescription(item));
+            opt.attr('value',item.gid).text(app.lobby.getGroupDescription(item));
             opt.attr('observable', item.observable);
             $("#groups").append(opt);
             */
-            Network.addGroupListItem(item);
+            app.lobby.addGroupListItem(item);
 
             if(gid != null && gid == item.gid) {
-	      Network.open_group(item.appId, item.gid, {});	
+	      app.lobby.open_group(item.appId, item.gid, {});	
             }
 
         });
@@ -655,11 +648,11 @@ update_groups: function(id,details,errorURI,payload,payloadKw) {
             // if($("#groups option[value='"+response.gid+"']").size() <= 0) {  // insert group
             //   $("#groups").append($("<option>").attr("value", response.gid));
             // }
-            //$("#groups option[value='"+response.gid+"']").text(Network.getGroupDescription(response));
+            //$("#groups option[value='"+response.gid+"']").text(app.lobby.getGroupDescription(response));
             //$("#groups option[value='"+response.gid+"']").attr("observable", response.observable);
             
             $("#groupsTable>tbody>tr[gid='"+payloadKw.gid+"']").remove();
-            Network.addGroupListItem(payloadKw);
+            app.lobby.addGroupListItem(payloadKw);
         }
         
       }
@@ -674,12 +667,12 @@ listGames: function()
     $("#groupsTable>tbody>tr").remove();
     this.wgsclient.listGroups(null, null, null, function(id,details,errorURI,result,resultKw) {
         if(!errorURI) {
-            Network.update_groups(id,details,errorURI,result,resultKw);
+            app.lobby.update_groups(id,details,errorURI,result,resultKw);
             $("#app_list").hide();
             if(gid == null || gid.length == 0) $("#group_list").slideDown(500);
             else gid = "";  // TODO: show/hide buttons
         } else {
-            showMessage("Error: " + errorURI);
+            app.view.UI.showMessage("Error: " + errorURI);
         }
     });
 
@@ -731,7 +724,7 @@ disconnect: function() {
         $("#groupsTable>tbody>tr").remove();
 
 	//wait sending of unavailable presence stanzas
-	showMessage("User disconnected.");
+	app.view.UI.showMessage("User disconnected.");
         console.log("Disconnected");
         //enable_network();
     }

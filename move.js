@@ -19,6 +19,9 @@
 var rowNames = "12345678";
 var colNames = "abcdefgh";
 
+var app = app || {}
+app.model = app.model || {}
+app.model.Move = (function() {
 
 function Move() { 
   this.x1 = -1;
@@ -101,4 +104,5 @@ Move.prototype.equals = function(m) {
   else return false;
 }
 
-
+return Move;
+})();

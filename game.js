@@ -33,10 +33,20 @@ var ROOK    = 6;
 var PIECE_CHARS  = " PQKBNR"; 
 
 
+var app = app || {} 
+
+app.model = app.model || {}
+app.model.GameFactory = {
+  createGame: function(gameType) {
+    return eval(" new app.model." + gameType + "()");
+  }
+}
+
+app.model.Game = (function() {
+ 
 function Game() {
   return this;
 }
-
 
 Game.prototype.getTurn = function() {
   return this.turn;
@@ -182,3 +192,5 @@ Game.prototype.getWinner = function() {
 }
 
 
+return Game;
+})();
