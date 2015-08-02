@@ -292,7 +292,7 @@ group_opened: function(group) {
     $("#chat_section").show();
     $("#state0_info").show();
     $("#state1_info").show();
-    app.view.UI.hideOptions();    
+    app.view.UI.hideControls();    
 
     $('#start').hide();
     $('#games_section').hide();

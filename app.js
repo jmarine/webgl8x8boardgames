@@ -252,7 +252,7 @@ $(document).ready(function(){
   $('button.btnStartGame').click(function() {
         // Quick access button
         app.view.UI.showMessage(false);
-        app.view.UI.hideOptions();
+        app.view.UI.hideControls();
 	app.view.UI.createGame();
         return false;
   });
@@ -305,7 +305,7 @@ $(document).ready(function(){
   });
 
   $("#gameCanvas").mousedown(function() {
-      app.view.UI.hideOptions();
+      app.view.UI.hideControls();
       return false;
   });
 

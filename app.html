@@ -617,11 +617,9 @@ function initApp() {
  
 </HEAD>
 <BODY onload="initApp();"> 
-<DIV id="main"> 
-  <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
+<CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
 
-  <form onsubmit="return false;">
-  <div id="game_info">
+<div id="game_info">
     <H4><span id="type_info">Draughts players</span></H4>
         <table style="clear: both; margin-bottom: 0.25em" border="0" cellspacing="0">
           <tr>
@@ -631,63 +629,54 @@ function initApp() {
            <td valign="top"><span id="member0_info" style="display: none">Local user</span></td>
           </tr>
           <tr>
-           <td valign="top"><span id="lblPlayer2">Black:</td>
+           <td valign="top"><span id="lblPlayer2">Black:</span></td>
            <td width="10px">&nbsp;</td>
            <td valign="middle"><img title="EMPTY" id="state1_info" src="/images/empty.png" border="0" style="display: none;"/></td>
            <td valign="top"><span id="member1_info" style="display: none">Computer engine</span></td>
 	  </tr>
 	 </table>
-  </div>
+</div>
 
+<FORM id="controls" onsubmit="return false;">
 
-
-  <DIV id="controls">
-    <div id="menu" style="float: left">
-
-        <button id='btnGame' onclick="javascript:app.view.UI.showGames(); return false;"><img src="resources/images/games.png" width="24" height="24" title="Games"></button>
-        <button id="btnOptions" onclick="javascript:app.view.UI.showOptions(); return false;"><img src="resources/images/options.png" width="24" height="24" title="Options"></button>
-        <button id="btnAbout" onclick="javascript:app.view.UI.showCredits(); return false;"><img src="resources/images/about.png" width="24" height="24" title="About"></button>
-    </div>
-        
- 
-  <DIV id="config" style="float: right;">
+  <DIV id="config">
     <DIV id="title" height="100%">
-<table style="float: left; margin-right: 0px" cellpadding="0" cellspacing="0" border="0">
-<tr valign="top">
-  <td>
-     <H4 style="white-space: nowrap;"><a href="javascript:app.view.UI.hideOptions()">WebGL 8x8 board games</a></H4><br>
-     <a class="author" href="mailto:jmarine@tinet.org">
+      <table style="float: left; margin-right: 0px" cellpadding="0" cellspacing="0" border="0">
+      <tr valign="top">
+      <td>
+         <H4 style="white-space: nowrap;"><a href="javascript:app.view.UI.hideControls()">WebGL 8x8 board games</a></H4><br>
+         <a class="author" href="mailto:jmarine@tinet.org">
 Copyright &copy; 2011-2015<br>
 by Jordi Marin&eacute; Fort</a>
-  </td>
-  <td>
-<a href="https://www.chromeexperiments.com/experiment/draughts-game" target="_blank" ><img id="imgBadge" src="resources/images/chromeexperiments-badge-trans.png" style="margin: 10px 10px 10px 10px"/></a>
-  </td>
-  <td>
-<a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.hideOptions(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
-  </td>
+</td>
+      <td>
+        <a href="https://www.chromeexperiments.com/experiment/draughts-game" target="_blank" ><img id="imgBadge" src="resources/images/chromeexperiments-badge-trans.png" style="margin: 10px 10px 10px 10px"/></a>
+      </td>
+      <td>
+        <a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
+      </td>
 
-</tr>
-<tr>
-  <td style="white-space: nowrap;" colspan="2">
-     The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">source code</a> of this game is licensed<br> under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a> and uses the libraries:
-     <ul style="margin: 0.25em 0 0 1.5em;">
-     <li><a href="http://spidergl.sourceforge.net/" target="_blank">SpiderGL v0.1.1</a> </li>
-     <li><a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> </li>
-     <li><a href="http://jquery.com" target="_blank">jQuery v1.8.3</a></li>
-     <li><a href="https://github.com/jmarine/wgs" target="_blank">WGS v2</a></li>
-     <li><a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a></li>
-     <li><a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a></li>
-     </ul>
-  </td>
-</tr>
-</table>
-          </DIV>
+     </tr>
+     <tr>
+       <td style="white-space: nowrap;" colspan="2">
+The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">source code</a> of this game is licensed<br> under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a> and uses the libraries:
+         <ul style="margin: 0.25em 0 0 1.5em;">
+           <li><a href="http://spidergl.sourceforge.net/" target="_blank">SpiderGL v0.1.1</a> </li>
+           <li><a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> </li>
+           <li><a href="http://jquery.com" target="_blank">jQuery v1.8.3</a></li>
+           <li><a href="https://github.com/jmarine/wgs" target="_blank">WGS v2</a></li>
+           <li><a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a></li>
+           <li><a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a></li>
+         </ul>
+       </td>
+     </tr>
+   </table>
+   </DIV>
 
-      <div id="options">
+   <div id="options">
       <DIV id="ui">
-      <H4><a href="javascript:app.view.UI.hideOptions()">UI configuration</a></H4>
-      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideOptions(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
+      <H4><a href="javascript:app.view.UI.hideControls()">UI configuration</a></H4>
+      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
       <br>
 
 	<dl>
@@ -776,8 +765,8 @@ by Jordi Marin&eacute; Fort</a>
       </div>
 
       <div id="games">
-      <H4><a href="javascript:app.view.UI.hideOptions()">Games &amp; players</a></H4>
-      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideOptions(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
+      <H4><a href="javascript:app.view.UI.hideControls()">Games &amp; players</a></H4>
+      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
       <br>
 
       <DIV id="players">
@@ -843,10 +832,9 @@ by Jordi Marin&eacute; Fort</a>
       <button id="btnRegister">Register</button>
 
       <ul id="openid_providers_menu" style="display: none;">
-        <!--<li><a href="javascript:openid_connect(false);">OpenID Connect provider</a></li>-->
+         <!--<li><a href="javascript:openid_connect(false);">OpenID Connect provider</a></li>-->
       </ul>    
       <!--</DIV>-->
-
 
 
       </DIV>
@@ -910,17 +898,6 @@ by Jordi Marin&eacute; Fort</a>
               </select>
           </dd>
 
-<!--
-          <dt><label for="new_grp_observable">Observable</label></dt>
-          <dd><input type="checkbox" name="new_grp_observable" id="new_grp_observable" /></dd>
-
-          <dt><label for="new_grp_hidden">Hidden:</label></dt>
-          <dd><input type="checkbox" name="new_grp_hidden" id="new_grp_hidden" /></dd>
-
-          <dt><label for="new_grp_password">Password:</label></dt>
-          <dd><input type="password" name="new_grp_password" id="new_grp_password" /></dd>
--->
-
         </dl>
       </div>
 
@@ -948,9 +925,18 @@ by Jordi Marin&eacute; Fort</a>
       <button id="btnDisconnect">Disconnect</button>
 
     </div>
-  </DIV>
 
   </DIV>
+
+
+  <div id="menu" style="float: right;">
+        <button id='btnGame' onclick="javascript:app.view.UI.showGames(); return false;"><img src="resources/images/games.png" width="24" height="24" title="Games"></button>
+        <button id="btnOptions" onclick="javascript:app.view.UI.showOptions(); return false;"><img src="resources/images/options.png" width="24" height="24" title="Options"></button>
+        <button id="btnAbout" onclick="javascript:app.view.UI.showCredits(); return false;"><img src="resources/images/about.png" width="24" height="24" title="About"></button>
+  </div>
+
+ 
+</FORM>
 
   <DIV id="messageBox">
     <table border="0" width="100%" height="100%">
@@ -960,14 +946,15 @@ by Jordi Marin&eacute; Fort</a>
     Loading game...
     </div>
     </td>
+    <td valign="top" align="right" width="16">
+    <a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.showMessage(false); return false"><img src="resources/images/close.png" border="0" width="16" height="16"/></a>
+    </td>
     </tr>
     </table>
   </DIV>
 
-  </form>
-</DIV>
 
-<audio id="move" src="resources/sounds/move.ogg" preload="auto"/>
+<audio id="move" src="resources/sounds/move.ogg" preload="auto"></audio>
 
 </BODY>
 </HTML>

@@ -28,17 +28,13 @@ body {
   overflow:hidden;
 }
 
-#main {
-  width: 100%;
-  height: 100%;
-}
-
 
 
 #game_info {
   position: absolute;
   top: 0px;
   left: 0px;
+  //float: left;
   width: auto;
   padding: 5px 10px 5px 10px; 
   background-color: #f7e3a4;
@@ -55,31 +51,34 @@ body {
 }
 
 
+#controls {
+  position: absolute; 
+  height: 100%; 
+  right: 0;
+  z-index: 2; 
+  border: none
+  user-select: none; -webkit-user-select: none; -moz-user-select: none;
+}
+
+
 #help {
   text-decoration: none
 }
 
-#controls {
-  position: absolute;
-  right: 0px;
-  height: 100%;
-  //padding: 5px 10px 5px 10px; 
-  //background-color: #f7e3a4; 
-  //border: 1px solid #402b2a; 
-  //border-bottom-left-radius: 10px;-webkit-border-bottom-left-radius: 10px; -khtml-border-bottom-left-radius: 10px;
-  user-select: none; -webkit-user-select: none; -moz-user-select: none;
-}
-
 #config {
+  position: float;
+  float: right;
+  height: 100%;
+  display: none;
+
   //position: absolute; 
   //right: 0px; 
   background-color: #f7e3a4; 
   border-left: 3px solid #402b2a; 
   //overflow-x: hidden;
   overflow-y: auto;
-  display: none;
+  //display: none;
   height: 100%;
-  z-index: 1;
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
 
@@ -103,6 +102,7 @@ body {
 }
 
 #messageBox {
+  z-index: 3;
   position: absolute; 
   bottom: 8px; 
   left: 50%; 
@@ -120,11 +120,6 @@ body {
 
 select.list {
   width: 250px;
-}
-
-#controls {
-  clear:both;
-  float: left;
 }
 
 #options {
@@ -216,7 +211,7 @@ button:disabled, input:disabled {
 #btnGame, #btnOptions, #btnAbout, #btnClose {
   clear: both;   
   background-color: #f7e3a4; 
-  border: 1px solid
+  border: 3px solid #402b2a;
 }
 
 .ui-buttonset { 

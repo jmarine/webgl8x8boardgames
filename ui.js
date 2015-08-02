@@ -113,7 +113,6 @@ showMessage: function(msg) {
 
 showCredits: function() {
   $('#title').show();
-  $('#imgBadge').show();
   $('#games').hide();
   $('#options').hide();
   $('#config').fadeIn();
@@ -133,11 +132,8 @@ showGames: function() {
   $('#config').fadeIn();
 },
 
-hideOptions: function() {
-  $('#title').hide();
-  $('#imgBadge').hide();
+hideControls: function() {
   $('#config').hide();
-  $('#controls').show();
 }
 
 
