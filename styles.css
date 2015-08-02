@@ -76,7 +76,7 @@ body {
   background-color: #f7e3a4; 
   border-left: 3px solid #402b2a; 
   //overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   //display: none;
   height: 100%;
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
