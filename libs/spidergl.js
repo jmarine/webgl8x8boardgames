@@ -7745,9 +7745,11 @@ _SglCanvasManager.prototype = {
 				this.requestDraw();
 			}
 		}
+                /*
 		if (e.preventDefault) {
 			e.preventDefault();
 		}
+                */
 	},
 
 	mouseMove : function(e) {
