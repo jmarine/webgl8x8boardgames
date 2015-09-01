@@ -124,10 +124,29 @@ loadProfile: function(user) {
           tr.append('<td>' + appStats.win + '</td>');
           tr.append('<td>' + appStats.draw + '</td>');
           tr.append('<td>' + appStats.lose + '</td>');
+          tr.append("<td><a style='text-decoration: none' href=\"javascript:app.lobby.showRanking('" + app + "', " + (appStats.ranking? appStats.ranking+1 : 0) + ")\"><b>" + (appStats.ranking? appStats.ranking : '-') + "</b></a></td>");
 
           $("#profile_apps>tbody").append(tr);
       });
       $('#profile_section').show();
+  });
+},
+
+showRanking: function(app, min) {
+  this.wgsclient.getRanking(app, min, function(id,details,errorURI,result,resultKw) {
+      $("#ranking_app").text(app);
+      $("#ranking_order>tbody>tr").remove();
+      if(result) {
+          result.forEach(function(item) {
+              var tr = $('<tr>');
+              tr.attr('class', "scrollTableRow");
+              tr.append('<td>' + item.order + '</td>');
+              tr.append('<td>' + item.user.name + '</td>');
+              tr.append('<td>' + item.rating + '</td>');
+              $("#ranking_order>tbody").append(tr);
+          });
+      }
+      $('#ranking_section').show();
   });
 },
 
@@ -177,7 +196,6 @@ exitGame: function(disconnecting)
     app.view.board.acceptHumanMove(false);
 
     $("#chat_section").hide();
-    $("#profile_section").hide();
     $("#game_info").hide();
     $("#member0_info").hide();
     $("#member1_info").hide();
@@ -536,6 +554,7 @@ update_group_member: function(memberId, member, currentUserSelected, roleFixed) 
 
 open_group: function(appId, gid, options) {
     $('#profile_section').hide();
+    $("#ranking_section").hide();
 
     app.lobby.wgsclient.openGroup(appId, gid, options, function(id,details,errorURI,result,resultKw) {
        if(!errorURI) {
@@ -720,6 +739,8 @@ disconnect: function() {
         $("#btnDrawGame").hide();
         $('#games_section').hide();
         $('#connect_section').fadeIn();
+        $("#profile_section").hide();
+        $("#ranking_section").hide();
 
         $("#groupsTable>tbody>tr").remove();
 

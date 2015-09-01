@@ -594,6 +594,15 @@ function initApp() {
   }
 
 
+/*
+  if (window.Notification && Notification.permission !== "granted") {
+    Notification.requestPermission(function (status) {
+      if (Notification.permission !== status) {
+        Notification.permission = status;
+      }
+    });
+  }
+*/
 
   $("#allow_push_notifications").change(function() {  
     var enabled = $(this).attr('checked');
@@ -857,7 +866,8 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
                <th>Active</th>
                <th>Wins</th>
                <th>Draws</th>
-               <th>Loses</th>
+               <th>Losses</th>
+               <th>Ranking</th>
              </tr>
            </thead>
            <tbody>
@@ -865,6 +875,22 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
        </table>
       </div>
 
+      <div id="ranking_section" style="display: none">
+        <H4>Top rankings for <span id="ranking_app"></span></H4>
+        <a href="#" style="float: right; text-decoration: none" onclick="$('#ranking_section').hide(); return false"><img src="resources/images/close.png" border="0" width="16" height="16" style="margin-top: 10px"/></a>
+
+        <table id="ranking_order" class="scrollTable" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 1em">
+           <thead>
+             <tr>
+               <th>Order</th>
+               <th>User</th>
+               <th>Rating&plusmn;deviation (volatility)</th>
+             </tr>
+           </thead>
+           <tbody>
+           </tbody>
+       </table>
+      </div>
 
 
       <div id="games_section" style="display: none">

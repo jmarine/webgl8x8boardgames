@@ -45,6 +45,10 @@ WgsClient.prototype.getProfile = function(user, callback) {
     this.call("wgs.get_profile", [user], {}).then(callback, callback);
 }
 
+WgsClient.prototype.getRanking = function(app, min, callback) {
+    this.call("wgs.get_ranking", [app,min], {}).then(callback, callback);
+}
+
 WgsClient.prototype.setUserPushChannel = function(appName, notificationChannel) {
     this.call("wgs.set_user_push_channel", [appName, notificationChannel]);
 }
