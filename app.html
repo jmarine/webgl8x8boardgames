@@ -636,7 +636,7 @@ function initApp() {
     <H4><span id="type_info">Draughts players</span></H4>
         <table style="clear: both; margin-bottom: 5px" border="0" cellspacing="0" cellpadding="0">
           <tr>
-           <td valign="top" style="width: 2.5em"><span id="lblPlayer1">White:</span></td>
+           <td valign="top" style="width: 3.5em"><span id="lblPlayer1">White:</span></td>
            <td valign="middle"><img title="EMPTY" id="state0_info" src="/images/empty.png" border="0" style="display: none;"/></td>
            <td valign="top"><span id="member0_info" style="display: none">Local user</span></td>
           </tr>
@@ -651,27 +651,20 @@ function initApp() {
 <FORM id="controls" onsubmit="return false;">
 
   <DIV id="config">
-    <DIV id="title" height="100%">
-      <table style="float: left; margin-right: 0px" cellpadding="0" cellspacing="0" border="0">
-      <tr valign="top">
-      <td>
-         <H4 style="white-space: nowrap;"><a href="javascript:app.view.UI.hideControls()">WebGL 8x8 board games</a></H4><br>
-         <a class="author" href="mailto:jmarine@tinet.org">
+    <DIV id="title">
+      <table height="92%" cellpadding="0" cellspacing="0">
+      <tr valign="top" height="10px">
+      <td align="left">
+      <H4 style="white-space: nowrap; float:none"><a href="javascript:app.view.UI.hideControls()">WebGL 8x8 board games</a></H4>
+      <a class="author" href="mailto:jmarine@tinet.org">
 Copyright &copy; 2011-2016<br>
 by Jordi Marin&eacute; Fort</a>
-</td>
-      <td>
-        <a href="https://www.chromeexperiments.com/experiment/draughts-game" target="_blank" ><img id="imgBadge" src="resources/images/chromeexperiments-badge-trans.png" style="margin: 10px 10px 10px 10px"/></a>
-      </td>
-      <td>
-        <a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
-      </td>
+<br><br>
 
-     </tr>
-     <tr>
-       <td style="white-space: nowrap;" colspan="2">
-The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">source code</a> of this game is licensed<br> under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a> and uses the libraries:
-         <ul style="margin: 0.25em 0 0 1.5em;">
+<p style="white-space: nowrap;">
+The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">source code</a> of this game<br>is licensed under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a><br>and uses the following libraries:</p>
+
+      <ul style="margin: 0.25em 0 0 1.5em;">
            <li><a href="http://spidergl.sourceforge.net/" target="_blank">SpiderGL v0.1.1</a> </li>
            <li><a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> </li>
            <li><a href="http://jquery.com" target="_blank">jQuery v1.8.3</a></li>
@@ -679,9 +672,21 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
            <li><a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a></li>
            <li><a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a></li>
          </ul>
-       </td>
+      <br>
+
+    </td>
+     <td align="right">
+<a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
+
+     </td>
      </tr>
-   </table>
+     <tr>
+     <td valign="bottom" align="center" colspan="2">
+<a href="https://www.chromeexperiments.com/experiment/draughts-game" target="_blank" ><img id="imgBadge" src="resources/images/chromeexperiments-badge-trans.png"></a>
+           </td>
+     </tr>
+     </table>
+
    </DIV>
 
    <div id="options">
