@@ -64,13 +64,14 @@ $(document).ready(function(){
 	} else {
 		$('#connect_section').hide();
 		$('#network').hide();
-		$('#btnRetractMove').show();
+                app.lobby.disconnect();
+
 		$('button.btnStartGame').show();
                 $('button.btnStartGame').each(function() { 
 	            this.disabled = false;
                 });
 
-                app.lobby.disconnect();
+		$('#btnRetractMove').show();
 	}
 
 
@@ -126,6 +127,11 @@ $(document).ready(function(){
   $('#reflections').change(function() {
 	var enabled = $(this).attr('checked');
 	app.view.board.setReflections(enabled);
+  });
+
+  $('#brightness').on("input", function(){
+ 	var brightness=this.value;
+        app.view.board.setBrightness(brightness);
   });
 
 

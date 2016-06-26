@@ -215,6 +215,10 @@ exitGame: function(disconnecting)
     $("#btnShowMatchingOptions").show();
     $("#btnDeleteFinishedGames").show();
     $('#btnRetractMove').hide();
+    $('#btnRetractMove').each(function() {
+     this.disabled = true;
+    });
+
 
     var client = this.wgsclient;
     if(this.gameRoom && !disconnecting) {
@@ -252,7 +256,7 @@ reserve_group_slot: function(appId,gid,slot) {
 new_group: function() {
     app.view.UI.createGame();
     var appId = $("#game_type").val();
-    var gid = $("#new_grp_automatch").is(":checked") ? "automatch" : "";
+    var gid = null;
     var opponent = $("#new_grp_opponent").val();
     var options = new Object();
     options.automatch = (opponent.length == 0);

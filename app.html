@@ -182,6 +182,7 @@ uniform vec4      u_color;
 uniform sampler2D u_texture;
 uniform sampler2D u_shadowMap;
 uniform float     u_biasToLowerMoirePattern;
+uniform float     u_brightness;
 
 uniform vec3 u_worldLightPos;
 uniform vec3 u_ambientColor;
@@ -227,6 +228,7 @@ void main (void)
       vec4 baseColor = u_color; 
       if(baseColor.a == 0.0) baseColor = texture2D(u_texture, vec2(v_texCoord.s, v_texCoord.t));
       vec3 color = vec3(baseColor.rgb * lightWeighting * visibility);
+      color = color * u_brightness;
 
       if(u_opacity == 0.0) {
         gl_FragData[0] = vec4(color, baseColor.a);
@@ -466,6 +468,16 @@ function initPushNotifications() {
   // Are Notifications supported in the service worker?  
   console.log('initPushNotifications');  
 
+/*
+  if (window.Notification && Notification.permission !== "granted") {
+    Notification.requestPermission(function (status) {
+      if (Notification.permission !== status) {
+        Notification.permission = status;
+      }
+    });
+  }
+*/
+
   if (!('showNotification' in ServiceWorkerRegistration.prototype)) {  
     console.warn('Notifications aren\'t supported.');  
     //return;  
@@ -595,15 +607,6 @@ function initApp() {
   }
 
 
-/*
-  if (window.Notification && Notification.permission !== "granted") {
-    Notification.requestPermission(function (status) {
-      if (Notification.permission !== status) {
-        Notification.permission = status;
-      }
-    });
-  }
-*/
 
   $("#allow_push_notifications").change(function() {  
     var enabled = $(this).attr('checked');
@@ -656,7 +659,7 @@ function initApp() {
       <td>
          <H4 style="white-space: nowrap;"><a href="javascript:app.view.UI.hideControls()">WebGL 8x8 board games</a></H4><br>
          <a class="author" href="mailto:jmarine@tinet.org">
-Copyright &copy; 2011-2015<br>
+Copyright &copy; 2011-2016<br>
 by Jordi Marin&eacute; Fort</a>
 </td>
       <td>
@@ -698,13 +701,16 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
            <dd><input id='reflections' type="checkbox" value="1"></dd>
 
            <dt><label for="color1">White color:</label></dt>
-	   <dd><input type="color" id="color1" name="color1" value="#EAB13D"></dd>
+	   <dd><input type="color" id="color1" name="color1" value="#EAB13D" style="width: 100px"></dd>
 
            <dt><label for="color2">Black color:</label></dt>
-	   <dd><input type="color" id="color2" name="color2" value="#8C532D"></dd>
+	   <dd><input type="color" id="color2" name="color2" value="#8C532D" style="width: 100px"></dd>
 
 	   <dt><label for="bgcolor">Background:</label></dt>
-	   <dd><input type="color" id="bgcolor" name="bgcolor" value="#CCA554"></dd>
+	   <dd><input type="color" id="bgcolor" name="bgcolor" value="#CCA554" style="width: 100px"></dd>
+
+           <dt><label for="brightness">Brightness:</label></dt>
+           <dd><INPUT id="brightness" TYPE="RANGE" MIN="0.0" MAX="2" STEP="0.05" VALUE="0.8" size="5" style="width: 100px"></dd>
 
 	</dl>
       </DIV>

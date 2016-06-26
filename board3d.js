@@ -82,6 +82,7 @@ var shadowModelScaling;
 var worldLightPos;
 var biasToLowerMoirePattern = 0.01;
 
+var brightness;
 var ambientColor;
 var diffuseLightColor;
 var specularLightColor;
@@ -249,6 +250,7 @@ Board3D.prototype =
 
 
         /*************************************************************/
+        brightness = 0.8;
         this.bgcolor = sglV4C(0.8, 0.65, 0.33, 1.0);
         this.color1 = sglV4C(0.92, 0.69, 0.24, 1.0);
         this.color2 = sglV4C(0.55, 0.33, 0.18, 1.0);
@@ -350,6 +352,11 @@ Board3D.prototype =
 
     setReflections : function(enabled) {
         withReflections = enabled;
+        this.invalidate();
+    },
+
+    setBrightness : function(b) {
+	brightness = b;
         this.invalidate();
     },
 
@@ -832,6 +839,7 @@ Board3D.prototype =
             u_diffuseLightColor   : diffuseLightColor,
             u_specularLightColor  : specularLightColor,
             u_materialShininess   : shininess,
+            u_brightness          : brightness,
             u_opacity	          : opacity,
             u_color               : color,
             u_biasToLowerMoirePattern : biasToLowerMoirePattern
