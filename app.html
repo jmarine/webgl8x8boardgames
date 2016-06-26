@@ -634,16 +634,14 @@ function initApp() {
 
 <div id="game_info">
     <H4><span id="type_info">Draughts players</span></H4>
-        <table style="clear: both; margin-bottom: 0.25em" border="0" cellspacing="0">
+        <table style="clear: both; margin-bottom: 5px" border="0" cellspacing="0" cellpadding="0">
           <tr>
-           <td valign="top" style="width: 3.5em"><span id="lblPlayer1">White:</span></td>
-           <td width="10px">&nbsp;</td>
+           <td valign="top" style="width: 2.5em"><span id="lblPlayer1">White:</span></td>
            <td valign="middle"><img title="EMPTY" id="state0_info" src="/images/empty.png" border="0" style="display: none;"/></td>
            <td valign="top"><span id="member0_info" style="display: none">Local user</span></td>
           </tr>
           <tr>
            <td valign="top"><span id="lblPlayer2">Black:</span></td>
-           <td width="10px">&nbsp;</td>
            <td valign="middle"><img title="EMPTY" id="state1_info" src="/images/empty.png" border="0" style="display: none;"/></td>
            <td valign="top"><span id="member1_info" style="display: none">Computer engine</span></td>
 	  </tr>
@@ -802,7 +800,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 		<select id='player1' name="player1">
 		  <option value="1">Local user</option>
 		  <option value="2">Network user</option>
-		  <option value="3">Computer Engine</option>
+		  <option value="3">Computer</option>
 		</select>
                 <img title="EMPTY" id="state0" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
                 <span id="member0" style="display: none"></span>
@@ -812,7 +810,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 		<select id='player2' name="player2">
 		  <option value="1">Local user</option>
 		  <option value="2">Network user</option>
-		  <option value="3" selected="true">Computer Engine</option>
+		  <option value="3" selected="true">Computer</option>
 		</select>
                 <img title="EMPTY" id="state1" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
                 <span id="member1" style="display: none"></span>

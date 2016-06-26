@@ -36,12 +36,17 @@ body {
   left: 0px;
   //float: left;
   width: auto;
-  padding: 5px 10px 5px 10px; 
+  padding: 0px 5px 0px 5px; 
   background-color: #f7e3a4;
   border: 1px solid #402b2a;
   border-bottom-right-radius: 10px; -webkit-border-bottom-right-radius: 10px; -khtml-border-bottom-right-radius: 10px;
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
+
+#game_info span {
+  font-size: 0.7em;
+}
+
 
 #board {
   float: left;
