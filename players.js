@@ -153,7 +153,7 @@ app.controller.NetworkPlayer = (function() {
         case 'LOAD':
             if(!this.loadConfirmed) {
                var state = args;
-               app.view.UI.showMessage("Waiting load confirmation from " + app.lobby.getOpponentNick());
+	       document.l10n.formatValue('app.network.wait_load_confirmation', { "player": game.getOpponent() } ).then(function(msg) { app.view.UI.showMessage(msg) } );
                app.lobby.sendLoadRequest(game, state, player);
                args.returnValue = false;
             } else {
@@ -175,17 +175,14 @@ app.controller.NetworkPlayer = (function() {
 
         case 'MOVED':
             if(!game.isOver() && player == game.getTurn()) {
-                var opponent = app.lobby.getOpponentNick();
-                if(opponent) app.view.UI.showMessage("Waiting move from " + opponent);
-            } else {
-                //app.view.UI.showMessage("");
-            }
+                document.l10n.formatValue('app.network.wait_move', { "player": game.getOpponent() } ).then(function(msg) { app.view.UI.showMessage(msg) } ); 
+	    }
             break;
 
         case 'STATE':
             if(!game.isOver() && player == game.getTurn()) {
-                var opponent = app.lobby.getOpponentNick();
-                if(opponent) app.view.UI.showMessage("Waiting move from " + opponent);
+		var msgId = app.view.UI.getNextMsgId(); // fix async msg order
+                document.l10n.formatValue('app.network.wait_move', { "player": game.getOpponent() } ).then(function(msg) { app.view.UI.showMessage(msg, msgId) } ); 
             }
             break;
 
@@ -193,7 +190,7 @@ app.controller.NetworkPlayer = (function() {
             // send question to opponent
             if(!this.retractConfirmed) {
                 var state = args.data;
-                app.view.UI.showMessage("Waiting retract confirmation from " + app.lobby.getOpponentNick());
+                document.l10n.formatValue('app.network.wait_retract_confirmation', { "player": game.getOpponent() } ).then(function(msg) { app.view.UI.showMessage(msg) } ); 
                 app.lobby.sendRetractMoveRequest(game, state, player);
                 args.returnValue = false;
             } else {
@@ -206,7 +203,7 @@ app.controller.NetworkPlayer = (function() {
 
 	case 'DRAW':
             // send question to opponent
-            app.view.UI.showMessage("Waiting draw confirmation from " + app.lobby.getOpponentNick());
+            document.l10n.formatValue('app.network.wait_draw_offer', { "player": game.getOpponent() } ).then(function(msg) { app.view.UI.showMessage(msg) } ); 
             return false;
             break;
 

@@ -240,16 +240,18 @@ $(document).ready(function(){
         var user = $("#user").val();
         var pass = $("#password").val();
         if(user.length == 0 || pass.length == 0) {
-          alert("User and password must be entered.");
+	  document.l10n.formatValue("app.network.credentials_required_error").then(function(msg) { alert(msg) });
         } else {
           $("#user").val("");
           $("#password").val("");
           $("#btnProfile").hide();
-       
-          var wgsclient = app.lobby.getWgsClient(url);
-          var realm = wgsclient.getDefaultRealm(); 
-          var email = prompt("Enter e-mail:");
-          if(email) wgsclient.registerUser(getOAuth2ClientName(), realm, user, pass, email, notificationChannel, authentication);
+
+          document.l10n.formatValue('app.network.email_prompt').then(function(email_prompt) { 
+            var wgsclient = app.lobby.getWgsClient(url);
+            var realm = wgsclient.getDefaultRealm(); 
+            var email = prompt(email_prompt);
+            if(email) wgsclient.registerUser(getOAuth2ClientName(), realm, user, pass, email, notificationChannel, authentication);
+          });
         }
         return false;
   });
@@ -271,7 +273,7 @@ $(document).ready(function(){
         if( ($('select[id=player1] > option:selected').attr('value') == REMOTE_USER )
             && ($('select[id=player2] > option:selected').attr('value') == REMOTE_USER ) ) {
 
-          app.view.UI.showMessage("Only 1 remote player is allowed");
+          document.l10n.formatValue('app.network.only1player').then(function(msg) { app.view.UI.showMessage(msg) } );
           return false;
         }
 
@@ -327,7 +329,7 @@ $(document).ready(function(){
                 var url = $("#server_url").val();
                 var user = $("#user").val();
                 if(user.length == 0) {
-                  alert("Sorry. Anonymous players don't work fine, yet.");
+		  document.l10n.formatValue("app.network.anonymous_error").then(function(msg) { alert(msg) });
                 } else {
                   var pass = $("#password").val();
                   $("#password").val("");  // clear credentials

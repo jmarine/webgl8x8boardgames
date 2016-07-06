@@ -53,12 +53,14 @@ function loadGame() {
 
 function saveGame() {
   var state = game.toString();
-  var name = prompt('Name?', "");
-  if(name) {
-    name = name.trim();  // prevent bug in FF4
-    window.localStorage.setItem(name, state); 
-    listGames();
-  }
+  document.l10n.formatValue('app.storage.save_as_name_prompt').then(function(msg) { 
+    var name = prompt(msg, "");
+    if(name) {
+      name = name.trim();  // prevent bug in FF4
+      window.localStorage.setItem(name, state); 
+      listGames();
+    }
+  });
 }
 
 function hideGameStorage() {

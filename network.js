@@ -30,19 +30,6 @@ GameStatusEnum: {
 },
 
 
-getSortedPlayers: function(my_role) {
-  var players = [];
-  if(my_role == 'player1') {
-    players.push(this.getUserNick(this.nick));
-    players.push(this.getOpponentNick());
-  } else {
-    players.push(this.getOpponentNick());
-    players.push(this.getUserNick(this.nick));
-  }
-  return players;
-},
-
-
 getWgsClient: function(url) {
     if(url) {
       if(!this.wgsclient || (url != this.wgsclient.url)) {
@@ -58,7 +45,8 @@ getWgsClient: function(url) {
 
 
 login: function(appName, url, user, pass, notificationChannel) {
-    app.view.UI.showMessage("Connecting...");
+
+    document.l10n.formatValue('app.network.connecting').then(function(msg) { app.view.UI.showMessage(msg) } );
 
     this.wgsclient = this.getWgsClient(url);
     var realm = this.wgsclient.getDefaultRealm();
@@ -179,17 +167,6 @@ deleteFinishedGroups: function() {
   $("#groupsTable>tbody>tr[state='FINISHED']").remove();
 },
 
-getUserNick: function(user_session)
-{
-  if(!user_session) return null; 
-  var pos = user_session.indexOf('_');
-  return user_session.substring(0,pos);
-},
-
-getOpponentNick: function()
-{
-  return "opponent";
-},
 
 exitGame: function(disconnecting)
 {
@@ -303,7 +280,7 @@ group_opened: function(group) {
         }
 
         this.wgsclient.updateGroup(group.appId, group.gid, newState, false, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
-           if(errorURI) alert(errorURI);
+           if(errorURI) document.l10n.formatValue(errorURI).then(function(msg) { alert(msg) });
         });
 
         group.state = newState;
@@ -350,7 +327,6 @@ group_opened: function(group) {
     $('#game_type').attr('disabled','disabled');
     $('#player1').attr('disabled','disabled');
     $('#player2').attr('disabled','disabled');
-    //alert("ACK: unsubscribe from MUC");
 
     app.view.UI.showMessage(false);
     app.view.UI.createGame();
@@ -407,13 +383,13 @@ group_changed: function(group) {
       if(action.type == "CHAT") {
         app.view.UI.addChatLine(action);
       } else if(action.type == "MOVE" && (opened || action.slot != currentSlot) ) {
-        app.view.UI.setGameState(game.toString());
         app.view.UI.showMessage(false);
         var move = game.parseMoveString(action.value);
         if(move) app.view.board.movePieceOnBoard(move, true);
 
       } else if(action.type == "RESIGN") {
-          app.view.UI.showMessage("Player " + (action.slot+1) + " has resigned!");
+          var player = (action.slot+1);
+          document.l10n.formatValue('app.network.player_resigned', { "player" : player }).then(function(msg) { app.view.UI.showMessage(msg) } );
           $("#btnRetractMove").hide();
           $("#btnResignGame").hide();
           $("#btnDrawGame").hide();
@@ -421,12 +397,12 @@ group_changed: function(group) {
 
       } else if(action.type == "RETRACT_REJECTED") {
           if(isFinite(currentSlot) && action.slot != currentSlot) {
-            app.view.UI.showMessage("Move retraction has been rejected");
+            document.l10n.formatValue('app.network.move_retract_rejected').then(function(msg) { app.view.UI.showMessage(msg) } );
           }
           app.view.UI.setGameState(action.value);
 
       } else if(action.type == "RETRACT_ACCEPTED") {
-        app.view.UI.showMessage("");
+        app.view.UI.showMessage(false);
         app.view.UI.setGameState(action.value);
         if(this.wgsclient.isMemberOfGroup(group.gid)) {
           $("#btnResignGame").show();
@@ -436,7 +412,7 @@ group_changed: function(group) {
               app.controller.Players.getPlayer(1+action.slot).retractConfirmed = true;
               document.execCommand("undo");
             }
-            app.view.UI.showMessage("Move retraction has been accepted");
+            document.l10n.formatValue('app.network.move_retract_accepted').then(function(msg) { app.view.UI.showMessage(msg) } );
           }
         }
 
@@ -444,7 +420,8 @@ group_changed: function(group) {
         var currentState = game.toString();
         if(isFinite(currentSlot) && action.slot == currentSlot) {
           app.view.board.acceptHumanMove(false);
-          app.view.UI.showMessage("Waiting retract confirmation from opponent");
+          document.l10n.formatValue('app.network.wait_retract_confirmation').then(function(msg) { app.view.UI.showMessage(msg) } );
+
           //setNumUndosToIgnore(1);
           //document.execCommand("undo");
           //setNumUndosToIgnore(0);
@@ -469,8 +446,9 @@ group_changed: function(group) {
       } else if(action.type == "DRAW_QUESTION") {
         var currentState = game.toString();
         if(isFinite(currentSlot) && action.slot == currentSlot) {
-          app.view.UI.showMessage("Waiting draw offer response from opponent");
           app.view.board.acceptHumanMove(false);
+          document.l10n.formatValue('app.network.wait_draw_offer').then(function(msg) { app.view.UI.showMessage(msg) } );
+
 
         } else if(this.wgsclient.isMemberOfGroup(group.gid)) {
 
@@ -484,12 +462,12 @@ group_changed: function(group) {
 
       } else if(action.type == "DRAW_REJECTED") {
           if(isFinite(currentSlot) && action.slot != currentSlot) {
-            app.view.UI.showMessage("Draw offer has been rejected");
+            document.l10n.formatValue('app.network.draw_offer_rejected').then(function(msg) { app.view.UI.showMessage(msg) } );
             app.view.UI.setGameState(game.toString());
           }
 
       } else if(action.type == "DRAW_ACCEPTED") {
-          app.view.UI.showMessage("Draw offer has been accepted");
+          document.l10n.formatValue('app.network.draw_offer_accepted').then(function(msg) { app.view.UI.showMessage(msg) } );
           app.view.board.acceptHumanMove(false);
           app.view.UI.setTurn(0);
           $("#btnRetractMove").hide();
@@ -548,9 +526,11 @@ update_group_member: function(memberId, member, currentUserSelected, roleFixed) 
     var status = memberState.toLowerCase();
     if(status != 'empty') status = memberType.toLowerCase() + "_" + status;
     $("#state" + memberId).attr("src", "/images/" + status + ".png");
-    $("#state" + memberId).attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
+    $("#state" + memberId).attr("data-l10n-id", "app.member." + status);
+    //$("#state" + memberId).attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
     $("#state" + memberId + "_info").attr("src", "/images/" + status + ".png");
-    $("#state" + memberId + "_info").attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
+    $("#state" + memberId + "_info").attr("data-l10n-id", "app.member." + status);
+    //$("#state" + memberId + "_info").attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
     $("#member" + memberId).html( memberName );
     $("#member" + memberId + "_info").html( memberName );
 },
@@ -564,14 +544,16 @@ open_group: function(appId, gid, options) {
        if(!errorURI) {
             app.lobby.group_changed(resultKw); 
        } else if(errorURI == "wgs.incorrectpassword") {
-            var password = prompt("Introduce the password to access the group:");
-            if(password) {
+            document.l10n.formatValue('app.network.group_password_prompt').then(function(msg) {
+              var password = prompt(msg);
+              if(password) {
                 if(!options) options = {};
                 options.password = password;
                 app.lobby.open_group(appId, gid, options);
-            }
+              }
+            });
        } else {
-           alert(errorURI);
+	    document.l10n.formatValue(errorURI).then(function(msg) { alert(msg) });
        }
     });
     return false;
@@ -592,8 +574,8 @@ addGroupListItem: function(group) {
    var viewButton = "";
    if(group.observable) viewButton = "<br><button onclick=\"javascript:app.lobby.view_group('" + group.appId + "','" + group.gid + "'); return false;\">View</button>";
    
-   opt.append('<td>' + group.appName + '</td>');
-   opt.append('<td>' + group.state + (group.password? "<br>(password)" : "" ) + '</td>');
+   opt.append('<td data-l10n-id="app.games.' + group.appName +'">' + group.appName + '</td>');
+   opt.append('<td><span data-l10n-id="app.group.state.'+group.state.toLowerCase()+'">' + group.state + "</span>" + (group.password? "<br><span data-l10n-id='app.group.password'></span>" : "" ) + '</td>');
    opt.append('<td>' + group.num + "/" + group.max + viewButton + "</td>");
    
    
@@ -605,7 +587,7 @@ addGroupListItem: function(group) {
    group.members.forEach(function(member,index) {
        count++;
        
-       var playerLabel = "Player " + count; // + (member.role? " ("+ member.role +")" : "");
+       var playerLabel = "<span data-l10n-id='app.player' data-l10n-args='{\"player\": " + count + "}'></span>"; // + (member.role? " ("+ member.role +")" : "");
        if(group.state != "FINISHED" && index == group.turn) {
           playerLabel = "<b>" + playerLabel + "</b>"; 
           if(group.members[group.turn].user == app.lobby.wgsclient.user) localPlayerTurn = true;
@@ -614,7 +596,7 @@ addGroupListItem: function(group) {
        var row = $("<tr>");
        row.append("<td nowrap='true'>" + playerLabel + ":</td>");
        if(isFinite(member.sid) && (member.user == "" || member.user == app.lobby.wgsclient.user) ) {
-           row.append("<td><button onclick=\"javascript:app.lobby.reserve_group_slot('" + group.appId + "','" + group.gid + "'," + member.slot + "); return false;\">Play</button></td>");
+           row.append("<td><button onclick=\"javascript:app.lobby.reserve_group_slot('" + group.appId + "','" + group.gid + "'," + member.slot + "); return false;\" data-l10n-id='app.group.play'>Play</button></td>");
        } else {
            row.append("<td>" + member.name + "</td>");       
        }
@@ -695,7 +677,7 @@ listGames: function()
             if(gid == null || gid.length == 0) $("#group_list").slideDown(500);
             else gid = "";  // TODO: show/hide buttons
         } else {
-            app.view.UI.showMessage("Error: " + errorURI);
+	    document.l10n.formatValue(errorURI).then(function(msg) { app.view.UI.showMessage(msg) } );
         }
     });
 
@@ -749,7 +731,7 @@ disconnect: function() {
         $("#groupsTable>tbody>tr").remove();
 
 	//wait sending of unavailable presence stanzas
-	app.view.UI.showMessage("User disconnected.");
+        document.l10n.formatValue('app.network.disconnected').then(function(msg) { app.view.UI.showMessage(msg) } );
         console.log("Disconnected");
         //enable_network();
     }

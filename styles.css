@@ -43,12 +43,6 @@ body {
   user-select: none; -webkit-user-select: none; -moz-user-select: none;
 }
 
-/*
-#game_info span {
-  font-size: 0.7em;
-}
-*/
-
 
 #board {
   float: left;

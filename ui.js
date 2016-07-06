@@ -2,8 +2,11 @@ var app = app || {}
 app.view = app.view || {}
 app.view.UI = {
 
+lastMsgId: 0,
+nextMsgId: 0,
+
 getGameType: function() {
-  return $('select[id=game_type] > option:selected').text();
+  return $('select[id=game_type] > option:selected').val();
 },
 
 createGame: function() {
@@ -19,8 +22,19 @@ createGame: function() {
         window.undoManager.clearUndo();
         app.controller.Storage.showGameStorage();
 
-        //$('#btnRetractMove').show();
-        $("#type_info").html($('select[id=game_type] > option:selected').text() + " players");
+        //$("#game_info_title").html($('select[id=game_type] > option:selected').text() + " players");
+        var game_type_name = $('select[id=game_type] > option:selected').text();
+        document.l10n.setAttributes(document.querySelector('#game_info_title'), "app.game_info.title", { "game_type": game_type_name } );
+        document.l10n.formatValue("app.game_info.title", { "game_type": game_type_name } ).then(function(game_info_title) { 
+            // Fix FireFox bug:
+	    game_info_title = game_info_title.toLowerCase();
+            while(game_info_title.length > 0 && game_info_title.charCodeAt(0) == 8296) {
+                game_info_title = game_info_title.substring(1);
+            }
+            game_info_title = game_info_title.substring(0,1).toUpperCase() + game_info_title.substring(1);
+            $('#game_info_title').html(game_info_title);
+        }); 
+
         $("#member0_info").html($('select[id=player1] > option:selected').text());
         $("#member1_info").html($('select[id=player2] > option:selected').text());
         $("#member0_info").show();
@@ -88,7 +102,8 @@ setTurn: function(player) {
 },
 
 sendChatLine: function() {
-  app.lobby.wgsclient.addAction(app.lobby.gameRoom.gid, -1, "CHAT", $('#line').val());
+  var line = $('#line').val();
+  if(line.length > 0) app.lobby.wgsclient.addAction(app.lobby.gameRoom.gid, -1, "CHAT", line);
   $('#line').val('');
 },
 
@@ -102,12 +117,20 @@ addChatLine: function(action) {
   app.view.UI.showGames();
 },
 
-showMessage: function(msg) {
-  if(msg) {
+getNextMsgId: function() {
+  return ++this.nextMsgId;
+},
+
+showMessage: function(msg, msgId) {
+  if(!msgId) msgId = this.getNextMsgId(); 
+  if(this.lastMsgId <= msgId) {  // fix async UI messages to user
+    this.lastMsgId = msgId;
+    if(msg) {
         $('#message').html(msg);
         $('#messageBox').show();
-  } else {
+    } else {
         $('#messageBox').hide();
+    }
   }
 },
 

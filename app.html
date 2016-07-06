@@ -18,7 +18,7 @@
 <HTML>
 <HEAD>
 <META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"> 
-<TITLE>WebGL 8x8 board games</TITLE> 
+<title data-l10n-id="app.title">WebGL 8x8 board games</title> 
 
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0">
 <meta name="author" content="Jordi Mariné Fort <jmarine@tinet.org>">
@@ -260,7 +260,7 @@ function authentication(state, msg) {
 
     if(state == ConnectionState.ERROR) {
         if(app.lobby) app.lobby.disconnect();
-        alert(msg);
+        document.l10n.formatValue(msg).then(function(err) { alert(err) });
         
     } else if(state == ConnectionState.CONNECTED) {
         $("#server_url").attr("disabled", "disabled");
@@ -373,7 +373,7 @@ function openid_connect(redirectUri) {
         var redirectUri = get_openid_connect_callback_url();
         var user = $("#user").val();
         if(user.length == 0) {
-            alert("User name is empty");
+	    document.l10n.formatValue("app.network.user_empty_error").then(function(msg) { alert(msg) });
         } else {
             var url = $("#server_url").val();
             var wgsclient = app.lobby.getWgsClient(url);
@@ -384,7 +384,8 @@ function openid_connect(redirectUri) {
     } else {
         oauth2Code = get_url_param(redirectUri, "code");
         if(oauth2Code != null) {
-            app.view.UI.showMessage("Connecting...");
+            document.l10n.formatValue('app.network.connecting').then(function(msg) { app.view.UI.showMessage(msg) } );
+
             oauth2Provider = get_url_param(redirectUri, "provider");
             oauth2RedirectUri = clear_openid_connect_params(redirectUri, false);
             
@@ -596,7 +597,8 @@ function initApp() {
           var pos = oauth2RedirectUri.indexOf("code=");
           if(pos != -1) oauth2RedirectUri = oauth2RedirectUri.substring(0, pos-1);
 
-          app.view.UI.showMessage("Connecting...");
+          document.l10n.formatValue('app.network.connecting').then(function(msg) { app.view.UI.showMessage(msg) } );
+
           if(provider=="facebook.com") {
               oauth2ClientName = "WebGL 8x8 board games on Facebook";
               oauth2RedirectUri = "https://apps.facebook.com/webglchessboardgames/app.html?provider=facebook.com";
@@ -627,21 +629,27 @@ function initApp() {
 
 </SCRIPT> 
  
+<meta name="defaultLanguage" content="en">
+<meta name="availableLanguages" content="ca, es, en">
+<link rel="localization" href="resources/locales/app_{locale}.json">
+<script defer src="libs/l20n.js"></script>
+
+
  
 </HEAD>
 <BODY onload="initApp();"> 
 <CANVAS id="gameCanvas" style="position: absolute; width: 100%; height: 100%; border: none;"  width="100" height="100"></CANVAS> 
 
 <div id="game_info">
-    <H4><span id="type_info">Draughts players</span></H4>
+    <H4><span id="game_info_title" data-l10n-id="app.game_info.title" data-l10n-args='{"game_type": "Draughts"}'>Game players</span></H4>
         <table style="clear: both; margin-bottom: 5px" border="0" cellspacing="0" cellpadding="0">
           <tr>
-           <td valign="top" style="width: 3.5em"><span id="lblPlayer1">White:</span></td>
+           <td valign="top"><span id="lblPlayer1" data-l10n-id="app.player" data-l10n-args='{ "player" : 1 }' class="white-space: nowrap;">White</span>:</td>
            <td valign="middle"><img title="EMPTY" id="state0_info" src="/images/empty.png" border="0" style="display: none;"/></td>
            <td valign="top"><span id="member0_info" style="display: none">Local user</span></td>
           </tr>
           <tr>
-           <td valign="top"><span id="lblPlayer2">Black:</span></td>
+           <td valign="top"><span id="lblPlayer2" data-l10n-id="app.player" data-l10n-args='{ "player" : 2 }' style="white-space: nowrap;">Black</span>:</td>
            <td valign="middle"><img title="EMPTY" id="state1_info" src="/images/empty.png" border="0" style="display: none;"/></td>
            <td valign="top"><span id="member1_info" style="display: none">Computer engine</span></td>
 	  </tr>
@@ -655,19 +663,20 @@ function initApp() {
       <table height="92%" cellpadding="0" cellspacing="0">
       <tr valign="top" height="10px">
       <td align="left">
-      <H4 style="white-space: nowrap; float:none"><a href="javascript:app.view.UI.hideControls()">WebGL 8x8 board games</a></H4>
-      <a class="author" href="mailto:jmarine@tinet.org">
+      <H4 style="white-space: nowrap; float:none"><a href="javascript:app.view.UI.hideControls()" data-l10n-id="app.title">WebGL 8x8 board games</a></H4>
+      <a class="author" href="mailto:jmarine@tinet.org" data-l10n-id="app.copyright">
 Copyright &copy; 2011-2016<br>
 by Jordi Marin&eacute; Fort</a>
 <br><br>
 
-<p style="white-space: nowrap;">
+<p style="white-space: nowrap;" data-l10n-id="app.license">
 The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">source code</a> of this game<br>is licensed under <a href="http://www.gnu.org/licenses/gpl.html" target="_blank">GNU GPL v3</a><br>and uses the following libraries:</p>
 
       <ul style="margin: 0.25em 0 0 1.5em;">
            <li><a href="http://spidergl.sourceforge.net/" target="_blank">SpiderGL v0.1.1</a> </li>
            <li><a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> </li>
            <li><a href="http://jquery.com" target="_blank">jQuery v1.8.3</a></li>
+	   <li><a href="http://l20n.org" target="_blank">L20n v3.5.1</a></li>
            <li><a href="https://github.com/jmarine/wgs" target="_blank">WGS v2</a></li>
            <li><a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a></li>
            <li><a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a></li>
@@ -676,7 +685,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 
     </td>
      <td align="right">
-<a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
+<a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20" data-l10n-id="app.actions.close"/></a>
 
      </td>
      </tr>
@@ -691,46 +700,46 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 
    <div id="options">
       <DIV id="ui">
-      <H4><a href="javascript:app.view.UI.hideControls()">UI configuration</a></H4>
-      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
+      <H4><a href="javascript:app.view.UI.hideControls()" data-l10n-id="app.options.ui_title">UI configuration</a></H4>
+      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"  data-l10n-id="app.actions.close"/></a>
       <br>
 
 	<dl>
 
-           <dt><label for="shadows">Shadows:</label></dt>
+           <dt><label for="shadows" data-l10n-id="app.options.shadows">Shadows:</label></dt>
            <dd><input id='shadows' type="checkbox" value="1" checked></dd>
 
-           <dt><label for="reflections">Reflections:</label></dt>
+           <dt><label for="reflections" data-l10n-id="app.options.reflections">Reflections:</label></dt>
            <dd><input id='reflections' type="checkbox" value="1"></dd>
 
-           <dt><label for="color1">White color:</label></dt>
+           <dt><label for="color1" data-l10n-id="app.options.white_color">White color:</label></dt>
 	   <dd><input type="color" id="color1" name="color1" value="#EAB13D" style="width: 100px"></dd>
 
-           <dt><label for="color2">Black color:</label></dt>
+           <dt><label for="color2" data-l10n-id="app.options.black_color">Black color:</label></dt>
 	   <dd><input type="color" id="color2" name="color2" value="#8C532D" style="width: 100px"></dd>
 
-	   <dt><label for="bgcolor">Background:</label></dt>
+	   <dt><label for="bgcolor" data-l10n-id="app.options.background_color">Background:</label></dt>
 	   <dd><input type="color" id="bgcolor" name="bgcolor" value="#CCA554" style="width: 100px"></dd>
 
-           <dt><label for="brightness">Brightness:</label></dt>
+           <dt><label for="brightness" data-l10n-id="app.options.brightness">Brightness:</label></dt>
            <dd><INPUT id="brightness" TYPE="RANGE" MIN="0.0" MAX="2" STEP="0.05" VALUE="0.8" size="5" style="width: 100px"></dd>
 
 	</dl>
       </DIV>
 
       <DIV id="sound">
-      <H4>Sound configuration</H4>
+      <H4 data-l10n-id="app.options.sound_title">Sound configuration</H4>
         <dl>
-           <dt><label for="sounds">Effects:</label></dt>
+           <dt><label for="sounds" data-l10n-id="app.options.sound_effects">Effects:</label></dt>
            <dd><input id='sounds' type="checkbox" value="1"></dd>
 	</dl>
       </DIV>
 
       <DIV class="logon" style="display: none">
       <DIV id="push_notifications" style="display: none">
-      <H4>App notifications</H4>
+      <H4 data-l10n-id="app.options.push_notifications_title">App notifications</H4>
         <dl>
-           <dt><label for="allow_push_notifications">Allow:</label></dt>
+           <dt><label for="allow_push_notifications" data-l10n-id="app.options.allow_push_notifications">Allow:</label></dt>
            <dd><input id='allow_push_notifications' type="checkbox" value="0"></dd>
 	</dl>
       </DIV>
@@ -738,16 +747,16 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 
 
       <DIV id="ai">
-      <H4>AI engine configuration</H4>
+      <H4 data-l10n-id="app.options.ai_title">AI engine configuration</H4>
 	<dl>
-	   <dt><label for="algorithm_name">Algorithm:</label></dt>
+	   <dt><label for="algorithm_name" data-l10n-id="app.options.ai_algorithm">Algorithm:</label></dt>
 	   <dd><select id="algorithm_name">
 		<option value="alphaBeta">Alpha-Beta</option>
 		<option value="negascout">Negascout</option>
 		<option value="MTDf">MTDf</option>
 	      </select>
            </dd>
-           <dt><label for="level">Level:</label></dt>
+           <dt><label for="level" data-l10n-id="app.options.ai_level">Level:</label></dt>
            <dd><input id='level' value="6" size="1" maxlength="1"></dd>
 	</dl>
       </DIV>
@@ -766,14 +775,14 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
       </DIV>
 
       <DIV id="promotion_option">
-      <H4>Pawn promotion</H4>
+      <H4 data-l10n-id="app.options.pawn_promotion_title">Pawn promotion</H4>
          <dl>
-           <dt><label for="promotion_piece">Promote to:</label></dt>
+           <dt><label for="promotion_piece" data-l10n-id="app.options.pawn_promotion_label">Promote to:</label></dt>
            <dd><select id="promotion_piece">
-                <option value="Q">Queen</option>
-                <option value="R">Rook</option>
-                <option value="B">Bishop</option>
-                <option value="N">Knight</option>
+                <option value="Q" data-l10n-id="app.options.pawn_promotion_queen">Queen</option>
+                <option value="R" data-l10n-id="app.options.pawn_promotion_rook">Rook</option>
+                <option value="B" data-l10n-id="app.options.pawn_promotion_bishop">Bishop</option>
+                <option value="N" data-l10n-id="app.options.pawn_promotion_knight">Knight</option>
               </select>
            </dd>
          </dl>
@@ -784,38 +793,38 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
       </div>
 
       <div id="games">
-      <H4><a href="javascript:app.view.UI.hideControls()">Games &amp; players</a></H4>
-      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20"/></a>
+      <H4><a href="javascript:app.view.UI.hideControls()" data-l10n-id="app.games.title">Games &amp; players</a></H4>
+      <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.view.UI.hideControls(); return false"><img src="resources/images/close.png" border="0" width="20" height="20" data-l10n-id="app.actions.close"/></a>
       <br>
 
       <DIV id="players">
          <dl>
-	   <dt><label for="game_type">Type</label> <a id="help" href="#">(?)</a>:</dt>
+	   <dt><label for="game_type" data-l10n-id="app.games.game_type">Type</label> <a id="help" href="#">(?)</a>:</dt>
 	   <dd><select id="game_type">
-		<option value="draughts">Draughts</option>
-		<option value="checkers">Checkers</option>
-		<option value="chess">Chess</option>
-		<option value="chess960">Chess960</option>
-		<!--<option value="breakthrough">Breakthrough</option>-->
+		<option value="draughts" data-l10n-id="app.games.draughts">Draughts</option>
+		<option value="checkers" data-l10n-id="app.games.checkers">Checkers</option>
+		<option value="chess" data-l10n-id="app.games.chess">Chess</option>
+		<option value="chess960" data-l10n-id="app.games.chess960">Chess960</option>
+		<!--<option value="breakthrough" data-l10n-id="app.games.breakthrough">Breakthrough</option>-->
 	      </select>
            </dd>
 
-           <dt><label for=player1>Player 1:</label></dt>
+           <dt><label for=player1 data-l10n-id="app.player" data-l10n-args='{"player": 1}'>Player 1</label>:</dt>
            <dd>
 		<select id='player1' name="player1">
-		  <option value="1">Local user</option>
-		  <option value="2">Network user</option>
-		  <option value="3">Computer</option>
+		  <option value="1" data-l10n-id="app.games.local_player">Local user</option>
+		  <option value="2" data-l10n-id="app.games.network_player">Network user</option>
+		  <option value="3" data-l10n-id="app.games.computer_player">Computer</option>
 		</select>
                 <img title="EMPTY" id="state0" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
                 <span id="member0" style="display: none"></span>
            </dd>
-           <dt><label for=player2>Player 2:</label></dt>
+           <dt><label for=player2 data-l10n-id="app.player" data-l10n-args='{"player": 2}'>Player 2</label>:</dt>
            <dd>
 		<select id='player2' name="player2">
-		  <option value="1">Local user</option>
-		  <option value="2">Network user</option>
-		  <option value="3" selected="true">Computer</option>
+		  <option value="1" data-l10n-id="app.games.local_player">Local user</option>
+		  <option value="2" data-l10n-id="app.games.network_player">Network user</option>
+		  <option value="3" data-l10n-id="app.games.computer_player"selected="true">Computer</option>
 		</select>
                 <img title="EMPTY" id="state1" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
                 <span id="member1" style="display: none"></span>
@@ -825,30 +834,30 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
       </DIV>
  
       <DIV id="network">
-      <H4>User login</H4>
+      <H4 data-l10n-id="app.network.title">User login</H4>
           <table style="float: left; clear: left; border-spacing: 0">
           <tr>
-            <td><dt><label for="server_url">WGS url:</label></dt></td>
+            <td><dt><label for="server_url" data-l10n-id="app.network.wgs_url">WGS url:</label></dt></td>
             <td><input name="server_url" id="server_url" name="server_url" value='wss://wgs-jmarine.rhcloud.com:8443/wgs'></td>
             <td rowspan="3" valign="top">
                <button id="btnProfile" style="display: none; width: 3.5em; height: 4em"><img id="user_picture" src="/images/anonymous.png" width="48" height="48" title="Profile"></button>
             </td>
           </tr>
           <tr>
-            <td><label for="user">User:</label></td>
+            <td><label for="user" data-l10n-id="app.network.wgs_user">User:</label></td>
             <td><input id="user" name="user" value=""></td>
           </tr>
           <tr>
-            <td><label for="password" id="lbl_password">Password:</label></td>
+            <td><label for="password" id="lbl_password" data-l10n-id="app.network.wgs_password">Password:</label></td>
             <td><input id="password" type="password" value=""></td>
           </tr>
           </tbody>
         </table>
 
       <!--<DIV id="extend_list" style="width:100%">-->
-      <button id="btnConnect" style="clear:left">Connect</button>
+      <button id="btnConnect" style="clear:left" data-l10n-id="app.network.connect">Connect</button>
       <button id="oic_connect">&nbsp;</button>
-      <button id="btnRegister">Register</button>
+      <button id="btnRegister" data-l10n-id="app.network.signup">Register</button>
 
       <ul id="openid_providers_menu" style="display: none;">
          <!--<li><a href="javascript:openid_connect(false);">OpenID Connect provider</a></li>-->
@@ -860,24 +869,24 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 
 
       <div id="profile_section" style="display: none">
-        <H4>Profile</H4>
-        <a href="#" style="float: right; text-decoration: none" onclick="$('#profile_section').hide(); return false"><img src="resources/images/close.png" border="0" width="16" height="16" style="margin-top: 10px"/></a>
+        <H4 data-l10n-id="app.profile.title">Profile</H4>
+        <a href="#" style="float: right; text-decoration: none" onclick="$('#profile_section').hide(); return false"><img src="resources/images/close.png" border="0" width="16" height="16" style="margin-top: 10px" data-l10n-id="app.actions.close"/></a>
 
         <dl>
-          <dt>Versus:</dt>
+          <dt data-l10n-id="app.profile.versus">Versus:</dt>
           <dd><select id="profile_filter" onChange="app.lobby.loadProfile(); return false;">
-                <option value="">All</option>
+                <option value="" data-l10n-id="app.profile.all">All</option>
               </select></dd>
         </dl>
         <table id="profile_apps" class="scrollTable" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 1em">
            <thead>
              <tr>
-               <th>Game</th>
-               <th>Active</th>
-               <th>Wins</th>
-               <th>Draws</th>
-               <th>Losses</th>
-               <th>Ranking</th>
+               <th data-l10n-id="app.profile.game">Game</th>
+               <th data-l10n-id="app.profile.active">Active</th>
+               <th data-l10n-id="app.profile.wins">Wins</th>
+               <th data-l10n-id="app.profile.draws">Draws</th>
+               <th data-l10n-id="app.profile.losses">Losses</th>
+               <th data-l10n-id="app.profile.ranking">Ranking</th>
              </tr>
            </thead>
            <tbody>
@@ -886,15 +895,15 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
       </div>
 
       <div id="ranking_section" style="display: none">
-        <H4>Top rankings for <span id="ranking_app"></span></H4>
-        <a href="#" style="float: right; text-decoration: none" onclick="$('#ranking_section').hide(); return false"><img src="resources/images/close.png" border="0" width="16" height="16" style="margin-top: 10px"/></a>
+        <H4 data-l10n-id="app.ranking.title">Top rankings for <span id="ranking_app"></span></H4>
+        <a href="#" style="float: right; text-decoration: none" onclick="$('#ranking_section').hide(); return false"><img src="resources/images/close.png" border="0" width="16" height="16" style="margin-top: 10px" data-l10n-id="app.actions.close"/></a>
 
         <table id="ranking_order" class="scrollTable" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 1em">
            <thead>
              <tr>
-               <th>Order</th>
-               <th>User</th>
-               <th>Rating&plusmn;deviation (volatility)</th>
+               <th data-l10n-id="app.ranking.order">Order</th>
+               <th data-l10n-id="app.ranking.user">User</th>
+               <th data-l10n-id="app.ranking.rating_deviation">Rating&plusmn;deviation (volatility)</th>
              </tr>
            </thead>
            <tbody>
@@ -904,14 +913,14 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 
 
       <div id="games_section" style="display: none">
-      <H4>Select match:</H4>
+      <H4 data-l10n-id="app.network.game_list.title">Select match:</H4>
         <table id="groupsTable" class="scrollTable" cellspacing="0" cellpadding="0" border="0" width="100%">
           <thead>
              <tr>
-              <th>Game</th>
-              <th>Status</th>
-              <th>#</th>
-              <th>Members</th>
+              <th data-l10n-id="app.network.game_list.game">Game</th>
+              <th data-l10n-id="app.network.game_list.status">Status</th>
+              <th data-l10n-id="app.network.game_list.num">#</th>
+              <th data-l10n-id="app.network.game_list.members">Members</th>
             </tr>
           </thead> 
           <tbody>
@@ -920,17 +929,17 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
       </div>
 
       <div id="matching_options" style="display: none">
-      <H4>Create match</H4>
+      <H4 data-l10n-id="app.network.game_options.title">Create match</H4>
         <dl>
-          <dt><label for="new_grp_role">Role:</label></dt>
+          <dt><label for="new_grp_role" data-l10n-id="app.network.game_options.role">Role:</label></dt>
           <dd><select id="new_grp_role" name="new_grp_role">
-                <option value="">Any</option>
-                <option value="White">White</option>
-                <option value="Black">Black</option></select></dd>
+                <option value="" data-l10n-id="app.network.game_options.any_role">Any</option>
+                <option value="White" data-l10n-id="app.network.game_options.white_role">White</option>
+                <option value="Black" data-l10n-id="app.network.game_options.black_role">Black</option></select></dd>
 
-          <dt><label for="new_grp_opponent">Opponent:</label></dt>
+          <dt><label for="new_grp_opponent" data-l10n-id="app.network.game_options.opponent">Opponent:</label></dt>
           <dd><select name="new_grp_opponent" id="new_grp_opponent">
-                <option value="">Auto-match</option>
+                <option value="" data-l10n-id="app.network.game_options.automatch">Auto-match</option>
               </select>
           </dd>
 
@@ -938,27 +947,27 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
       </div>
 
       <div id="chat_section" style="display: none">
-        <H4>Game chat</H4>
-        <textarea id="line" cols="28" style="height: 40px; float: left; clear: left" onkeypress="if(event.keyCode == 13) { app.view.UI.sendChatLine(); return false; }"></textarea><button id="btnSendChatLine" style="float: left; margin-left: 3px">Send</button></td>
+        <H4 data-l10n-id="app.network.game_chat.title">Game chat</H4>
+        <textarea id="line" cols="28" style="height: 40px; float: left; clear: left" onkeypress="if(event.keyCode == 13) { app.view.UI.sendChatLine(); return false; }"></textarea><button id="btnSendChatLine" style="float: left; margin-left: 3px" data-l10n-id="app.network.game_chat.send">Send</button></td>
         <textarea id="chat" style="clear: both; float: left; width: 100%; height: 200px" readonly></textarea>
       </div>
 
 
 
-      <button id="btnHideMatchingOptions" style="clear:both">Back to lobby</button>
-      <button id="btnCreateGame">Create</button>
+      <button id="btnHideMatchingOptions" style="clear:both" data-l10n-id="app.network.back_to_lobby">Back to lobby</button>
+      <button id="btnCreateGame" data-l10n-id="app.actions.create_game">Create</button>
 
-      <button id="btnShowMatchingOptions">New...</button>
-      <button id="btnDeleteFinishedGames">Delete finished</button>
+      <button id="btnShowMatchingOptions" data-l10n-id="app.actions.new_game_options">New...</button>
+      <button id="btnDeleteFinishedGames" data-l10n-id="app.network.delete_finished_games">Delete finished</button>
 
 
-      <button class='btnStartGame' style="clear: left">Start game</button>
+      <button class='btnStartGame' style="clear: left" data-l10n-id="app.actions.start_game">Start game</button>
 
-      <button id='btnRetractMove' style="display: none">Retract move</button>
-      <button id="btnDrawGame">Draw</button>
-      <button id="btnResignGame">Resign</button>
+      <button id='btnRetractMove' style="display: none" data-l10n-id="app.actions.retract_move">Retract move</button>
+      <button id="btnDrawGame" data-l10n-id="app.network.game_stalled">Draw</button>
+      <button id="btnResignGame" data-l10n-id="app.network.resign">Resign</button>
 
-      <button id="btnDisconnect">Disconnect</button>
+      <button id="btnDisconnect" data-l10n-id="app.network.disconnect">Disconnect</button>
 
     </div>
 
@@ -966,9 +975,9 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 
 
   <div id="menu" style="float: right;">
-        <button id='btnGame' onclick="javascript:app.view.UI.showGames(); return false;"><img src="resources/images/games.png" width="24" height="24" title="Games"></button>
-        <button id="btnOptions" onclick="javascript:app.view.UI.showOptions(); return false;"><img src="resources/images/options.png" width="24" height="24" title="Options"></button>
-        <button id="btnAbout" onclick="javascript:app.view.UI.showCredits(); return false;"><img src="resources/images/about.png" width="24" height="24" title="About"></button>
+        <button id='btnGame' onclick="javascript:app.view.UI.showGames(); return false;"><img src="resources/images/games.png" width="24" height="24" data-l10n-id="app.actions.games"></button>
+        <button id="btnOptions" onclick="javascript:app.view.UI.showOptions(); return false;"><img src="resources/images/options.png" width="24" height="24"  data-l10n-id="app.actions.options"></button>
+        <button id="btnAbout" onclick="javascript:app.view.UI.showCredits(); return false;"><img src="resources/images/about.png" width="24" height="24" data-l10n-id="app.actions.about"></button>
   </div>
 
  
@@ -978,12 +987,12 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
     <table border="0" width="100%" height="100%">
     <tr>
     <td valign="middle" align="center">
-    <div id="message">
+    <div id="message" data-l10n-id="app.messages.loading_game">
     Loading game...
     </div>
     </td>
     <td valign="top" align="right" width="16">
-    <a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.showMessage(false); return false"><img src="resources/images/close.png" border="0" width="16" height="16"/></a>
+    <a href="#" style="text-decoration: none" onclick="javascript:app.view.UI.showMessage(false); return false"><img src="resources/images/close.png" border="0" width="16" height="16" data-l10n-id="app.actions.close"/></a>
     </td>
     </tr>
     </table>

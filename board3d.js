@@ -101,11 +101,13 @@ Board3D.prototype =
     validMoves = game.getMovements();
     if(validMoves.length == 0) {
         var winner = game.getWinner();
-        if(winner) app.view.UI.showMessage("Player " + winner + " won the game");
-        else app.view.UI.showMessage("The game is stalled");
+        if(winner) document.l10n.formatValue("app.messages.player_won", { "player": winner } ).then(function(msg) { app.view.UI.showMessage(msg) }); 
+        else document.l10n.formatValue("app.messages.game_stalled", { "player": winner } ).then(function(msg) { app.view.UI.showMessage(msg) });
         $("#btnResignGame").hide();
         $("#btnDrawGame").hide();
-        $("#btnRetractMove").hide();
+        $('#btnRetractMove').each(function() {
+          this.disabled = true;
+        });
     }
   },
 
@@ -333,9 +335,10 @@ Board3D.prototype =
             onload    : function() { 
               board.loadedTextures++; 
               if(board.loadedTextures < board.textures.length) {
-                app.view.UI.showMessage("Loading textures: " + Math.floor(board.loadedTextures*100/board.textures.length) + "%");
+		var percent = Math.floor(board.loadedTextures*100/board.textures.length);
+		document.l10n.formatValue("app.messages.loading_textures", { "percent": percent } ).then(function(msg) { app.view.UI.showMessage(msg) });
               } else {
-                app.view.UI.showMessage("");
+                app.view.UI.showMessage(false);
 		ui.requestDraw();
               }
             }
