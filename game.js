@@ -38,7 +38,8 @@ var app = app || {}
 app.model = app.model || {}
 app.model.GameFactory = {
   createGame: function(gameType) {
-    return eval(" new app.model." + gameType + "()");
+    var camelGameType = gameType.substring(0,1).toUpperCase() + gameType.substring(1).toLowerCase();
+    return eval(" new app.model." + camelGameType + "()");
   }
 }
 
