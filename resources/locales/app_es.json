@@ -50,7 +50,7 @@
 "app.options.pawn_promotion_knight": "Cavallo",
 "app.storage.save_as_name_prompt": "Nombre de la partida?",
 "app.network.title": "Iniciar sessi&oacute;n para jugar con usuarios remotos",
-"app.network.wgs_url": "Servicio WGS:",
+"app.network.wgs_url": "Servidor:",
 "app.network.wgs_user": "Usuario:",
 "app.network.wgs_password": "Clave:",
 "app.network.connect": "Conectar",
