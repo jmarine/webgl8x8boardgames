@@ -107,7 +107,7 @@ loadProfile: function(user) {
       $.each(resultKw.apps, function(app, appStats) {
           var tr = $('<tr>');
           tr.attr('class', "scrollTableRow");
-          tr.append('<td>' + app + '</td>');
+          tr.append('<td data-l10n-id="app.games.' + app + '">' + app + '</td>');
           tr.append('<td>' + appStats.active + '</td>');
           tr.append('<td>' + appStats.win + '</td>');
           tr.append('<td>' + appStats.draw + '</td>');
@@ -122,7 +122,8 @@ loadProfile: function(user) {
 
 showRanking: function(app, min) {
   this.wgsclient.getRanking(app, min, function(id,details,errorURI,result,resultKw) {
-      $("#ranking_app").text(app);
+      //$("#ranking_app").text(app);
+      $("#ranking_app").attr("data-l10n-id", "app.games." + app);
       $("#ranking_order>tbody>tr").remove();
       if(result) {
           result.forEach(function(item) {
