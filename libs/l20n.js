@@ -163,8 +163,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   var KNOWN_MACROS = ['plural'];
   var MAX_PLACEABLE_LENGTH = 2500;
 
-  var FSI = '\u2068';
-  var PDI = '\u2069';
+  var FSI = '';
+  var PDI = '';
 
   var resolutionChain = new WeakSet();
 
