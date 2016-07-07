@@ -1,6 +1,6 @@
 WebGL 8x8 board games
 =====================
-Copyright © 2011-2015 Jordi Mariné Fort
+Copyright © 2011-2016 Jordi Mariné Fort
 
 About
 -----
@@ -15,13 +15,14 @@ It only works in browsers with WebGL support, and implements the following games
 Click [HERE](http://wgs-jmarine.rhcloud.com/webgl8x8boardgames/) to play the games.
 
 
-Credits
+License
 -------
 
 The source code of this game is licensed under GNU GPL v3 and uses the libraries:
 - SpiderGL
 - Sylvester
 - jQuery
+- L20n
 - WGS
 - CryptoJS
 - Google Analytics
