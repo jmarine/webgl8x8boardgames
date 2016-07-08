@@ -2395,7 +2395,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
   }
 
   if (navigator.languages === undefined) {
-    navigator.languages = [navigator.language];
+    var lang = navigator.language;
+    if(lang.indexOf('-')) lang = lang.substring(0, lang.indexOf('-'));
+    navigator.languages = [lang];
   }
 
   function getResourceLinks(head) {
