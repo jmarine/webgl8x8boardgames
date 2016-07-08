@@ -76,7 +76,7 @@
 "app.network.wait_move": "Esperando movimiento del jugador contrario.",
 "app.network.player_resigned": { "value": ["El jugador ", { "type": "var", "name": "player" }, " se ha rendido!"] },
 "app.network.wait_load_confirmation": "Esperando confirmación de las posiciones iniciales del jugador contrario.",
-"app.network.move_retract_accepted": "El oponente ha acceptado deshacer el moviemento.",
+"app.network.move_retract_accepted": "El oponente ha acceptado deshacer el movimiento.",
 "app.network.move_retract_rejected": "El oponente ha rechazado deshacer el movimiento.",
 "app.network.wait_retract_confirmation": "Esperando confirmación del oponente para deshacer el movimiento",
 "app.network.wait_draw_offer": "Esperando confirmación de la propuesta de empate.",
