@@ -2396,7 +2396,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
   if (navigator.languages === undefined) {
     var lang = navigator.language;
-    if(lang && lang.indexOf('-')) lang=lang.substring(0,lang.indexOf('-'));
+    if(lang && lang.indexOf('-')!=-1) lang=lang.substring(0,lang.indexOf('-'));
     navigator.languages = [lang];
   }
 
