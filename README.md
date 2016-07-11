@@ -27,7 +27,7 @@ This application also requires a [WGS server](https://github.com/jmarine/wgs) to
 License
 -------
 
-The source code of this game is licensed under GNU GPL v3 and uses the libraries:
+The source code of this game is licensed under [GNU GPL v3](https://raw.githubusercontent.com/jmarine/webgl8x8boardgames/master/LICENSE.txt) and uses the libraries:
 - SpiderGL
 - Sylvester
 - jQuery
