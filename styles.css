@@ -107,15 +107,15 @@ body {
   position: absolute; 
   bottom: 8px; 
   left: 50%; 
-  margin-left: -14em; 
+  margin-left: -14.5em; 
   width: 27em; 
-  height: 60px; 
+  height: 80px; 
   background-color: #f7e3a4; 
   padding: 10px; 
   text-align: center;
   border: 3px solid #402b2a; 
   border-radius: 10px; -webkit-border-radius: 10px; -khtml-border-radius: 10px;
-  -webkit-user-select: none; -moz-user-select: none; user-select: none;
+  -webkit-user-select: none; -moz-user-select: none; user-select: none; 
 }
 
 

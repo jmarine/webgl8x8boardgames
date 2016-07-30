@@ -114,10 +114,13 @@
 "app.network.user_empty_error": "Vous devez saisir le nom d'utilisateur.",
 "wamp.cra.error.no_such_authid": "N'existe pas le nom d'utilisateur.",
 "wamp.error.authentication_failed": "Le nom d'utilisateur/mot de passe est invalide.",
+"wgs.user_already_exists": "Le nom d'utilisateur existe déjà",
 "wgs.websocket.error": "Erreur de connexion avec service WGS",
 "app.messages.loading_game": "Jeu en cours de chargement...",
 "app.messages.loading_textures": { "value": ["Textures: ", { "type": "var", "name": "percent" }, "%"] },
 "app.messages.player_won": { "value": ["Le joueur ", { "type": "var", "name": "player" }, " a gagné!"] },
-"app.messages.game_stalled": "Le jeu est bloqué." 
+"app.messages.game_stalled": "Le jeu est bloqué." ,
+"app.messages.cookies": "Nous utilisons des cookies pour analyser votre navigation. Si vous continuez, vous acceptez leur utilisation."
+
 
 }

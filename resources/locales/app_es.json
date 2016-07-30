@@ -114,10 +114,12 @@
 "app.network.user_empty_error": "Falta introducir el código de usuario",
 "wamp.cra.error.no_such_authid": "Usuario no existe.",
 "wamp.error.authentication_failed": "Usuario/clave no válido.",
+"wgs.user_already_exists": "Ya existe un usuario con el mismo nombre.",
 "wgs.websocket.error": "Error de conexión con el servicio WGS",
 "app.messages.loading_game": "Cargando juego...",
 "app.messages.loading_textures": { "value": ["Cargando texturas: ", { "type": "var", "name": "percent" }, "%"] },
 "app.messages.player_won": { "value": ["El jugador ", { "type": "var", "name": "player" }, " ha ganado!"] },
-"app.messages.game_stalled": "La partida está estancada." 
+"app.messages.game_stalled": "La partida está estancada.",
+"app.messages.cookies": "Usamos cookies para analizar su navegación.<br>Si continúa, estará aceptando su uso." 
 
 }

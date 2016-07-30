@@ -122,6 +122,8 @@ getNextMsgId: function() {
 },
 
 showMessage: function(msg, msgId) {
+  if(!msg) enableGoogleAnalytics();
+
   if(!msgId) msgId = this.getNextMsgId(); 
   if(this.lastMsgId <= msgId) {  // fix async UI messages to user
     this.lastMsgId = msgId;

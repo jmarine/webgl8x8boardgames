@@ -114,12 +114,13 @@
 "app.network.user_empty_error": "User name is empty.",
 "wamp.cra.error.no_such_authid": "Incorrect login.",
 "wamp.error.authentication_failed": "User/password is not valid",
+"wgs.user_already_exists": "Username already exists.",
 "wgs.websocket.error": "Connection error to WGS server",
 "app.messages.loading_game": "Loading game...",
 "app.messages.loading_textures": { "value": ["Loading textures: ", { "type": "var", "name": "percent" }, "%"] },
 "app.messages.player_won": { "value": ["Player ", { "type": "var", "name": "player" }, " won the game!"] },
-"app.messages.game_stalled": "The game is stalled." 
-
+"app.messages.game_stalled": "The game is stalled.",
+"app.messages.cookies": "We use cookies to analyse your browsing.<br>If you continue, you are accepting their use."
 
 }
 

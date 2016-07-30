@@ -103,6 +103,10 @@ function playSound(id) {
 </script>
 
 <script type="text/javascript">
+var gaEnabled = false;
+function enableGoogleAnalytics() {
+ if(!gaEnabled) {
+  gaEnabled = true;
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
@@ -110,6 +114,8 @@ function playSound(id) {
 
   ga('create', 'UA-21265464-1', 'auto');
   ga('send', 'pageview');
+ }
+}
 </script>
 
 <script id="SHADOW_PASS_VERTEX_SHADER" type="x-shader/x-vertex">
@@ -987,8 +993,8 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
     <table border="0" width="100%" height="100%">
     <tr>
     <td valign="middle" align="center">
-    <div id="message" data-l10n-id="app.messages.loading_game">
-    Loading game...
+    <div id="message" data-l10n-id="app.messages.cookies">
+	We use cookies to analyse your browsing. If you continue,you are accepting their use.
     </div>
     </td>
     <td valign="top" align="right" width="16">
