@@ -336,7 +336,7 @@ Board3D.prototype =
 	      var msgId = app.view.UI.getNextMsgId();
               board.loadedTextures++; 
               if(board.loadedTextures < board.textures.length) {
-		var percent = Math.floor(board.loadedTextures*100/board.textures.length);
+		//var percent = Math.floor(board.loadedTextures*100/board.textures.length);
 		//document.l10n.formatValue("app.messages.loading_textures", { "percent": percent } ).then(function(msg) { app.view.UI.showMessage(msg, msgId) });
               } else {
                 //app.view.UI.showMessage(false, msgId);

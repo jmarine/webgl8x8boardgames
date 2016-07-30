@@ -120,6 +120,6 @@
 "app.messages.loading_textures": { "value": ["Carregant textures: ", { "type": "var", "name": "percent" }, "%"] },
 "app.messages.player_won": { "value": ["El jugador ", { "type": "var", "name": "player" }, " ha guanyat!"] },
 "app.messages.game_stalled": "La partida està estancada.",
-"app.messages.cookies": "Utilitzem cookies para analitzar la navegació.<br>Si continua, estarà aceptant el seu ús."
+"app.messages.cookies": "Utilitzem cookies para analitzar la navegació. Si continua, estarà aceptant el seu ús."
 
 }
