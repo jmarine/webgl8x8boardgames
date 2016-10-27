@@ -120,7 +120,13 @@
 "app.messages.loading_textures": { "value": ["Loading textures: ", { "type": "var", "name": "percent" }, "%"] },
 "app.messages.player_won": { "value": ["Player ", { "type": "var", "name": "player" }, " won the game!"] },
 "app.messages.game_stalled": "The game is stalled.",
-"app.messages.cookies": "We use cookies to analyse your browsing.<br>If you continue, you are accepting their use."
-
+"app.messages.cookies": "We use cookies to analyse your browsing.<br>If you continue, you are accepting their use.",
+"app.messages.confirm_retract_move": "Retract move?",
+"app.messages.confirm_resign": "Do you really want to resign?",
+"app.messages.confirm_draw_offer": "Do you really want to offer a draw?",
+"app.messages.confirm_draw_acceptation": "Accept draw?",
+"app.messages.confirm_game_request": "Accept game request?",
+"app.messages.confirm_game_state_load": "Do you want to load the game proposed by the adversary?",
+"app.messages.confirm_castle": "Castle?"
 }
 

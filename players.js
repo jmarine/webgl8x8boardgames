@@ -35,7 +35,7 @@ app.controller.LocalPlayer = (function() {
   LocalPlayer.prototype.sendCommand = function(game, player, cmd, args) {
     switch(cmd) {
         case 'LOAD':
-            if( this.loadConfirmed || confirm("Play opponent's new game?") ) {
+            if( this.loadConfirmed || confirm($("#confirm_game_state_load").text()) ) {
                 this.loadConfirmed = false;
                 app.view.UI.setGameState(args.data);
                 return true;
@@ -53,7 +53,7 @@ app.controller.LocalPlayer = (function() {
             break;
 
 	case 'RETRACT':
-            if( this.retractConfirmed || confirm("Retract move?") ) {
+            if( this.retractConfirmed || confirm($("#confirm_retract_move").text()) ) {
                 this.retractConfirmed = false;
                 app.view.UI.setGameState(args.data);
                 return true;
@@ -64,7 +64,7 @@ app.controller.LocalPlayer = (function() {
             break;
 
 	case 'DRAW':
-            if(confirm("Accept draw offer?") ) {
+            if(confirm($("#confirm_draw_acceptation").text()) ) {
                 return true;
             } else {
                 return false;
@@ -111,7 +111,7 @@ app.controller.EnginePlayer = (function() {
            break;
 
        case 'RETRACT':
-           if( this.retractConfirmed || confirm("Retract move?") ) {
+           if( this.retractConfirmed || confirm($("#confirm_retract_move").text()) ) {
                 this.retractConfirmed = false;
                 app.view.UI.setGameState(args.data);
                 return true;
@@ -122,7 +122,7 @@ app.controller.EnginePlayer = (function() {
            break;
 
 	case 'DRAW':
-            if(confirm("Accept draw offer?") ) {
+            if(confirm($("#confirm_draw_acceptation").text()) ) {
                 return true;
             } else {
                 return false;

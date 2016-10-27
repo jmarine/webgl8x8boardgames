@@ -274,7 +274,7 @@ group_opened: function(group) {
     console.log("group change received: " + JSON.stringify(group));
     if(this.wgsclient.isMemberOfGroup(group.gid) && this.wgsclient.user != group.admin && group.state == "OPEN") {
         var newState = group.state;
-        if(confirm("Accept game request?")) {
+        if(confirm($("#confirm_game_request").text())) {
           newState = "STARTED";
         } else {
           newState = "FINISHED";

@@ -120,7 +120,12 @@
 "app.messages.loading_textures": { "value": ["Textures: ", { "type": "var", "name": "percent" }, "%"] },
 "app.messages.player_won": { "value": ["Le joueur ", { "type": "var", "name": "player" }, " a gagné!"] },
 "app.messages.game_stalled": "Le jeu est bloqué." ,
-"app.messages.cookies": "Nous utilisons des cookies pour analyser votre navigation. Si vous continuez, vous acceptez leur utilisation."
-
-
+"app.messages.cookies": "Nous utilisons des cookies pour analyser votre navigation. Si vous continuez, vous acceptez leur utilisation.",
+"app.messages.confirm_retract_move": "Voulez-vous annuler le mouvement?",
+"app.messages.confirm_resign": "Voulez-vous démissionner?",
+"app.messages.confirm_draw_offer": "Voulez-vous négocier un résultat de l'égalité?",
+"app.messages.confirm_draw_acceptation": "Voulez-vous accepter un résultat de l'égalité?",
+"app.messages.confirm_game_request": "Voulez-vous accepter le jeu de l'adversaire?",
+"app.messages.confirm_game_state_load": "Voulez-vous télécharger le jeu proposé par l'adversaire?",
+"app.messages.confirm_castle": "Voulez-vous le roque?"
 }

@@ -637,7 +637,7 @@ Board3D.prototype =
                    var searchCastle = true;
                    if(alternatives > 1) {  
                      this.ui.mouseButtonsDown[MOUSE_LEFT_BUTTON] = false;
-                     searchCastle = confirm("Castle?");
+                     searchCastle = confirm($("#confirm_castle").text());
                    }
 
                    for(var index = 0; index < validMoves.length; index++) {

@@ -120,6 +120,12 @@
 "app.messages.loading_textures": { "value": ["Cargando texturas: ", { "type": "var", "name": "percent" }, "%"] },
 "app.messages.player_won": { "value": ["El jugador ", { "type": "var", "name": "player" }, " ha ganado!"] },
 "app.messages.game_stalled": "La partida está estancada.",
-"app.messages.cookies": "Usamos cookies para analizar su navegación.<br>Si continúa, estará aceptando su uso." 
-
+"app.messages.cookies": "Usamos cookies para analizar su navegación.<br>Si continúa, estará aceptando su uso.",
+"app.messages.confirm_retract_move": "¿Realmente quieres deshacer el movimiento?",
+"app.messages.confirm_resign": "¿Realmente quieres rendirte?",
+"app.messages.confirm_draw_offer": "¿Quieres negociar un resultado de empate?",
+"app.messages.confirm_draw_acceptation": "¿Quieres aceptar un resultado de empate?",
+"app.messages.confirm_game_request": "¿Quieres aceptar la partida del adversario?",
+"app.messages.confirm_game_state_load": "¿Quieres cargar el juego propuesto por el adversario?",
+"app.messages.confirm_castle": "¿Quieres enrocar?"
 }

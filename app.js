@@ -207,14 +207,14 @@ $(document).ready(function(){
   });
 
   $('#btnDrawGame').click(function() {
-        if(confirm("Do you really want to offer a draw?")) {
+        if(confirm($("#confirm_draw_offer").text())) {
           app.lobby.offerDraw();
         }
         return false;
   });
 
   $('#btnResignGame').click(function() {
-        if(confirm("Do you really want to resign?")) {
+        if(confirm($("#confirm_resign").text())) {
           app.lobby.resign();
           app.lobby.exitGame(false);
         }
