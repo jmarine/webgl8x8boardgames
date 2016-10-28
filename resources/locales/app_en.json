@@ -97,7 +97,7 @@
 "app.network.game_chat.title": "Game chat",
 "app.network.game_chat.send": "Send",
 "app.network.back_to_lobby": "Back to lobby",
-"app.actions.games": { "attrs": { "title": "Jocs" } },
+"app.actions.games": { "attrs": { "title": "Games" } },
 "app.actions.options": { "attrs": { "title": "Options" } },
 "app.actions.about": { "attrs": { "title": "About" } },
 "app.actions.close": { "attrs": { "title": "Close" } },
