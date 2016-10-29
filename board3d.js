@@ -231,7 +231,7 @@ Board3D.prototype =
         aspectRatio = canvas.width/canvas.height;
         xform = new SglTransformStack();
         xform.projection.loadIdentity();
-        xform.projection.perspective(sglDegToRad(45.0), aspectRatio, 0.1, 100.0);
+        xform.projection.perspective(sglDegToRad(45.0), aspectRatio, 1.0, 100.0);
         xform.view.loadIdentity();
         xform.view.lookAt(0.0, -z, z, 0.0,0.0,0.0, 0.0,1.0,0.0);
         xform.model.loadIdentity();
@@ -1239,7 +1239,7 @@ Board3D.prototype =
           //biasToLowerMoirePattern = 0.0000160;  // light:[-100,-400,400], distance: 574.45, FOV: 1.044
 
           xform.projection.loadIdentity();
-          xform.projection.perspective(sglDegToRad(fov), aspectRatio, 0.1,100.0);
+          xform.projection.perspective(sglDegToRad(fov), aspectRatio, 1.0,100.0);
           xform.view.lookAt(worldLightPos[0],worldLightPos[1],worldLightPos[2], 0.0,0.0,0.0, 0.0,1.0,0.0);
         } else {
           // orthographic projection (to avoid resolution problems with depth values of the shadow map)
@@ -1325,7 +1325,7 @@ Board3D.prototype =
         canvas.height = parent.clientHeight;
 	aspectRatio = canvas.width/canvas.height;
         xform.projection.loadIdentity();
-        xform.projection.perspective(sglDegToRad(45.0), aspectRatio, 0.1, 100.0);
+        xform.projection.perspective(sglDegToRad(45.0), aspectRatio, 1.0, 100.0);
         this.invalidate();
         return true;
     }
