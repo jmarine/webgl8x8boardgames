@@ -464,8 +464,10 @@ group_changed: function(group) {
       } else if(action.type == "DRAW_REJECTED") {
           if(isFinite(currentSlot) && action.slot != currentSlot) {
             document.l10n.formatValue('app.network.draw_offer_rejected').then(function(msg) { app.view.UI.showMessage(msg) } );
-            app.view.UI.setGameState(game.toString());
+          } else {
+	    app.view.UI.showMessage(false);
           }
+          app.view.UI.setGameState(game.toString());
 
       } else if(action.type == "DRAW_ACCEPTED") {
           document.l10n.formatValue('app.network.draw_offer_accepted').then(function(msg) { app.view.UI.showMessage(msg) } );
