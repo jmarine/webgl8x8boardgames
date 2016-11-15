@@ -47,7 +47,7 @@
 "app.options.pawn_promotion_queen": "Reina",
 "app.options.pawn_promotion_rook": "Torre",
 "app.options.pawn_promotion_bishop": "Alfil",
-"app.options.pawn_promotion_knight": "Cavallo",
+"app.options.pawn_promotion_knight": "Caballo",
 "app.storage.save_as_name_prompt": "Nombre de la partida?",
 "app.network.title": "Iniciar sesi&oacute;n para jugar con usuarios remotos",
 "app.network.wgs_url": "Servidor:",
