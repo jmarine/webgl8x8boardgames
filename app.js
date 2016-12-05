@@ -215,8 +215,10 @@ $(document).ready(function(){
 
   $('#btnResignGame').click(function() {
         if(confirm($("#confirm_resign").text())) {
-          app.lobby.resign();
-          app.lobby.exitGame(false);
+            var promise = app.lobby.resign();
+            if(promise != null) {
+                promise.then(function() { app.lobby.exitGame(false) });
+            }
         }
         return false;
   });
