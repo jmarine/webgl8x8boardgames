@@ -14,7 +14,7 @@
 "app.games.chess": "Chess",
 "app.games.chess960": "Chess 960",
 "app.games.breakthrough": "Breakthrough",
-"app.member.empty": { "attrs": { "title": "Empty slot" }},
+"app.member.empty": { "attrs": { "title": "Empty slot" }, "value": "Empty slot"},
 "app.member.user_detached": { "attrs": { "title": "User detached" }},
 "app.member.user_joined": { "attrs": { "title": "User joined" }},
 "app.member.user_ready": { "attrs": { "title": "User ready" }},

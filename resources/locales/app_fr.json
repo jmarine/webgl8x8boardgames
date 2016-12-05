@@ -14,7 +14,7 @@
 "app.games.chess": "Échecs",
 "app.games.chess960": "Échecs de Fischer",
 "app.games.breakthrough": "Breakthrough",
-"app.member.empty": { "attrs": { "title": "Sans utilisateur" }},
+"app.member.empty": { "attrs": { "title": "Sans utilisateur" }, "value": "Sans utilisateur"},
 "app.member.user_detached": { "attrs": { "title": "Utilisateur détaché" }},
 "app.member.user_joined": { "attrs": { "title": "Utilisateur actif" }},
 "app.member.user_ready": { "attrs": { "title": "Utilisateur préparé" }},

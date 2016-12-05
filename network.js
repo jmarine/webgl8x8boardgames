@@ -252,12 +252,14 @@ new_group: function() {
 },
 
 resign: function() {
-  var group = app.lobby.gameRoom;
-  if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
-    var slot = this.wgsclient.getSlotOfGroup(group.gid);
-    var data = ""; 
-    this.wgsclient.addAction(group.gid, slot, "RESIGN", data);
-  }
+    var group = app.lobby.gameRoom;
+    if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
+        var slot = this.wgsclient.getSlotOfGroup(group.gid);
+        var data = ""; 
+        return this.wgsclient.addAction(group.gid, slot, "RESIGN", data);
+    } else {
+        return null;
+    }
 },
 
 offerDraw: function() {
@@ -523,7 +525,7 @@ update_group_member: function(memberId, member, currentUserSelected, roleFixed) 
     var memberState = member.state ? member.state : "empty";
     var memberType  = member.type  ? member.type  : "user";
     var memberName  = member.name  ? member.name  : "";
-    if(memberName.length == 0) memberName = "Empty";
+    if(memberName.length == 0) memberName = $("#empty_member_title").text();  // "Empty";
     //if( member.sid && member.sid == app.lobby.wgsclient.sid ) memberName = "Me";
     
     var status = memberState.toLowerCase();
