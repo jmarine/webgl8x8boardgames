@@ -12,7 +12,7 @@ It only works in browsers with WebGL support, and implements the following games
 - Chess / Chess960
 
 
-Click [HERE](http://wgs-jmarine.rhcloud.com/webgl8x8boardgames/) to play the games.
+Click [HERE](http://usuaris.tinet.cat/jmarine/dames) to play the games.
 
 
 Installation
