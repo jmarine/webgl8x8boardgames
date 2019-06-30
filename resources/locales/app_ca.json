@@ -42,6 +42,8 @@
 "app.options.ai_title": "Configuraci&oacute; IA",
 "app.options.ai_algorithm": "Algorisme:",
 "app.options.ai_level": "Nivell:",
+"app.options.ai_thinkingtime": "Temps max:",
+"app.options.ai_thinkingtime_units": "seg.",
 "app.options.pawn_promotion_title": "Promoci&oacute; dels peons",
 "app.options.pawn_promotion_label": "Promoci&oacute; a:",
 "app.options.pawn_promotion_queen": "Reina",

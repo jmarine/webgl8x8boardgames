@@ -42,6 +42,8 @@
 "app.options.ai_title": "AI engine configuration",
 "app.options.ai_algorithm": "Algorithm:",
 "app.options.ai_level": "Level:",
+"app.options.ai_thinkingtime": "Max. time:",
+"app.options.ai_thinkingtime_units": "secs.",
 "app.options.pawn_promotion_title": "Pawn promotion",
 "app.options.pawn_promotion_label": "Promote to:",
 "app.options.pawn_promotion_queen": "Queen",

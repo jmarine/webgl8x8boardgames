@@ -42,6 +42,8 @@
 "app.options.ai_title": "Paramètres IA",
 "app.options.ai_algorithm": "Algorithme:",
 "app.options.ai_level": "Niveau:",
+"app.options.ai_thinkingtime": "Temps max:",
+"app.options.ai_thinkingtime_units": "sec.",
 "app.options.pawn_promotion_title": "Promotion des pions",
 "app.options.pawn_promotion_label": "Promouvoir par:",
 "app.options.pawn_promotion_queen": "Dame",
