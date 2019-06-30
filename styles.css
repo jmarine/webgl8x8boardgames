@@ -154,11 +154,19 @@ dt {
    height: 1.6em;
    text-align:left;
    margin: 0 0.3em 0.25em 0;
+   padding-top: 0.5em;
 }
 
 dd {
    float:left;
 }
+
+dd p {
+   display: inline;
+   padding-top: 0.5em;
+   vertical-align: middle;
+}
+
 
 input {
    clear:both;
@@ -249,6 +257,9 @@ option:active {
     width: 20px;
 }
 
+.ai_thinkingtime_option {
+    display: none
+}
 
 .scrollTable {
   clear: both; float: 
@@ -279,3 +290,4 @@ option:active {
   border-bottom: 1px #6c3000 solid; 
   padding-right: 0.5em;
 }
+

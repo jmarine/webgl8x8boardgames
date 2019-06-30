@@ -760,10 +760,13 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 		<option value="alphaBeta">Alpha-Beta</option>
 		<option value="negascout">Negascout</option>
 		<option value="MTDf">MTDf</option>
+		<option value="MCTS">MCTS</option>
 	      </select>
            </dd>
            <dt><label for="level" data-l10n-id="app.options.ai_level">Level:</label></dt>
-           <dd><input id='level' value="6" size="1" maxlength="1"></dd>
+           <dd><input id='level' value="6" size="3" maxlength="3"></dd>
+	   <dt class="ai_thinkingtime_option"><label for="level" data-l10n-id="app.options.ai_thinkingtime">Max. time:</label></dt>
+           <dd class="ai_thinkingtime_option"><input id='thinkingTime' value="10" size="3" maxlength="3"><p data-l10n-id="app.options.ai_thinkingtime_units">secs.</p></dd>
 	</dl>
       </DIV>
 

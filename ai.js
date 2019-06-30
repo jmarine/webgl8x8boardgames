@@ -148,9 +148,112 @@ function MTDf(state, depth, firstGuess, best)
 }
 
 
+// MCTS
+// Based on:
+// https://github.com/dsesclei/mcts/blob/master/js/ai/ai.js
 
-function getBestMove(state, alg, level) 
+function MCTS_Node(board, move, player) {
+  this.move = move;
+  this.player = player;
+  this.untriedMoves = board.getMovements();
+  this.children = [];
+  this.wins = 0;
+  this.visits = 0;
+  return this;
+}
+
+MCTS_Node.prototype.addChild = function(board, move) {
+    var child = new MCTS_Node(board.clone(), move, board.getOpponent());
+    child.parent = this;
+    this.untriedMoves.splice(this.untriedMoves.indexOf(move), 1);
+    this.children.push(child);
+    return child;
+};
+
+MCTS_Node.prototype.uctSelectChild = function() {
+    var bestChild = this.children.sort((a, b) => {
+      var aVal = a.wins / a.visits + Math.sqrt(2 * Math.log(this.visits) / a.visits);
+      var bVal = b.wins / b.visits + Math.sqrt(2 * Math.log(this.visits) / b.visits);
+      if (aVal > bVal) return -1;
+      if (aVal < bVal) return 1;
+      return 0;
+    })[0];
+
+    return bestChild;
+};
+
+MCTS_Node.prototype.update = function(result) {
+    this.visits++;
+    this.wins += result;
+}
+
+
+
+function MCTS(rootBoard, depth, thinkingTimeMillis)
 {
+    var startTime = Date.now();
+    var rootNode = new MCTS_Node(rootBoard.clone(), null, rootBoard.getOpponent());
+
+    rootBoard.bestMove = null;
+    while (Date.now() - startTime < thinkingTimeMillis) {
+      var board = rootBoard.clone();
+      var node = rootNode;
+
+      // select
+      while (node.untriedMoves.length === 0 && node.children.length > 0) {
+        node = node.uctSelectChild();
+        board.makeMove(node.move);
+      }
+
+      // expand
+      if (node.untriedMoves.length > 0) {
+        var randomIndex = Math.floor(Math.random() * node.untriedMoves.length);
+        var move = node.untriedMoves[randomIndex];
+        board.makeMove(move);
+        node = node.addChild(board, move);
+      }
+
+      // simulate
+      var level = depth;
+      while (!board.isOver() && level-- > 0) {
+	var moves = board.getMovements();
+	var randomIndex = Math.floor(Math.random() * moves.length);
+      	var randomMove = moves[randomIndex];
+        board.makeMove(randomMove);
+      }
+
+      // backpropagation
+      while (node != null) {
+        var result = 0.5;
+	if(board.isOver()) {
+ 	  var winner = board.getWinner();
+	  if(winner == NONE) result = 0.5;
+	  else if(winner == node.player) result = 1;
+	  else result = 0;
+	}
+        node.update(result);
+        node = node.parent;
+      }
+    }
+
+    if (rootNode.children.length > 0) {
+      var bestChild = rootNode.children.sort((a, b) => {
+        if (a.visits > b.visits) return -1;
+        if (b.visits < a.visits) return 1;
+        return 0;
+      })[0];
+
+      console.log("Wins: " + rootNode.wins + " / Visits: " + rootNode.visits);
+      console.log('Playouts per second:', (rootNode.visits * 1000) / (Date.now() - startTime)); // eslint-disable-line no-console
+      rootBoard.bestMove = bestChild.move;
+   }
+}
+
+
+
+function getBestMove(state, alg, level, thinkingTimeSecs) 
+{
+   var thinkingTimeMillis = 1000 * thinkingTimeSecs;  // only for MCTS
    var alpha = -30000;
    var beta  = 30000;
 
@@ -172,6 +275,9 @@ function getBestMove(state, alg, level)
 	    var firstGuess = alphaBeta(state, level-2, alpha, beta);
 	    firstGuess = MTDf(state, level, firstGuess, state.bestMove);
             break;
+	 case "MCTS":
+            MCTS(state, level, thinkingTimeMillis);
+	    break;
    }
 
 

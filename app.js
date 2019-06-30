@@ -111,12 +111,28 @@ $(document).ready(function(){
 
         var gameType = app.view.UI.getGameType();
         var tmpGame = app.model.GameFactory.createGame(gameType);
-        var level = tmpGame.getPreferedLevelAI(); 
+        var alg = $("#algorithm_name").val();
+        var level = tmpGame.getPreferedLevelAI(alg); 
         $('input[id=level]').val(level);
 
         if($(this).val().indexOf('chess') == 0) {
           $('#promotion_option').show();
         }
+  });
+
+  $("#algorithm_name").change(function() { 
+	var gameType = app.view.UI.getGameType();
+       	var tmpGame = app.model.GameFactory.createGame(gameType);
+	var alg = $("#algorithm_name").val();
+       	var level = tmpGame.getPreferedLevelAI(alg);
+	$('input[id=level]').val(level);
+
+	if(alg == "MCTS") {
+	 	$(".ai_thinkingtime_option").show();
+	}
+	else {
+		$(".ai_thinkingtime_option").hide();
+	}
   });
 
   $('#shadows').change(function() {

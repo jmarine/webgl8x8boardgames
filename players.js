@@ -96,6 +96,7 @@ app.controller.EnginePlayer = (function() {
        case 'MOVED': 
            var alg = $('select[id=algorithm_name] > option:selected').val();
            var level = $('input[id=level]').val();
+           var thinkingTime = $('input[id=thinkingTime]').val();
 
            console.log("The computer is thinking...");
 
@@ -106,7 +107,7 @@ app.controller.EnginePlayer = (function() {
            //alert("Done");
            //END DEBUG
 
-           app.controller.Players.runEnginePlayer({ alg: alg, level:level, game: game.toString()});
+           app.controller.Players.runEnginePlayer({ alg: alg, level: level, thinkingTime: thinkingTime, game: game.toString()});
            console.log("AI Engine: move requested");
            break;
 

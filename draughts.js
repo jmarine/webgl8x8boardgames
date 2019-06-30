@@ -36,8 +36,9 @@ Draughts.prototype.getBoardRotationDegrees = function() {
   return 0;
 }
 
-Draughts.prototype.getPreferedLevelAI = function() {
-  return 6;
+Draughts.prototype.getPreferedLevelAI = function(alg) {
+  if(alg == "MCTS") return 40;
+  else return 6;
 }
 
 Draughts.prototype.clone = function() {

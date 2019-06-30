@@ -37,8 +37,9 @@ Chess.prototype.getBoardRotationDegrees = function() {
   return 90;
 }
 
-Chess.prototype.getPreferedLevelAI = function() {
-  return 3;
+Chess.prototype.getPreferedLevelAI = function(alg) {
+  if(alg == "MCTS") return 50;
+  else return 3;
 }
 
 Chess.prototype.clone = function() {

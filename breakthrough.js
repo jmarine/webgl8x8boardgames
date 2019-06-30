@@ -34,8 +34,9 @@ Breakthrough.prototype.constructor = Breakthrough;
 Breakthrough.prototype.constructor.name = "Breakthrough";
 
 
-Breakthrough.prototype.getPreferedLevelAI = function() {
-  return 4;
+Breakthrough.prototype.getPreferedLevelAI = function(alg) {
+  if(alg == "MCTS") return 112;  // max moves
+  else return 4;
 }
 
 Breakthrough.prototype.clone = function() {

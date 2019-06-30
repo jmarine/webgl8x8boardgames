@@ -134,8 +134,9 @@ Game.prototype.getBoardRotationDegrees = function() {
 }
 
 
-Game.prototype.getPreferedLevelAI = function() {
-  return 4;
+Game.prototype.getPreferedLevelAI = function(alg) {
+  if(alg == "MCTS") return 50;
+  else return 4;
 }
 
 Game.prototype.toString = function() {
