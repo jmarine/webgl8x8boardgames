@@ -1,7 +1,7 @@
 TODO list:
 
 Common:
-- improve AI engine (add Monte Carlo Tree Search, quiesence search, speed optimizations, etc).
+- improve AI engine (quiesence search, speed optimizations, etc).
 - fix TouchScreen support? (pan gesture problems with iPad simulator)
 
 Shader: 
