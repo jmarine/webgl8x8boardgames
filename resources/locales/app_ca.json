@@ -1,6 +1,6 @@
 {
 "app.title": "Jocs de taulell d'escacs (WebGL)",
-"app.copyright": "Copyright &copy; 2011-2016<br>per Jordi Marin&eacute; Fort",
+"app.copyright": "Copyright &copy; 2011-2021<br>per Jordi Marin&eacute; Fort",
 "app.license": "El <a href='https://github.com/jmarine/webgl8x8boardgames' target='_blank'>codi font</a> d'aquest joc t&eacute;<br>llicència <a href='http://www.gnu.org/licenses/gpl-3.0.ca.html' target='_blank'>GNU GPL v3</a> i<br>utilitza aquestes llibreries:",
 "app.player": { "value": ["Jugador ", { "type": "var", "name": "player" }] }, 
 "app.game_info.title": { "value": ["Jugadors de ", { "type": "var", "name": "game_type" }] },

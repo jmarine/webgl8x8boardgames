@@ -1,6 +1,6 @@
 {
 "app.title": "WebGL 8x8 board games",
-"app.copyright": "Copyright &copy; 2011-2016<br>by Jordi Marin&eacute; Fort",
+"app.copyright": "Copyright &copy; 2011-2021<br>by Jordi Marin&eacute; Fort",
 "app.license": "The <a href='https://github.com/jmarine/webgl8x8boardgames' target='_blank'>source code</a> of this game<br>is licensed under <a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>GNU GPL v3</a><br>and uses the following libraries:",
 "app.player": { "value": ["Player ", { "type": "var", "name": "player" }] },
 "app.game_info.title": { "value": [{ "type": "var", "name": "game_type" }, " players"] },

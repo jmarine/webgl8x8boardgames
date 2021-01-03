@@ -1,6 +1,6 @@
 {
 "app.title": "Tableau du jeu d’échecs (WebGL)",
-"app.copyright": "Copyright &copy; 2011-2016<br>par Jordi Marin&eacute; Fort",
+"app.copyright": "Copyright &copy; 2011-2021<br>par Jordi Marin&eacute; Fort",
 "app.license": "Le <a href='https://github.com/jmarine/webgl8x8boardgames' target='_blank'>code source</a> de ce jeu est <a href='http://www.gnu.org/licenses/gpl-3.0.fr.html' target='_blank'>GNU GPL v3</a><br>et utilise les librairies suivantes:",
 "app.player": { "value": ["Joueur ", { "type": "var", "name": "player" }] }, 
 "app.game_info.title": { "value": ["Joueurs de ", { "type": "var", "name": "game_type" }] },

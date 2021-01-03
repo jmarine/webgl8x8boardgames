@@ -1,6 +1,6 @@
 {
 "app.title": "Juegos de tablero de ajedrez (WebGL)",
-"app.copyright": "Copyright &copy; 2011-2016<br>por Jordi Marin&eacute; Fort",
+"app.copyright": "Copyright &copy; 2011-2021<br>por Jordi Marin&eacute; Fort",
 "app.license": "El <a href='https://github.com/jmarine/webgl8x8boardgames' target='_blank'>código fuente</a> de este juego tiene<br>licencia <a href='http://www.gnu.org/licenses/gpl-3.0.es.html' target='_blank'>GNU GPL v3</a> y usa las librerías:",
 "app.player": { "value": ["Jugador ", { "type": "var", "name": "player" }] }, 
 "app.game_info.title": { "value": ["Jugadores de ", { "type": "var", "name": "game_type" }] },
