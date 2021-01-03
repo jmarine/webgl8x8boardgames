@@ -31,6 +31,7 @@
 "app.options.ui_title": "Paramètres graphiques",
 "app.options.shadows": "Ombres:",
 "app.options.reflections": "Réflexions:",
+"app.options.fov": "Perspective:",
 "app.options.white_color": "Blanche:",
 "app.options.black_color": "Noir:",
 "app.options.background_color": "Fond:",

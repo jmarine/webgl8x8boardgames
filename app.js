@@ -136,12 +136,12 @@ $(document).ready(function(){
   });
 
   $('#shadows').change(function() {
-	var enabled = $(this).attr('checked');
+	var enabled = $(this).prop('checked');
 	app.view.board.setShadows(enabled);
   });
 
-  $('#reflections').change(function() {
-	var enabled = $(this).attr('checked');
+  $('#reflections').change(function(e) {
+	var enabled = $(this).prop('checked');
 	app.view.board.setReflections(enabled);
   });
 
@@ -149,6 +149,13 @@ $(document).ready(function(){
  	var brightness=this.value;
         app.view.board.setBrightness(brightness);
   });
+
+  $('#fov').on("input", function(){
+        var fov=this.value;
+        app.view.board.setFOV(fov);
+  });
+
+
 
 
   $('#bgcolor').change(function(evt) {
@@ -328,11 +335,6 @@ $(document).ready(function(){
   $("#btnDeleteFinishedGames").click(function() {
         app.lobby.deleteFinishedGroups();
         return false;  
-  });
-
-  $("#gameCanvas").mousedown(function() {
-      app.view.UI.hideControls();
-      return false;
   });
 
   $("#btnConnect")

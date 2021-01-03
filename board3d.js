@@ -88,7 +88,7 @@ var diffuseLightColor;
 var specularLightColor;
 var pieceShininess;    
 var trackball;
-
+var fov;
 
 function Board3D()
 {
@@ -160,20 +160,20 @@ Board3D.prototype =
           if(e.touches.length == 2) e.preventDefault();
 	  board.touchesChanged(e); 
         }
-    } );
+    }, { passive: false} );
     document.addEventListener("touchmove",  function(e) { 
         var source = e.target || e.srcElement;
         if(source.id == "gameCanvas") {
           if(e.touches.length == 2) e.preventDefault();
 	  board.touchesMoved(e); 
         }
-    } );
+    }, { passive: false } );    // FIXES SOME SCROLL PROBLEMS
     document.addEventListener("touchend",   function(e) { 
         var source = e.target || e.srcElement;
         if(source.id == "gameCanvas") {
 	  board.touchesChanged(e); 
-        }
-    } );
+	}
+    }, { passive: false } );
 
     document.addEventListener("gesturestart",   function(e) {
         e.preventDefault();
@@ -184,15 +184,15 @@ Board3D.prototype =
     document.addEventListener("gestureend",   function(e) {
         e.preventDefault();
     } );
-    document.addEventListener("dragover", function (evt) {
-        evt.preventDefault();
+    document.addEventListener("dragover", function (e) {
+        e.preventDefault();
     }, false);
-
 
     board.ui._manager.mouseOut = function(e) {
         return false;
     }
 
+/*
     document.onmouseup = function(e)   {
         board.ui._manager.mouseUp(e);
     }
@@ -202,6 +202,7 @@ Board3D.prototype =
     document.onmousemove = function(e) {
         board.ui._manager.mouseMove(e);
     }
+*/
 
 /*
     document.onkeydown = function(e)   {
@@ -229,9 +230,10 @@ Board3D.prototype =
         canvas.width = parent.clientWidth;
         canvas.height = parent.clientHeight;
         aspectRatio = canvas.width/canvas.height;
+	fov = 45;
         xform = new SglTransformStack();
         xform.projection.loadIdentity();
-        xform.projection.perspective(sglDegToRad(45.0), aspectRatio, 1.0, 100.0);
+        xform.projection.perspective(sglDegToRad(fov), aspectRatio, 0.10, 1000.0);
         xform.view.loadIdentity();
         xform.view.lookAt(0.0, -z, z, 0.0,0.0,0.0, 0.0,1.0,0.0);
         xform.model.loadIdentity();
@@ -370,6 +372,20 @@ Board3D.prototype =
         this.invalidate();
     },
 
+    setFOV : function(a) {
+	xform.projection.loadIdentity();
+        xform.projection.perspective(sglDegToRad(a), aspectRatio, 0.10, 1000.0);
+
+	var newScale = z*(Math.atan(sglDegToRad(fov/2))) / (Math.atan(sglDegToRad(a/2)));
+
+        fov = a;
+	this.pinch(newScale, zRot);
+
+        //this.updateRotationMatrix();
+        this.invalidate();
+    },
+
+
     setCustomPieceColors : function(a) {
        var alpha = a? 1.0 : 0.0
        this.color1[3] = alpha;
@@ -493,9 +509,9 @@ Board3D.prototype =
     pinch : function(scale, rotation) {
         this.dragging = true;
         zRot = rotation;
-        if(scale)  z = scale;
-        if(z < 5)  z = 5;
-        if(z > 15) z = 15;
+        if(scale) z = scale;
+        if(z < 4.5 * Math.atan(sglDegToRad(fov/2)) / Math.sin(sglDegToRad(fov/2))) z = 4.5 * Math.atan(sglDegToRad(fov/2)) / Math.sin(sglDegToRad(fov/2));  // allows max zoom for FOV perspective
+        if(z > 8 / Math.sin(sglDegToRad(fov/2))) z = 8 / Math.sin(sglDegToRad(fov/2));  // max zoom 
         this.updateRotationMatrix();
         this.invalidate();
     },
@@ -530,6 +546,8 @@ Board3D.prototype =
         this.startScale = z;
         this.handleMousePieceSelectionAndMove(x, y, button);
         this.initGesture();
+	app.view.UI.hideControls();
+	return true;
     },
 
     mouseMove : function(gl, x, y)
@@ -562,12 +580,13 @@ Board3D.prototype =
             this.invalidate();
         }
 
-	return false;
+	return true;
     },
 
     mouseUp : function(gl, button, x, y) 
     {
         this.endGesture();
+	return true;
     },
 
 
@@ -605,7 +624,6 @@ Board3D.prototype =
         } 
 
         if(!this.isValidCell(col,row)) {
-            //console.log("Invalid cell: row=" + row + ",col=" + col);
             moveGen = null;
             return;
         }
@@ -802,7 +820,6 @@ Board3D.prototype =
 	redraw = true;
     },
 
-
     update : function(gl, dt)
     {
         this.handlePressedKeys();
@@ -820,7 +837,6 @@ Board3D.prototype =
         redraw = false;
         return retval;
     },
-
 
     drawMeshShadowPass : function(gl, m, nullcolor, nulltex, shininess, opacity, t) {
         if (!m) return;
@@ -1239,7 +1255,7 @@ Board3D.prototype =
           //biasToLowerMoirePattern = 0.0000160;  // light:[-100,-400,400], distance: 574.45, FOV: 1.044
 
           xform.projection.loadIdentity();
-          xform.projection.perspective(sglDegToRad(fov), aspectRatio, 1.0,100.0);
+          xform.projection.perspective(sglDegToRad(fov), aspectRatio, 0.10,1000.0);
           xform.view.lookAt(worldLightPos[0],worldLightPos[1],worldLightPos[2], 0.0,0.0,0.0, 0.0,1.0,0.0);
         } else {
           // orthographic projection (to avoid resolution problems with depth values of the shadow map)
@@ -1307,7 +1323,6 @@ Board3D.prototype =
     },
 
 
-
     draw : function(gl)
     {
         if(this.loadedTextures == this.textures.length) {
@@ -1315,7 +1330,6 @@ Board3D.prototype =
           this.lightPass(gl);
         }
     },
-
 
     resize : function(gl, width, height) 
     {
@@ -1325,7 +1339,7 @@ Board3D.prototype =
         canvas.height = parent.clientHeight;
 	aspectRatio = canvas.width/canvas.height;
         xform.projection.loadIdentity();
-        xform.projection.perspective(sglDegToRad(45.0), aspectRatio, 1.0, 100.0);
+        xform.projection.perspective(sglDegToRad(fov), aspectRatio, 0.10, 1000.0);
         this.invalidate();
         return true;
     }
