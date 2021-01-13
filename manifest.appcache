@@ -36,7 +36,8 @@ themes/draughts/Pawn.js
 themes/draughts/BoardCell.js
 themes/draughts/Board.js
 
-libs/jquery-1.5.min.js
+libs/jquery-1.12.4.js
+libs/jquery-ui-1.12.1.js
 libs/spidergl.js
 libs/sylvester.js
 libs/wgs/wamp2.js
