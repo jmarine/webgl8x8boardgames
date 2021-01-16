@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 2021-01-13:v22
+# 2021-01-16:v23
 
 # Explicitly cached entries
 CACHE:
@@ -38,11 +38,26 @@ themes/draughts/Board.js
 
 libs/jquery-1.12.4.js
 libs/jquery-ui-1.12.1.js
+libs/l20n.js
 libs/spidergl.js
 libs/sylvester.js
+libs/wgs/enc-base64-min.js
+libs/wgs/hmac-sha256.js
+libs/wgs/md5.js
+libs/wgs/pbkdf2.js
 libs/wgs/wamp2.js
 libs/wgs/wgs-client-2.0.js
 
+resources/locales/app_en.json
+resources/locales/app_ca.json
+resources/locales/app_es.json
+resources/locales/app_fr.json
+
+resources/images/logo16.png
+resources/images/about.png
+resources/images/options.png
+resources/images/close.png
+resources/images/games.png
 resources/images/oic.png
 resources/images/cellValid1.png
 resources/images/cellSelected.png
@@ -53,8 +68,8 @@ resources/images/board.jpg
 resources/images/white.jpg
 resources/images/black.jpg
 resources/images/board_alone.jpg
+resources/images/chromeexperiments-badge-trans.png
 resources/sounds/select.ogg
-resources/sounds/move.ogg
 resources/sounds/move.ogg
 
 # All other resources (e.g. sites) require the user to be online. 
