@@ -29,7 +29,6 @@ body {
 }
 
 
-
 #game_info {
   position: absolute;
   top: 0px;
@@ -255,6 +254,7 @@ option:active {
     background-position: left center;
     background-size: 16px,16px;
     width: 20px;
+    height: 24.1px;
 }
 
 .ai_thinkingtime_option {
