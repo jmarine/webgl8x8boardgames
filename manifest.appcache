@@ -38,6 +38,7 @@ themes/draughts/Board.js
 
 libs/jquery-1.12.4.js
 libs/jquery-ui-1.12.1.js
+libs/jquery-ui.structure.css
 libs/l20n.js
 libs/spidergl.js
 libs/sylvester.js
