@@ -14,6 +14,7 @@
 "app.games.chess": "Escacs",
 "app.games.chess960": "Escacs de Fischer",
 "app.games.breakthrough": "Breakthrough",
+"app.games.dama": "Dames turques",
 "app.member.empty": { "attrs": { "title": "Sense usuari" }, "value": "Sense usuari"},
 "app.member.user_detached": { "attrs": { "title": "Usuari inactiu" }},
 "app.member.user_joined": { "attrs": { "title": "Usuari disponible" }},

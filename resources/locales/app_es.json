@@ -14,6 +14,7 @@
 "app.games.chess": "Ajedrez",
 "app.games.chess960": "Ajedrez de Fischer",
 "app.games.breakthrough": "Breakthrough",
+"app.games.dama": "Damas turcas",
 "app.member.empty": { "attrs": { "title": "Sin usuario" }, "value": "Sin usuario"},
 "app.member.user_detached": { "attrs": { "title": "Usuario inactivo" }},
 "app.member.user_joined": { "attrs": { "title": "Usuario disponible" }},
