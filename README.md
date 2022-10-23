@@ -22,7 +22,7 @@ Installation
 
 The application files should be deployed into a web server to work properly in some web browsers (although Firefox also works fine loading the game from local files).
 
-This application also requires a [WGS server](https://github.com/jmarine/wgs) to support multi-player online games. To install a private WGS server, follow these [instructions](https://github.com/jmarine/wgs/wiki/Installation). After installation, you need to access [WGS's administration page](http://localhost:8080/admin.html), and create 4 applications with the names: **chess**, **chess960**, **checkers** and **draughts**
+This application also requires a [WGS server](https://github.com/jmarine/wgs) to support multi-player online games. To install a private WGS server, follow these [instructions](https://github.com/jmarine/wgs/wiki/Installation). After installation, you need to access [WGS's administration page](http://localhost:8080/admin.html), and create 6 applications with the names: **chess**, **chess960**, **checkers**, **draughts**, **dama** and **breakthrough**
 (the other settings don't need to be changed).
 
 
