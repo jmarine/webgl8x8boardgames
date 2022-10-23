@@ -86,7 +86,7 @@ $(document).ready(function(){
 
   $('#help').click(function() {
         var game = $('#game_type')[0].selectedIndex;
-        var links = [ "http://en.wikipedia.org/wiki/Draughts#Long-range_kings.3B_men_cannot_capture_backwards_.28Spanish_draughts_family.29", "http://en.wikipedia.org/wiki/English_draughts", "http://en.wikipedia.org/wiki/Chess", "http://en.wikipedia.org/wiki/Chess960", "http://en.wikipedia.org/wiki/Breakthrough_(board_game)" ];
+        var links = [ "http://en.wikipedia.org/wiki/Draughts#Long-range_kings.3B_men_cannot_capture_backwards_.28Spanish_draughts_family.29", "http://en.wikipedia.org/wiki/English_draughts", "https://en.wikipedia.org/wiki/Turkish_draughts",  "http://en.wikipedia.org/wiki/Chess", "http://en.wikipedia.org/wiki/Chess960", "http://en.wikipedia.org/wiki/Breakthrough_(board_game)"];
 	window.open(links[game]);
 	return false;
   });

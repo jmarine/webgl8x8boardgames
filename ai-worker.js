@@ -23,6 +23,7 @@ importScripts('checkers.js');
 importScripts('chess.js');
 importScripts('chess960.js');
 importScripts('breakthrough.js');
+importScripts('dama.js');
 importScripts('move.js');
 importScripts('ai.js');
 

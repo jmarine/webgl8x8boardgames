@@ -1,6 +1,6 @@
 WebGL 8x8 board games
 =====================
-Copyright © 2011-2021 Jordi Mariné Fort
+Copyright © 2011-2022 Jordi Mariné Fort
 
 About
 -----
@@ -9,7 +9,9 @@ This is a web application for playing some 8x8 board games, against your compute
 It only works in browsers with WebGL support, and implements the following games:
 - Draughts (with the rules I used to play at school, that were similar to portuguese draughts)
 - American checkers
+- Turkish draughts (aka Dama)
 - Chess / Chess960
+- Breakthrough (8x8 game variant)
 
 
 Click [HERE](http://usuaris.tinet.cat/jmarine/dames) to play the games.

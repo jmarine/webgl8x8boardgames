@@ -1,6 +1,6 @@
 <!--
     WebGL 8x8 board games
-    Copyright (C) 2011-2021 by Jordi Mariné Fort
+    Copyright (C) 2011-2022 by Jordi Mariné Fort
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,6 +57,7 @@ var breakthroughTheme = BlenderExport;
 <SCRIPT language="javascript">
 var draughtsTheme = BlenderExport;
 var checkersTheme = BlenderExport;
+var damaTheme = BlenderExport;
 </SCRIPT>
 
 
@@ -79,6 +80,7 @@ var checkersTheme = BlenderExport;
 <SCRIPT type="text/javascript" src="chess.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="chess960.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="breakthrough.js"></SCRIPT>  
+<SCRIPT type="text/javascript" src="dama.js"></SCRIPT>  
 <SCRIPT type="text/javascript" src="players.js"></SCRIPT>  
 <script type="text/javascript" src='board3d.js'></script>
 <script type="text/javascript" src='storage.js'></script>
@@ -674,7 +676,7 @@ function initApp() {
       <td align="left">
       <H4 style="white-space: nowrap; float:none"><a href="javascript:app.view.UI.hideControls()" data-l10n-id="app.title">WebGL 8x8 board games</a></H4>
       <a class="author" href="mailto:jmarine@tinet.org" data-l10n-id="app.copyright">
-Copyright &copy; 2011-2021<br>
+Copyright &copy; 2011-2022<br>
 by Jordi Marin&eacute; Fort</a>
 <br><br>
 
@@ -819,9 +821,10 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 	   <dd><select id="game_type">
 		<option value="draughts" data-l10n-id="app.games.draughts">Draughts</option>
 		<option value="checkers" data-l10n-id="app.games.checkers">Checkers</option>
+		<option value="dama" data-l10n-id="app.games.dama">Dama</option>
 		<option value="chess" data-l10n-id="app.games.chess">Chess</option>
 		<option value="chess960" data-l10n-id="app.games.chess960">Chess960</option>
-		<!--<option value="breakthrough" data-l10n-id="app.games.breakthrough">Breakthrough</option>-->
+		<option value="breakthrough" data-l10n-id="app.games.breakthrough">Breakthrough</option>
 	      </select>
            </dd>
 
