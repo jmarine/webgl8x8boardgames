@@ -7,11 +7,11 @@ About
 
 This is a web application for playing some 8x8 board games, against your computer or with a local/remote friend.
 It only works in browsers with WebGL support, and implements the following games:
-- Draughts (with the rules I used to play at school, that were similar to portuguese draughts)
-- American checkers
-- Turkish draughts (aka Dama)
-- Chess / Chess960
-- Breakthrough (8x8 game variant)
+- [Draughts](http://en.wikipedia.org/wiki/Draughts#Long-range_kings.3B_men_cannot_capture_backwards_.28Spanish_draughts_family.29) (with the rules I used to play at school, that were similar to portuguese draughts)
+- [American checkers](http://en.wikipedia.org/wiki/English_draughts)
+- [Turkish draughts (aka Dama)](https://en.wikipedia.org/wiki/Turkish_draughts)
+- [Chess](http://en.wikipedia.org/wiki/Chess) / [Chess960](http://en.wikipedia.org/wiki/Chess960)
+- [Breakthrough game (8x8 variant)](http://en.wikipedia.org/wiki/Breakthrough_(board_game)) invented by Dan Troyka 
 
 
 Click [HERE](http://usuaris.tinet.cat/jmarine/dames) to play the games.
