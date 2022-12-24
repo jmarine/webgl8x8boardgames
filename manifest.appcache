@@ -19,7 +19,9 @@ styles.css
 game.js
 draughts.js
 checkers.js
+dama.js
 chess.js
+chess960.js
 breakthrough.js
 theme.js
 
