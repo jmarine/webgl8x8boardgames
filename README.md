@@ -1,6 +1,6 @@
 WebGL 8x8 board games
 =====================
-Copyright © 2011-2022 Jordi Mariné Fort
+Copyright © 2011-2025 Jordi Mariné Fort
 
 About
 -----
@@ -14,13 +14,13 @@ It only works in browsers with WebGL support, and implements the following games
 - [Breakthrough game (8x8 variant)](http://en.wikipedia.org/wiki/Breakthrough_(board_game)) invented by Dan Troyka 
 
 
-Click [HERE](http://usuaris.tinet.cat/jmarine/dames) to play the games.
+Click [HERE](http://usuaris.tinet.cat/jmarine/dames](https://jmarine.github.io/webgl8x8boardgames-demo/) to play the games.
 
 
 Installation
 ------------
 
-The application files should be deployed into a web server to work properly in some web browsers (although Firefox also works fine loading the game from local files).
+The application files should be deployed into a web server to work properly in some web browsers.
 
 This application also requires a [WGS server](https://github.com/jmarine/wgs) to support multi-player online games. To install a private WGS server, follow these [instructions](https://github.com/jmarine/wgs/wiki/Installation). After installation, you need to access [WGS's administration page](http://localhost:8080/admin.html), and create 6 applications with the names: **chess**, **chess960**, **checkers**, **draughts**, **dama** and **breakthrough**
 (the other settings don't need to be changed).
