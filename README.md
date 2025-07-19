@@ -14,7 +14,7 @@ It only works in browsers with WebGL support, and implements the following games
 - [Breakthrough game (8x8 variant)](http://en.wikipedia.org/wiki/Breakthrough_(board_game)) invented by Dan Troyka 
 
 
-Click [HERE](http://usuaris.tinet.cat/jmarine/dames](https://jmarine.github.io/webgl8x8boardgames-demo/) to play the games.
+Click [HERE](https://jmarine.github.io/webgl8x8boardgames-demo/) to play the games.
 
 
 Installation
