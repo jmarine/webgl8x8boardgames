@@ -30,11 +30,12 @@ License
 -------
 
 The source code of this game is licensed under [GNU GPL v3](https://raw.githubusercontent.com/jmarine/webgl8x8boardgames/master/LICENSE.txt) and uses the libraries:
-- SpiderGL
-- Sylvester
-- jQuery
-- L20n
-- WGS
-- CryptoJS
-- Google Analytics
+- [SpiderGL](http://spidergl.sourceforge.net/)
+- [Sylvester](http://sylvester.jcoglan.com/)
+- [jQuery](http://jquery.com/)
+- [L20n]([http://l20n.org/](https://github.com/l20n/l20n.js)
+- [WGS](https://github.com/jmarine/wgs)
+- [CryptoJS](http://code.google.com/p/crypto-js)
+- [MCTS implementation](https://github.com/dsesclei/mcts/)
+- [Google Analytics](https://jmarine.github.io/webgl8x8boardgames-demo/googleAnalyticsTOS.html)
 
