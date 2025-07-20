@@ -33,7 +33,7 @@ The source code of this game is licensed under [GNU GPL v3](https://raw.githubus
 - [SpiderGL](http://spidergl.sourceforge.net/)
 - [Sylvester](http://sylvester.jcoglan.com/)
 - [jQuery](http://jquery.com/)
-- [L20n]([http://l20n.org/](https://github.com/l20n/l20n.js)
+- [L20n](https://github.com/l20n/l20n.js)
 - [WGS](https://github.com/jmarine/wgs)
 - [CryptoJS](http://code.google.com/p/crypto-js)
 - [MCTS implementation](https://github.com/dsesclei/mcts/)
