@@ -162,7 +162,7 @@ WgsClient.prototype.listGroups = function(appId, scope, state, callback) {
     this.call("wgs.list_groups", [appId, state, scope]).then(callback, callback);
 }
 
-WgsClient.prototype.newApp = function(name, domain, version, actionValidatorClass, maxScores, descScoreOrder, min, max, delta, observable, dynamic, alliances, ai_available, roles, callback) {
+WgsClient.prototype.newApp = function(name, domain, version, actionValidatorClass, maxScores, descScoreOrder, min, max, delta, observable, dynamic, alliances, ai_available, roles, internal_data_class, internal_data_options, callback) {
     var msg = Object();
     msg.name = name;
     msg.domain = domain;
@@ -178,6 +178,8 @@ WgsClient.prototype.newApp = function(name, domain, version, actionValidatorClas
     msg.alliances = alliances;
     msg.ai_available = ai_available;
     msg.roles = roles;
+    msg.internal_data_class = internal_data_class;
+    msg.internal_data_options = internal_data_options;
 
     this.call("wgs.new_app", msg).then(callback, callback);
 }
@@ -211,8 +213,10 @@ WgsClient.prototype._update_group_users = function(id,details,errorURI,payload, 
 
             if(payloadKw.members) {
                 payloadKw.members.forEach(function(item) {
-                    if(isFinite(item.sid) > 0) client.groups[gid].connections[item.sid] = item;
-                    if(isFinite(item.slot)) client.groups[gid].members[item.slot] = item;
+                    if(item != null) {
+                        if(item.sid != null && isFinite(item.sid) && item.sid > 0) client.groups[gid].connections[item.sid] = item;
+                        if(isFinite(item.slot)) client.groups[gid].members[item.slot] = item;
+                    }
                 });
             }
         }
