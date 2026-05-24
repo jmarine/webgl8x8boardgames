@@ -53,6 +53,10 @@ WgsClient.prototype.setUserPushChannel = function(appName, notificationChannel) 
     this.call("wgs.set_user_push_channel", [appName, notificationChannel]);
 }
 
+WgsClient.prototype.getNotificationServicePublicKeyForVAPID = function(appName, callback) {
+     this.call("wgs.get_notification_service_public_key_for_vapid", [appName], {}).then(callback, callback);
+}
+
 WgsClient.prototype.registerUser = function(appName, realm, user, password, email, notificationChannel, onstatechange) {
     var client = this;
     var details = { "authmethods": ["anonymous"] };

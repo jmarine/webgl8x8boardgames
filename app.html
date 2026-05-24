@@ -1,6 +1,6 @@
 <!--
     WebGL 8x8 board games
-    Copyright (C) 2011-2022 by Jordi Mariné Fort
+    Copyright (C) 2011-2026 by Jordi Mariné Fort
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -476,6 +476,22 @@ function updateNotificationChannel(subscription) {
   }
 }
 
+function base64UrlToUint8Array(base64Url) {
+  const padding = '='.repeat((4 - base64Url.length % 4) % 4);
+  const base64 = (base64Url + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+
 function initPushNotifications() {  
   // Are Notifications supported in the service worker?  
   console.log('initPushNotifications');  
@@ -532,9 +548,11 @@ function initPushNotifications() {
   });  
 }
 
-function subscribe() {  
+function subscribe(publicKey) {  
+  let subscribeOptions = { userVisibleOnly: true };
+  if(publicKey) subscribeOptions.applicationServerKey = publicKey;
   navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {  
-    serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly: true})  
+    serviceWorkerRegistration.pushManager.subscribe(subscribeOptions)  
       .then(function(subscription) {  
         // The subscription was successful  
         updateNotificationChannel(subscription);
@@ -620,15 +638,28 @@ function initApp() {
   }
 
 
-
-  $("#allow_push_notifications").change(function() {  
+  $("#allow_push_notifications").change(function() {
     var enabled = $(this).prop('checked');
-    if(notificationChannel != null) {  
-      unsubscribe();  
-    } else {  
-      subscribe();  
-    }  
+    if(notificationChannel != null) {
+      unsubscribe();
+    } else {
+      var wgsclient = app.lobby.getWgsClient(null);
+      if(wgsclient != null)  {
+            debugger;
+            wgsclient.getNotificationServicePublicKeyForVAPID(oauth2ClientName, function(id,details,errorURI,result,resultKw) {
+              if(!result) {
+                alert("VAPID public key not received from WGS server");
+              } else {
+                debugger;
+                var publicKeyBase64Url = result[0];
+                var publicKey = base64UrlToUint8Array(publicKeyBase64Url);
+                subscribe(publicKey);
+              }
+            });
+      }
+    }
   });
+
 
   if('serviceWorker' in navigator) {  
     navigator.serviceWorker.register('service-worker.js').then(initPushNotifications);  
