@@ -166,24 +166,37 @@ WgsClient.prototype.listGroups = function(appId, scope, state, callback) {
     this.call("wgs.list_groups", [appId, state, scope]).then(callback, callback);
 }
 
-WgsClient.prototype.newApp = function(name, domain, version, actionValidatorClass, maxScores, descScoreOrder, min, max, delta, observable, dynamic, alliances, ai_available, roles, internal_data_class, internal_data_options, callback) {
+WgsClient.prototype.newApp = function(name, domain, version, options, callback) {
     var msg = Object();
     msg.name = name;
     msg.domain = domain;
     msg.version = version;
-    msg.action_validator_class = actionValidatorClass;
-    msg.max_scores = maxScores;
-    msg.desc_score_order = descScoreOrder;
-    msg.min = min;
-    msg.max = max;
-    msg.delta = delta;
-    msg.observable = observable;      
-    msg.dynamic = dynamic;
-    msg.alliances = alliances;
-    msg.ai_available = ai_available;
-    msg.roles = roles;
-    msg.internal_data_class = internal_data_class;
-    msg.internal_data_options = internal_data_options;
+    msg.roles = options.roles;
+    msg.action_validator_class = options.action_validator_class;
+    msg.internal_data_class = options.internal_data_class;
+    msg.internal_data_options = options.internal_data_options;    
+    msg.max_scores = options.max_scores;
+    msg.desc_score_order = options.desc_score_order;
+    msg.min = options.min;
+    msg.max = options.max;
+    msg.delta = options.delta;
+    msg.min_teams = options.min_teams;
+    msg.max_teams = options.max_teams;
+    msg.delta_teams = options.delta_teams;
+    msg.min_players_teams = options.min_players_teams;
+    msg.max_players_teams = options.max_players_teams;
+    msg.delta_players_teams = options.delta_players_teams;
+    msg.win_score = options.win_score;
+    msg.tie_score = options.tie_score;
+    msg.min_win_games = options.min_win_games;
+    msg.max_win_games = options.max_win_games;
+    msg.diff_win_games = options.diff_win_games;
+    msg.team_players_in_order = options.team_players_in_order;
+    
+    msg.observable = options.observable;      
+    msg.dynamic = options.dynamic;
+    msg.alliances = options.alliances;
+    msg.ai_available = options.ai_available;
 
     this.call("wgs.new_app", msg).then(callback, callback);
 }
@@ -382,4 +395,41 @@ WgsClient.prototype.sendTeamMessage = function(gid, data, callback) {
     args[1] = data;
 
     this.call("wgs.send_team_message", args).then(callback, callback);
+}
+
+WgsClient.prototype.newTournament = function(appId, tournamentType, name, options, callback) {
+    var msg = Object();
+    msg.appId = appId;
+    msg.type = tournamentType;
+    msg.name = name;
+    msg.start_datetime = options.start_datetime;
+    msg.max_teams = options.max_teams;
+    msg.min_teams = options.min_teams;
+    msg.max_round_duration = options.max_round_duration;
+
+    this.call("wgs.new_tournament", msg).then(callback, callback);
+}
+
+WgsClient.prototype.listTournaments = function(appId, state, callback)  {
+    this.call("wgs.list_tournaments", [appId, state]).then(callback, callback);
+}
+
+WgsClient.prototype.enrollTournament = function(tournamentId, options, callback) {
+    this.call("wgs.enroll_tournament", [tournamentId, options]).then(callback, callback);
+}
+
+WgsClient.prototype.unenrollTournament = function(tournamentEnrollmentId, callback) {
+    this.call("wgs.unenroll_tournament", tournamentEnrollmentId).then(callback, callback);
+}
+
+WgsClient.prototype.startTournament = function(tournamentId, callback) {
+    this.call("wgs.start_tournament", tournamentId).then(callback, callback);
+}
+
+WgsClient.prototype.deleteTournament = function(tournamentId, callback) {
+    this.call("wgs.delete_tournament", tournamentId).then(callback, callback);
+}
+
+WgsClient.prototype.getTournamentDetails = function(tournamentId, callback) {
+    this.call("wgs.get_tournament_details", tournamentId).then(callback, callback);
 }

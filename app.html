@@ -85,6 +85,7 @@ var damaTheme = BlenderExport;
 <script type="text/javascript" src='board3d.js'></script>
 <script type="text/javascript" src='storage.js'></script>
 <script type="text/javascript" src='network.js'></script>
+<script type="text/javascript" src='tournaments.js'></script>
 
 <script language="javascript">
 function preloadSounds() {
@@ -521,7 +522,7 @@ function initPushNotifications() {
 
   // Check if push messaging is supported  
   if (!('PushManager' in window)) {  
-    console.warn('PushManager isn\'t supported.');  
+    console.warn("PushManager isn\'t supported.");  
     return;  
   }
 
@@ -664,7 +665,7 @@ function initApp() {
   if('serviceWorker' in navigator) {  
     navigator.serviceWorker.register('service-worker.js').then(initPushNotifications);  
   } else {  
-    console.warn('Service workers aren\'t supported in this browser.');  
+    console.warn("Service workers aren\'t supported in this browser.");  
   } 
 
 }
@@ -707,7 +708,7 @@ function initApp() {
       <td align="left">
       <H4 style="white-space: nowrap; float:none"><a href="javascript:app.view.UI.hideControls()" data-l10n-id="app.title">WebGL 8x8 board games</a></H4>
       <a class="author" href="mailto:jmarine@tinet.org" data-l10n-id="app.copyright">
-Copyright &copy; 2011-2022<br>
+Copyright &copy; 2011-2026<br>
 by Jordi Marin&eacute; Fort</a>
 <br><br>
 
@@ -719,7 +720,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
            <li><a href="http://sylvester.jcoglan.com/" target="_blank">Sylvester v0.1.3</a> </li>
            <li><a href="http://jquery.com" target="_blank">jQuery v1.12.4</a></li>
 	   <li><a href="https://github.com/l20n/l20n.js" target="_blank">L20n v3.5.1</a></li>
-           <li><a href="https://github.com/jmarine/wgs" target="_blank">WGS v2</a></li>
+           <li><a href="https://github.com/jmarine/wgs" target="_blank">WGS v3</a></li>
            <li><a href="http://code.google.com/p/crypto-js" target="_blank">CryptoJS v3.1.2</a></li>
            <li><a href="https://github.com/dsesclei/mcts/" target="_blank">MCTS implementation</a></li>
            <li><a href="googleAnalyticsTOS.html" target="_blank">Google Analytics</a></li>
@@ -1021,11 +1022,177 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 
     </div>
 
+
+
+    <div id="tournaments">
+      <h4 data-l10n-id="app.network.tournament_list.title">Select tournament</h4>
+      <div style="float: right; margin-top: 5px">
+        <input id="rbTournamentListFilterActive" name="rbTournamentListFilter" type="radio" value="OPEN" style="float: left; margin-top: 2px; vertical-align: middle;" onchange="javascript:app.tournaments.closeDetails(); app.tournaments.list(); return false;" checked="checked"><label id="Active" for="rbTournamentListFilterActive" style="float: left; clear: none">Active</label>
+        <input id="rbTournamentListFilterAll" name="rbTournamentListFilter" type="radio" value="FINISHED" style="margin-left: 5px; clear: none; float: left; margin-top: 2px; vertical-align: middle;" onchange="javascript:app.tournaments.closeDetails(); app.tournaments.list(); return false;"><label id="All" for="rbTournamentListFilterAll" style="float: left; clear: none; margin-right: 5px">History</label>
+      </div>
+      <div style="margin-bottom: 20px; float: left; clear: both; width: 100%">
+        <table id="tournamentsTable" class="scrollTable" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <thead>
+             <tr>
+              <th data-l10n-id="app.network.game_list.game">Game</th>
+              <th data-l10n-id="app.network.tournament_list.date">Date</th>
+              <th data-l10n-id="app.network.tournament_list.name">Name</th>
+              <th data-l10n-id="app.network.game_list.status">Status</th>
+              <th data-l10n-id="app.network.tournament_list.round">Round</th>
+              <th data-l10n-id="app.network.tournament_list.enrolls">#</th>
+	      <th>&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody>
+	    <tr height="50"><td colspan="7" align="center">Loading...</td></tr>
+	  </tbody>
+        </table>
+        <button id="btnNewTournament" onclick="app.tournaments.showCreateOptions()" data-l10n-id="app.actions.new_game_options">New...</button>
+      </div>
+
+      <div id="tournament_new" style="display:none; margin-bottom: 20px; float: left; clear: both; width: 100%;">
+          <h4>New tournament</h4>
+	  <a href="#" style="float: right; text-decoration: none" onclick="$('#tournament_new').hide(); return false"><img src="resources/images/close.png" border="0" width="16" height="16" style="margin-top: 10px" data-l10n-id="app.actions.close" title="Close"></a>
+	  <dl>
+		  <dt>
+			  <label>Game:</label>
+		  </dt>
+		  <dd>
+			  <select id="new_tournament_app" name="new_tournament_app">
+			    <option value="">Select game type</option>
+			    <option value="draughts" data-l10n-id="app.games.draughts">Draughts</option>
+                            <option value="checkers" data-l10n-id="app.games.checkers">Checkers</option>
+                            <option value="dama" data-l10n-id="app.games.dama">Dama</option>
+                            <option value="chess" data-l10n-id="app.games.chess">Chess</option>
+                            <option value="chess960" data-l10n-id="app.games.chess960">Chess960</option>
+                            <option value="breakthrough" data-l10n-id="app.games.breakthrough">Breakthrough</option>
+			  </select>
+		  </dd>
+	  </dl>
+	  <dl>
+		  <dt>
+			  <label>Type:</label>
+		  </dt>
+		  <dd>
+			  <select id="new_tournament_type" name="new_tournament_type">
+				  <option value="0">Swiss system</option>
+				  <option value="1">Single Knockout</option>
+				  <option value="2">Double Knockout</option>
+			  </select>
+		  </dd>
+	  </dl>
+	  <dl>
+		  <dt>
+			  <label>Name:</label>
+		  </dt>
+		  <dd>
+			  <input type="text" id="new_tournament_name" name="new_tournament_name">
+		  </dd>
+	  </dl>
+	  <dl>
+		  <dt>
+			  <label>Start date:</label>
+		  </dt>
+                  <dd>
+			  <input type="datetime-local" id="new_tournament_start_datetime" name="new_tournament_start_datetime">
+		  </dd>
+	  </dl>
+	  <dl>
+		  <dt>
+			  <label>Duration:</label>
+		  </dt>
+                  <dd>
+			  <input type="number" id="new_tournament_duration" name="new_tournament_duration" value="120" size="4">
+			  <select id="new_tournament_duration_type" name="new_tournament_duration_type"><option value="1">minutes</option><option value="60">hours</option><option value="1440">days</option></select>
+		  </dd>
+	  </dl>
+	  <dl>
+		  <dt>
+			  <label>Min teams:</label>
+		  </dt>
+                  <dd>
+			  <input type="number" id="new_tournament_min_teams" name="new_tournament_min_teams" value="2" min="2" size="4">
+		  </dd>
+	  </dl>
+	  <dl>
+		  <dt>
+			  <label>Max teams:</label>
+		  </dt>
+                  <dd>
+			  <input type="number" id="new_tournament_max_teams" name="new_tournament_max_teams" value="0" min="0" size="4">
+		  </dd>
+	  </dl>
+
+
+
+          <button style="clear: both" id="btnCreateTournament" data-l10n-id="app.actions.create_game" onclick="javascript:app.tournaments.create()">Create</button>
+	  <!--<button id="btnCloseNewTournament" data-l10n-id="app.actions.cancel" onclick="javascript:app.tournaments.hideCreateOptions()">Cancel</button>-->
+
+      </div>
+
+      <div id="tournament_details" style="display:none; margin-bottom: 20px; float: left; clear: both; width: 100%;">
+          <h4>Tournament details</h4>
+	  <a href="#" style="float: right; text-decoration: none" onclick="javascript:app.tournaments.closeDetails(); return false"><img src="resources/images/close.png" border="0" width="16" height="16" style="margin-top: 10px" data-l10n-id="app.actions.close" title="Close"></a>
+	  <dl>
+		  <dt>
+			  <label>Name:</label>
+		  </dt>
+		  <dd>
+			  <p id="tournament_details_name"></p>
+		  </dd>
+	  </dl>
+	  <dl>
+		  <dt>
+                          <label>Round:</label>
+                  </dt>
+		  <dd>
+			  <select id="tournament_details_round" name="tournament_details_round" onChange="javascript:app.tournaments.onRoundChange(); return false;">
+			    <option value="0">Summary</option>
+			    <option value="1">1</option>
+			  </select>
+		  </dd>
+	  </dl>
+          <table id="tournament_details_info" cellspacing="0" class="scrollTable" style="clear: both; width: 100%; display: none">
+	    <thead>
+		   <tr>
+	             <th width="20" align="left">#</th>
+	             <th width="80" align="left">State</th>
+		     <th style="text-align: left">Team 1</th>
+	             <th width="10"></th>
+		     <th width="10"></th>
+		     <th style="text-align: right">Team 2</th>
+		     <th width="100"></th>
+		   </tr>
+            </thead>
+	    <tbody>
+		    <tr><td colspan="7">No data</td></tr>
+	    </tbody>
+	  </table>
+
+	  <table id="tournament_summary_info" cellspacing="0" class="scrollTable" style="clear: both; width: 100%; display: none; margin-bottom: 20px;">
+            <thead>
+                   <tr>
+                     <th width="20" align="left">Rank</th>
+                     <th align="left">Team</th>
+                     <th width="40" align="left">R1</th>
+                     <th width="40" align="left">R2</th>
+                     <th width="80" align="left">Total</th>
+                   </tr>
+            </thead>
+            <tbody>
+		    <tr><td colspan="5">No data</td></tr>
+            </tbody>
+          </table>
+      </div>
+
+    </div>
+
   </DIV>
 
 
   <div id="menu" style="float: right;">
         <button id='btnGame' onclick="javascript:app.view.UI.showGames(); return false;"><img src="resources/images/games.png" width="24" height="24" data-l10n-id="app.actions.games"></button>
+        <button style="display: none" id="btnTournaments" onclick="javascript:app.view.UI.showTournaments(); return false;"><img src="resources/images/tournaments.png" width="24" height="24"  data-l10n-id="app.actions.tournaments"></button>
         <button id="btnOptions" onclick="javascript:app.view.UI.showOptions(); return false;"><img src="resources/images/options.png" width="24" height="24"  data-l10n-id="app.actions.options"></button>
         <button id="btnAbout" onclick="javascript:app.view.UI.showCredits(); return false;"><img src="resources/images/about.png" width="24" height="24" data-l10n-id="app.actions.about"></button>
   </div>

@@ -139,13 +139,25 @@ showMessage: function(msg, msgId) {
 showCredits: function() {
   $('#title').show();
   $('#games').hide();
+  $('#tournaments').hide();
   $('#options').hide();
   $('#config').fadeIn();
 },
 
+showTournaments: function() {
+  $('#title').hide();
+  $('#games').hide();
+  $('#tournaments').show();
+  $('#options').hide();
+  $('#config').fadeIn();
+},
+
+
+
 showOptions: function() {
   $('#title').hide();
   $('#games').hide();
+  $('#tournaments').hide();
   $('#options').show();
   $('#config').fadeIn();
 },
@@ -154,6 +166,7 @@ showGames: function() {
   $('#title').hide();
   $('#options').hide();
   $('#games').show();
+  $('#tournaments').hide();
   $('#config').fadeIn();
 },
 
