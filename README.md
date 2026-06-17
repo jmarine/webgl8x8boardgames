@@ -1,6 +1,6 @@
 WebGL 8x8 board games
 =====================
-Copyright © 2011-2025 Jordi Mariné Fort
+Copyright © 2011-2026 Jordi Mariné Fort
 
 About
 -----
