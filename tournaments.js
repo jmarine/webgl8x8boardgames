@@ -124,7 +124,7 @@ app.tournaments = {
       debugger;
       app.lobby.wgsclient.newTournament(appId, type, name, options, function(id,details,errorURI,result,resultKw) {
 	if(errorURI) {
-	  alert("Error: " + details);
+	  alert("Error: " + errorURI);
 	} else {
 	  app.tournaments.hideCreateOptions();
 	  app.tournaments.list();
@@ -136,7 +136,7 @@ app.tournaments = {
       let _this = this;
       app.lobby.wgsclient.deleteTournament(id, function(id,details,errorURI,result,resultKw) {
 	if(errorURI) {
-          alert("Error: " + details);
+          alert("Error: " + errorURI);
         } else {
           app.tournaments.list();
 	  if(id == _this.selected.id) {
@@ -152,7 +152,7 @@ app.tournaments = {
       // options.participants = [];
       app.lobby.wgsclient.enrollTournament(id, options, function(id,details,errorURI,result,resultKw) {
         if(errorURI) {
-          alert("Error: " + details);
+          alert("Error: " + errorURI);
         } else {
           app.tournaments.list();
         }
@@ -164,7 +164,7 @@ app.tournaments = {
       app.lobby.wgsclient.unenrollTournament(tournamentEnrollId, function(id,details,errorURI,result,resultKw) {
 	debugger;
         if(errorURI) {
-          alert("Error: " + details);
+          alert("Error: " + errorURI);
         } else {
           app.tournaments.list();
         }
@@ -174,7 +174,7 @@ app.tournaments = {
     start: function(id) {
       app.lobby.wgsclient.startTournament(id, function(id,details,errorURI,result,resultKw) {
         if(errorURI) {
-          alert("Error: " + details);
+          alert("Error: " + errorURI);
         } else {
           app.tournaments.list();
         }
@@ -195,7 +195,7 @@ app.tournaments = {
 
       app.lobby.wgsclient.getTournamentDetails(id, function(id,details,errorURI,result,resultKw) {
         if(errorURI) {
-          alert("Error: " + details);
+          alert("Error: " + errorURI);
         } else {
 	  console.log("Details:", resultKw);
 	  _this.selected = resultKw;
