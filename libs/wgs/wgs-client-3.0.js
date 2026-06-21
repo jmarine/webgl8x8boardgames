@@ -433,3 +433,29 @@ WgsClient.prototype.deleteTournament = function(tournamentId, callback) {
 WgsClient.prototype.getTournamentDetails = function(tournamentId, callback) {
     this.call("wgs.get_tournament_details", tournamentId).then(callback, callback);
 }
+
+WgsClient.prototype.listUsers = function(callback) {
+    this.call("wgs.list_users", [], {}).then(callback, callback);
+}
+
+WgsClient.prototype.createTeam = function(teamAlias, callback) {
+    this.call("wgs.create_team", teamAlias).then(callback, callback);
+}
+
+WgsClient.prototype.deleteTeam = function(teamAlias, callback) {
+    this.call("wgs.delete_team", teamAlias).then(callback, callback);
+}
+
+WgsClient.prototype.updateTeam = function(teamAlias, operation, uid, callback) {
+    this.call("wgs.update_team", [teamAlias, operation, uid]).then(callback, callback);
+}
+
+WgsClient.prototype.filterTeams = function(teamAlias, callback) {
+    this.call("wgs.filter_teams", teamAlias).then(callback, callback);
+}
+
+WgsClient.prototype.getTeamInfo = function(teamAlias, callback) {
+    this.call("wgs.get_team_info", teamAlias).then(callback, callback);
+}
+
+
