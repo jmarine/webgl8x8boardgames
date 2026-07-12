@@ -123,7 +123,7 @@ select.list {
 
 
 
-#connect_section, #profile_section, #btnDisconnect, #btnResignGame, #btnDrawGame, #btnShowMatchingOptions, #btnHideMatchingOptions, #btnCreateGame, #btnDeleteFinishedGames, #matching_options {
+#connect_section, #profile_section, #btnDisconnect, #btnResignGame, #btnClaimVictory, #btnDrawGame, #btnShowMatchingOptions, #btnHideMatchingOptions, #btnCreateGame, #btnDeleteFinishedGames, #matching_options {
   display: none;
 }
 

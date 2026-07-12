@@ -246,6 +246,13 @@ $(document).ready(function(){
         return false;
   });
 
+  $('#btnClaimVictory').click(function() {
+        if(confirm($("#confirm_claim_victory").text())) {
+          app.lobby.claimVictory();
+        }
+        return false;
+  });
+
   $('#btnDeleteAllGames').click(function() {
         app.controller.Storage.deleteGames();
 	return false;

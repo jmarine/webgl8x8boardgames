@@ -186,6 +186,7 @@ exitGame: function(disconnecting)
     $("#player2").removeAttr("disabled");
 
     $("#btnResignGame").hide();
+    $("#btnClaimVictory").hide();
     $("#btnDrawGame").hide();
 
     $("#matching_options").hide();
@@ -273,6 +274,17 @@ offerDraw: function() {
   }
 },
 
+claimVictory: function() {
+  var slot = -1;
+  var group = app.lobby.currentGroup;
+  if(this.wgsclient && group && group.state != "FINISHED") {  // When player is not an observer
+    var data = "";
+    if( this.wgsclient.isMemberOfGroup(group.gid)) {
+      slot = this.wgsclient.getSlotOfGroup(group.gid);
+    }
+    this.wgsclient.addAction(group.gid, slot, "CLAIM_VICTORY", data);
+  }
+},
 
 group_opened: function(group) {
     console.log("group change received: " + JSON.stringify(group));
@@ -308,10 +320,12 @@ group_opened: function(group) {
     $("#btnDeleteFinishedGames").hide();
     if(this.wgsclient.isMemberOfGroup(group.gid) && group.state != "FINISHED") {
          $("#btnResignGame").show();
+         $("#btnClaimVictory").show();
          $("#btnDrawGame").show();
          $("#btnRetractMove").show();
     } else {
          $("#btnResignGame").hide();
+         $("#btnClaimVictory").hide();
          $("#btnDrawGame").hide();
          $("#btnRetractMove").hide();
     }
@@ -397,6 +411,7 @@ group_changed: function(group) {
           document.l10n.formatValue('app.network.player_resigned', { "player" : player }).then(function(msg) { app.view.UI.showMessage(msg) } );
           $("#btnRetractMove").hide();
           $("#btnResignGame").hide();
+          $("#btnClaimVictory").hide();
           $("#btnDrawGame").hide();
           app.view.board.acceptHumanMove(false);
 
@@ -411,6 +426,7 @@ group_changed: function(group) {
         app.view.UI.setGameState(action.value);
         if(this.wgsclient.isMemberOfGroup(group.gid)) {
           $("#btnResignGame").show();
+          $("#btnClaimVictory").show();
           $("#btnDrawGame").show();
           if(isFinite(currentSlot) && action.slot != currentSlot) {
             if(!action.undoned) {
@@ -479,6 +495,7 @@ group_changed: function(group) {
           app.view.UI.setTurn(0);
           $("#btnRetractMove").hide();
           $("#btnResignGame").hide();
+          $("#btnClaimVictory").hide();
           $("#btnDrawGame").hide();
       }
 
@@ -731,6 +748,7 @@ disconnect: function() {
         $('#btnHideMatchingOptions').hide();
         $('#btnDeleteFinishedGames').hide();
         $("#btnResignGame").hide();
+        $("#btnClaimVictory").hide();
         $("#btnDrawGame").hide();
         $('#games_section').hide();
         $('#connect_section').fadeIn();

@@ -1017,6 +1017,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
       <button id='btnRetractMove' style="display: none" data-l10n-id="app.actions.retract_move">Retract move</button>
       <button id="btnDrawGame" data-l10n-id="app.network.game_stalled">Draw</button>
       <button id="btnResignGame" data-l10n-id="app.network.resign">Resign</button>
+      <button id="btnClaimVictory" data-l10n-id="app.network.claim_victory">Claim victory</button>
 
       <button id="btnDisconnect" data-l10n-id="app.network.disconnect">Disconnect</button>
 
@@ -1099,7 +1100,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 	  </dl>
 	  <dl>
 		  <dt>
-			  <label>Duration:</label>
+			  <label>Round time:</label>
 		  </dt>
                   <dd>
 			  <input type="number" id="new_tournament_duration" name="new_tournament_duration" value="120" size="4">
@@ -1158,8 +1159,14 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 	             <th width="20" align="left">#</th>
 	             <th width="80" align="left">State</th>
 		     <th style="text-align: left">Team 1</th>
-	             <th width="10"></th>
-		     <th width="10"></th>
+		     <th colspan="2" width="20">
+		       <p align="center" style="text-wrap: nowrap">
+		       <span data-l10n-id="app.messages.round_started">Started</span>: <span id="tournament_round_start_date">xx/xx/xxxx hh:mm</span><br>
+		       </p>
+		       <p align="center" style="text-wrap: nowrap">
+		       <span data-l10n-id="app.messages.round_ends">Ends</span>: <span id="tournament_round_end_date">xx/xx/xxxx hh:mm</span>
+		       </p>
+		     </th>
 		     <th style="text-align: right">Team 2</th>
 		     <th width="100"></th>
 		   </tr>
@@ -1221,6 +1228,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 	<div id="confirm_resign" data-l10n-id="app.messages.confirm_resign">Do you really want to resign?</div>
 	<div id="confirm_draw_offer" data-l10n-id="app.messages.confirm_draw_offer">Do you really want to offer a draw?</div>
 	<div id="confirm_draw_acceptation" data-l10n-id="app.messages.confirm_draw_acceptation">Accept draw?</div>
+	<div id="confirm_claim_victory" data-l10n-id="app.messages.confirm_claim_victory">Claim victory?</div>
 	<div id="confirm_game_request" data-l10n-id="app.messages.confirm_game_request">Accept game request?</div>
 	<div id="confirm_game_state_load" data-l10n-id="app.messages.confirm_game_state_load">Play opponent's new game?</div>
 	<div id="confirm_castle" data-l10n-id="app.messages.confirm_castle">Castle?</div>

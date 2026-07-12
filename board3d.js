@@ -104,6 +104,7 @@ Board3D.prototype =
         if(winner) document.l10n.formatValue("app.messages.player_won", { "player": winner } ).then(function(msg) { app.view.UI.showMessage(msg) }); 
         else document.l10n.formatValue("app.messages.game_stalled", { "player": winner } ).then(function(msg) { app.view.UI.showMessage(msg) });
         $("#btnResignGame").hide();
+        $("#btnClaimVictory").hide();
         $("#btnDrawGame").hide();
         $('#btnRetractMove').each(function() {
           this.disabled = true;

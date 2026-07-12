@@ -201,14 +201,17 @@ app.tournaments = {
 	  _this.selected = resultKw;
           $("#tournament_details_name").text(resultKw.name);
 	  $("#tournament_details_round option:not(:first)").remove();
+
+	  var isFinished = (resultKw.state.toLowerCase() == "finished");
 	  var roundId = 0;
 	  if(_this.selected != null && _this.selected.rounds != null && _this.selected.rounds.length > 0) {
 	      while(roundId < _this.selected.rounds.length) {
 		 roundId++;
-		 $("#tournament_details_round").append($('<option value="'+roundId+'"' + ((roundId == _this.selected.rounds.length)? "selected" : "") + '>' + roundId + '</option>'));
+		 $("#tournament_details_round").append($('<option value="'+roundId+'"' + ((!isFinished && roundId == _this.selected.rounds.length)? "selected" : "") + '>' + roundId + '</option>'));
 	      }
 	  }
-	  // show last round
+	  // show last round for active tournament, or summary when finished
+	  if(isFinished) roundId = 0;
           _this.showTournamentDetails(roundId);
         }
       });
@@ -251,6 +254,7 @@ app.tournaments = {
     showRoundDetails: function(roundId) {
 	    let _this = this;
 	    this.clearTournamentRoundsDetails();
+
 	    
             let tableBody = $("#tournament_details_info tbody");
 	    if(this.selected == null || this.selected.rounds == null || roundId > this.selected.rounds.length) {
@@ -260,7 +264,11 @@ app.tournaments = {
 	    } else {
 
                 var round = this.selected.rounds[roundId - 1];
+	        $("#tournament_round_start_date").text((new Date(round.start)).toLocaleString());
+	        $("#tournament_round_end_date").text((new Date(round.due)).toLocaleString());
+
 		round.matches.forEach(function(match, index) {
+			debugger;
 		     var isFinished = match.status.toLowerCase() == "finished";
 		     var t1 = match.teams[0];
 		     var t2 = match.teams[1];
@@ -274,8 +282,12 @@ app.tournaments = {
                      tr.append('<td data-l10n-id="app.group.state.'+match.status.toLowerCase()+'">' + match.status + '</td>');
 
                      tr.append('<td style="text-align: left; font-weight: ' + weight1 + '">' + t1.teamName + '</td>');
-		     tr.append('<td style="padding-right: 0px">' + ((!isFinished)? '' : '<span style="text-align: left;  background-color: '+color1+'; border-top-left-radius: 8px;  border-bottom-left-radius: 8px;  padding: 5px">(+'+t1.points+')</span>') + '</td>');
-                     tr.append('<td style="padding-right: 0px">' + ((!isFinished || t2 == null) ? '' : '<span style="text-align: right; background-color: '+color2+'; border-top-right-radius: 8px; border-bottom-right-radius: 8px; padding: 5px">(+' + t2.points + ')</span>') + '</td>');
+		     if(!isFinished) {
+		       tr.append('<td colspan="2" align="center" style="padding-right: 0px"><span style="text-align: left;  background-color: '+color1+'; border-top-left-radius: 8px;  border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px;  padding: 5px; text-wrap: nowrap;" data-l10n-id="app.group.state.not_finished">In progress</span></td>');
+		     } else {
+		       tr.append('<td align="right" style="padding-right: 0px">' + ((!isFinished)? '' : '<span style="text-align: left;  background-color: '+color1+'; border-top-left-radius: 8px;  border-bottom-left-radius: 8px;  padding: 5px">(+'+t1.points+')</span>') + '</td>');
+                       tr.append('<td style="padding-right: 0px">' + ((!isFinished || t2 == null) ? '' : '<span style="text-align: right; background-color: '+color2+'; border-top-right-radius: 8px; border-bottom-right-radius: 8px; padding: 5px">(+' + t2.points + ')</span>') + '</td>');
+		     }
                      tr.append('<td style="text-align: right; font-weight: ' + weight2 + '">' + ((t2 != null) ? t2.teamName : '') + '</td>');
 
 		     var joinButton = '';
