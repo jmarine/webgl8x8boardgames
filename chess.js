@@ -66,6 +66,8 @@ Chess.prototype.clone = function() {
 Chess.prototype.toString = function() {
    var retval = [];
    retval.push("Chess:");
+   retval.push( this.winner );
+   retval.push(":");
    retval.push( (this.getTurn() == PLAYER1) ? "1" : "2" );
    retval.push( (this.enrocsValids[0][0]) ? "Y" : "N" );
    retval.push( (this.enrocsValids[0][1]) ? "Y" : "N" );
@@ -88,6 +90,12 @@ Chess.prototype.initFromStateStr = function(str) {
   try {
     var startIndex = str.indexOf(':');
     if(startIndex != -1) str = str.substring(1+startIndex);
+
+    startIndex = str.indexOf(':');
+    if(startIndex != -1) {
+        this.winner = parseInt(str.substring(0, startIndex));
+        str = str.substring(1+startIndex);
+    }
 
     var index = 0;
     this.turn = (str.charAt(index++) == '1') ? PLAYER1 : PLAYER2;
@@ -129,6 +137,7 @@ Chess.prototype.initFromStateStr = function(str) {
 Chess.prototype.newGame = function() {
   var rows = 3;
 
+  this.winner = -1;
   this.turn = PLAYER1;
   this.pieces = Array();
 
@@ -213,7 +222,9 @@ Chess.prototype.getMoveString = function(move) {
 
 
 Chess.prototype.getWinner = function() {
-  if(!this.isOver()) {
+  if(this.winner != null && this.winner >= NONE) {
+    return this.winner;
+  } else if(!this.isOver()) {
     return NONE;
   } else {
     var opponent = this.getOpponent();
@@ -358,15 +369,19 @@ Chess.prototype.isQuiescenceMove = function(move) {
 
 
 Chess.prototype.isOver = function() {  // Optimization
-  var moves = [];
-  var checkValidMoves = true;
-  var turn = this.getTurn();
-  for(var row = 0; row < 8; row++) {
-    for(var col = 0; col < 8; col++) {
-      var piece = this.getPiece(col,row);
-      if((piece != NONE) && (this.getPieceOwner(piece) == turn)) {
-        this.getPieceMovements(turn, col, row, moves, checkValidMoves);
-        if(moves.length > 0) return false;
+  if(this.winner >= NONE) {
+    return true;
+  } else {
+    var moves = [];
+    var checkValidMoves = true;
+    var turn = this.getTurn();
+    for(var row = 0; row < 8; row++) {
+      for(var col = 0; col < 8; col++) {
+        var piece = this.getPiece(col,row);
+        if((piece != NONE) && (this.getPieceOwner(piece) == turn)) {
+          this.getPieceMovements(turn, col, row, moves, checkValidMoves);
+          if(moves.length > 0) return false;
+        }
       }
     }
   }

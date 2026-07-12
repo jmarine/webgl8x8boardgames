@@ -32,6 +32,8 @@ Chess960.prototype.constructor.name = "Chess960";
 Chess960.prototype.toString = function() {
    var retval = [];
    retval.push("Chess960:");
+   retval.push( this.winner );
+   retval.push(":");
    retval.push( (this.getTurn() == PLAYER1) ? "1" : "2" );
    retval.push( (this.enrocsValids[0][0]) ? "Y" : "N" );
    retval.push( (this.enrocsValids[0][1]) ? "Y" : "N" );
@@ -54,6 +56,7 @@ Chess960.prototype.toString = function() {
 Chess960.prototype.newGame = function() {
   var rows = 3;
 
+  this.winner = -1;
   this.turn = PLAYER1;
   this.pieces = Array();
 

@@ -38,8 +38,15 @@ var app = app || {}
 app.model = app.model || {}
 app.model.GameFactory = {
   createGame: function(gameType) {
+    var maxPoints = "";
+    var pos = gameType.indexOf('-');
+    if(pos != -1) {
+        maxPoints = gameType.substring(pos+1);
+        gameType = gameType.substring(0, pos);
+    }
+ 
     var camelGameType = gameType.substring(0,1).toUpperCase() + gameType.substring(1).toLowerCase();
-    return eval(" new app.model." + camelGameType + "()");
+    return eval(" new app.model." + camelGameType + "(" + maxPoints + ")");  // allow card variants
   }
 }
 
@@ -54,7 +61,7 @@ Game.prototype.getTurn = function() {
 }
 
 Game.prototype.isOver = function() {
-  return (this.getMovements().length == 0);
+  return (this.winner >= 0 || this.getMovements().length == 0);
 }
 
 Game.prototype.getOpponent = function() {
@@ -155,6 +162,7 @@ Game.prototype.initFromStateStr = function(str) {
 }
 
 Game.prototype.newGame = function(player1, player2) {
+  this.winner = -1;
 }
 
 Game.prototype.parseMoveString = function(str) {
@@ -168,6 +176,10 @@ Game.prototype.getMoveString = function(move) {
 Game.prototype.isValidMove = function(str) {
   var move = this.parseMoveString(str);
   return (move != null);
+}
+
+Game.prototype.isValidAction = function(actionSlot, actionName, actionValue, privateData) {
+    return true;
 }
 
 Game.prototype.makeStep = function(player, move) {
@@ -190,7 +202,11 @@ Game.prototype.getMovements = function() {
 }
 
 Game.prototype.getWinner = function() {
-  return NONE;
+  return (this.winner != null) ? this.winner : -1;
+}
+
+Game.prototype.setWinner = function(winner) {
+  this.winner = winner;  // i.e. force winner after resign
 }
 
 

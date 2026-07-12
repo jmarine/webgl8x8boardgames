@@ -52,6 +52,8 @@ Dama.prototype.toString = function() {
    var retval = [];
    retval.push(this.constructor.name);
    retval.push(":");
+   retval.push(this.winner);
+   retval.push(":");
    retval.push( (this.getTurn() == PLAYER1) ? "1" : "2" );
    for(var y = 0; y < 8; y++) {
      for(var x = 0; x < 8; x++) {
@@ -69,6 +71,12 @@ Dama.prototype.initFromStateStr = function(str) {
   try {
     var startIndex = str.indexOf(':');
     if(startIndex != -1) str = str.substring(1+startIndex);
+
+    startIndex = str.indexOf(':');
+    if(startIndex != -1) {
+	this.winner = parseInt(str.substring(0, startIndex));
+	str = str.substring(1+startIndex);
+    }
 
     var index = 0;
     this.turn = (str.charAt(index++) == '1') ? PLAYER1 : PLAYER2;
@@ -114,6 +122,7 @@ Dama.prototype.getFirstTurn = function() {
 Dama.prototype.newGame = function() {
   var rows = 2;
 
+  this.winner = -1;
   this.turn = this.getFirstTurn();
   this.pieces = Array();
   this.pieceCount = Array();
@@ -175,7 +184,8 @@ Dama.prototype.getMoveString = function(move) {
 
 
 Dama.prototype.getWinner = function() {
-  if(this.pieceCount[PLAYER1] == 0 || (this.pieceCount[PLAYER1] == 1 && this.pawnsCount[PLAYER1] == 1 && this.kingsCount[PLAYER2] > 0)) return PLAYER2;
+  if(this.winner != null && this.winner >= NONE) return this.winner;
+  else if(this.pieceCount[PLAYER1] == 0 || (this.pieceCount[PLAYER1] == 1 && this.pawnsCount[PLAYER1] == 1 && this.kingsCount[PLAYER2] > 0)) return PLAYER2;
   else if(this.pieceCount[PLAYER2] == 0 || (this.pieceCount[PLAYER2] == 1 && this.pawnsCount[PLAYER2] == 1 && this.kingsCount[PLAYER1] > 0)) return PLAYER1;
   else return NONE;
 };

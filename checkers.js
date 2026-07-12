@@ -41,7 +41,9 @@ Checkers.prototype.getFirstTurn = function() {
 
 
 Checkers.prototype.getWinner = function() {
-  if(this.isOver()) {
+  if(this.winner != null && this.winner >= NONE) {
+    return this.winner;
+  } else if(this.isOver()) {
     return (this.getTurn() == PLAYER1)? PLAYER2 : PLAYER1;
   } else {
     return NONE;

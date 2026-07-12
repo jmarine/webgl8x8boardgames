@@ -48,6 +48,8 @@ Breakthrough.prototype.clone = function() {
 Breakthrough.prototype.toString = function() {
    var retval = [];
    retval.push("Breakthrough:");
+   retval.push( this.winner );
+   retval.push(":");
    retval.push( (this.getTurn() == PLAYER1) ? "1" : "2" );
    for(var y = 0; y < 8; y++) {
      for(var x = 0; x < 8; x++) {
@@ -65,6 +67,12 @@ Breakthrough.prototype.initFromStateStr = function(str) {
   try {
     var startIndex = str.indexOf(':');
     if(startIndex != -1) str = str.substring(1+startIndex);
+
+    startIndex = str.indexOf(':');
+    if(startIndex != -1) {
+        this.winner = parseInt(str.substring(0, startIndex));
+        str = str.substring(1+startIndex);
+    }
 
     var index = 0;
     this.turn = (str.charAt(index++) == '1') ? PLAYER1 : PLAYER2;
@@ -99,6 +107,7 @@ Breakthrough.prototype.initFromStateStr = function(str) {
 Breakthrough.prototype.newGame = function() {
   var rows = 2;
 
+  this.winner = -1;
   this.turn = PLAYER1;
   this.pieces = Array();
   this.pieceCount = Array();
@@ -160,12 +169,12 @@ Breakthrough.prototype.existsPlayersPawnOnRow = function(player, row) {
 }
 
 Breakthrough.prototype.isOver = function() {
-  var winner = this.getWinner();
-  return (winner != NONE);
+  return (this.winner >= NONE || this.getWinner() != NONE);
 }
 
 Breakthrough.prototype.getWinner = function() {
-  if(this.pieceCount[PLAYER1] == 0 || this.existsPlayersPawnOnRow(PLAYER2, 0)) return PLAYER2;
+  if(this.winner != null && this.winner >= NONE) return this.winner;
+  else if(this.pieceCount[PLAYER1] == 0 || this.existsPlayersPawnOnRow(PLAYER2, 0)) return PLAYER2;
   else if(this.pieceCount[PLAYER2] == 0 || this.existsPlayersPawnOnRow(PLAYER1, 7)) return PLAYER1;
   else return NONE;
 }
@@ -286,25 +295,6 @@ Breakthrough.prototype.evaluateState = function(depth) {
 
 Breakthrough.prototype.isQuiescenceMove = function(move) {
   return (move.killedX == -1);
-}
-
-
-Breakthrough.prototype.isOver = function() {
-  var moves = [];
-  var winner = this.getWinner();
-  if(winner == NONE) {
-      var player = this.getTurn();
-      for(var y=0; y<8; y++) {
-        for(var x=0; x<8; x++) { 
-          var piece = this.getPiece(x,y);
-          if( (piece != NONE) && (player == this.getPieceOwner(piece)) ) {
-            this.getPieceMovements(player, x,y, moves);
-            if(moves.length > 0) return false;
-          }
-        } 
-      }
-  }
-  return true;
 }
 
 
