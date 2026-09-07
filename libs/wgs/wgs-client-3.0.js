@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2014 Jordi Mariné Fort */
+/* Copyright (c) 2012-2026 Jordi Mariné Fort */
 
 WgsClient.prototype = new Wamp2();
 WgsClient.prototype.constructor = WgsClient;
@@ -11,7 +11,7 @@ function WgsClient(u) {
 }
 
 WgsClient.prototype.getAgent = function() {
-    return "wgs-client-2.0-alpha1";
+    return "wgs-client-3.0-alpha";
 }
 
 WgsClient.prototype.getUserInfo = function(callback) {
@@ -162,8 +162,8 @@ WgsClient.prototype.listApps = function(filterByDomain, callback) {
         });
 }
 
-WgsClient.prototype.listGroups = function(appId, scope, state, callback) {
-    this.call("wgs.list_groups", [appId, state, scope]).then(callback, callback);
+WgsClient.prototype.listGroups = function(appId, scope, status, callback) {
+    this.call("wgs.list_groups", [appId, status, scope]).then(callback, callback);
 }
 
 WgsClient.prototype.newApp = function(name, domain, version, options, callback) {
@@ -317,7 +317,7 @@ WgsClient.prototype.getSlotOfGroup = function(gid) {
     return retval;
 }
 
-WgsClient.prototype.updateGroup = function(appId, gid, state, ready, data, automatch, hidden, observable, dynamic, alliances, callback) {
+WgsClient.prototype.updateGroup = function(appId, gid, status, ready, data, automatch, hidden, observable, dynamic, alliances, callback) {
     var client = this;
     var msg = Object();
     msg.app = appId;
@@ -328,8 +328,8 @@ WgsClient.prototype.updateGroup = function(appId, gid, state, ready, data, autom
     msg.dynamic = dynamic;
     msg.alliances = alliances;      
     if(data) msg.data  = data;
-    if(state) {
-        msg.state = state;
+    if(status) {
+        msg.status = status;
         msg.ready = ready;        
     }
 
@@ -341,12 +341,12 @@ WgsClient.prototype.updateGroup = function(appId, gid, state, ready, data, autom
     } );
 }
 
-WgsClient.prototype.updateMember = function(appId, gid, state, slot, sid, usertype, user, role, team, callback) {
+WgsClient.prototype.updateMember = function(appId, gid, status, slot, sid, usertype, user, role, team, callback) {
     var client = this;      
     var msg = Object();
     msg.app = appId;
     msg.gid = gid;
-    msg.state = state;
+    msg.status = status;
     if(!isNaN(slot)) {
         msg.slot = slot;
         msg.sid  = sid;
@@ -410,8 +410,8 @@ WgsClient.prototype.newTournament = function(appId, tournamentType, name, option
     this.call("wgs.new_tournament", msg).then(callback, callback);
 }
 
-WgsClient.prototype.listTournaments = function(appId, state, callback)  {
-    this.call("wgs.list_tournaments", [appId, state]).then(callback, callback);
+WgsClient.prototype.listTournaments = function(appId, status, callback)  {
+    this.call("wgs.list_tournaments", [appId, status]).then(callback, callback);
 }
 
 WgsClient.prototype.enrollTournament = function(tournamentId, options, callback) {

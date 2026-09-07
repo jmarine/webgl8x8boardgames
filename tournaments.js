@@ -38,9 +38,9 @@ app.tournaments = {
       if(this.subscriptionId == null) this.subscribe();
 
       var appId = ""; // any
-      var state = $('input[name="rbTournamentListFilter"]:checked').val();
+      var status = $('input[name="rbTournamentListFilter"]:checked').val();
 
-      app.lobby.wgsclient.listTournaments(appId, state, function(id,details,errorURI,result,resultKw) {
+      app.lobby.wgsclient.listTournaments(appId, status, function(id,details,errorURI,result,resultKw) {
 	  debugger;
 	  $("#tournamentsTable tbody tr").remove();
 
@@ -53,14 +53,14 @@ app.tournaments = {
 	      tableBody.append(tr);
 	    } else {
 	      resultKw.tournaments.forEach(function(item) {
-		var isOpen = item.state.toLowerCase() == "open";
+		var isOpen = item.status.toLowerCase() == "open";
 		var roundType = (item.type == 0) ? "Swiss system" : ((item.type == 1) ? "Single knockout" : "Double knockout");
 	        var tr = $("<tr>");
 	        tr.attr('class', "scrollTableRow");
                 tr.append('<td data-l10n-id="app.games.' + item.appName + '">' + item.appName + '</td>');
                 tr.append('<td>' + app.tournaments.convertISOStringToLocal(item.start) + '</td>');
                 tr.append('<td><a href="#" onclick="javascript:app.tournaments.showDetails(' + item.id + '); return false;">' + item.name + '</a></td>');
-		tr.append('<td><span data-l10n-id="app.group.state.'+item.state.toLowerCase()+'">' + item.state + '</td>');
+		tr.append('<td><span data-l10n-id="app.group.status.'+item.status.toLowerCase()+'">' + item.status + '</td>');
                 tr.append('<td>' + item.round + ' - ' + roundType + '</td>');
 		let enrolls = $('<td>' + item.enrolls + '</td>');
                 tr.append(enrolls);
@@ -202,7 +202,7 @@ app.tournaments = {
           $("#tournament_details_name").text(resultKw.name);
 	  $("#tournament_details_round option:not(:first)").remove();
 
-	  var isFinished = (resultKw.state.toLowerCase() == "finished");
+	  var isFinished = (resultKw.status.toLowerCase() == "finished");
 	  var roundId = 0;
 	  if(_this.selected != null && _this.selected.rounds != null && _this.selected.rounds.length > 0) {
 	      while(roundId < _this.selected.rounds.length) {
@@ -279,11 +279,11 @@ app.tournaments = {
 
 	             let tr = $("<tr class='scrollRow' height='38px'>");
 	             tr.append('<td>' + (index+1) + '</td>');
-                     tr.append('<td data-l10n-id="app.group.state.'+match.status.toLowerCase()+'">' + match.status + '</td>');
+                     tr.append('<td data-l10n-id="app.group.status.'+match.status.toLowerCase()+'">' + match.status + '</td>');
 
                      tr.append('<td style="text-align: left; font-weight: ' + weight1 + '">' + t1.teamName + '</td>');
 		     if(!isFinished) {
-		       tr.append('<td colspan="2" align="center" style="padding-right: 0px"><span style="text-align: left;  background-color: '+color1+'; border-top-left-radius: 8px;  border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px;  padding: 5px; text-wrap: nowrap;" data-l10n-id="app.group.state.not_finished">In progress</span></td>');
+		       tr.append('<td colspan="2" align="center" style="padding-right: 0px"><span style="text-align: left;  background-color: '+color1+'; border-top-left-radius: 8px;  border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px;  padding: 5px; text-wrap: nowrap;" data-l10n-id="app.group.status.not_finished">In progress</span></td>');
 		     } else {
 		       tr.append('<td align="right" style="padding-right: 0px">' + ((!isFinished)? '' : '<span style="text-align: left;  background-color: '+color1+'; border-top-left-radius: 8px;  border-bottom-left-radius: 8px;  padding: 5px">(+'+t1.points+')</span>') + '</td>');
                        tr.append('<td style="padding-right: 0px">' + ((!isFinished || t2 == null) ? '' : '<span style="text-align: right; background-color: '+color2+'; border-top-right-radius: 8px; border-bottom-right-radius: 8px; padding: 5px">(+' + t2.points + ')</span>') + '</td>');

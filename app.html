@@ -688,12 +688,12 @@ function initApp() {
         <table style="clear: both; margin-bottom: 5px" border="0" cellspacing="0" cellpadding="0">
           <tr>
            <td valign="top"><span id="lblPlayer1" data-l10n-id="app.player" data-l10n-args='{ "player" : 1 }' class="white-space: nowrap;">White</span>:</td>
-           <td valign="middle"><img title="EMPTY" id="state0_info" src="/images/empty.png" border="0" style="display: none;"/></td>
+           <td valign="middle"><img title="EMPTY" id="status0_info" src="/images/empty.png" border="0" style="display: none;"/></td>
            <td valign="top"><span id="member0_info" style="display: none">Local user</span></td>
           </tr>
           <tr>
            <td valign="top"><span id="lblPlayer2" data-l10n-id="app.player" data-l10n-args='{ "player" : 2 }' style="white-space: nowrap;">Black</span>:</td>
-           <td valign="middle"><img title="EMPTY" id="state1_info" src="/images/empty.png" border="0" style="display: none;"/></td>
+           <td valign="middle"><img title="EMPTY" id="status1_info" src="/images/empty.png" border="0" style="display: none;"/></td>
            <td valign="top"><span id="member1_info" style="display: none">Computer engine</span></td>
 	  </tr>
 	 </table>
@@ -867,7 +867,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 		  <option value="2" data-l10n-id="app.games.network_player">Network user</option>
 		  <option value="3" data-l10n-id="app.games.computer_player">Computer</option>
 		</select>
-                <img title="EMPTY" id="state0" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
+                <img title="EMPTY" id="status0" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
                 <span id="member0" style="display: none"></span>
            </dd>
            <dt><label for=player2 data-l10n-id="app.player" data-l10n-args='{"player": 2}'>Player 2</label>:</dt>
@@ -877,7 +877,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 		  <option value="2" data-l10n-id="app.games.network_player">Network user</option>
 		  <option value="3" data-l10n-id="app.games.computer_player"selected="true">Computer</option>
 		</select>
-                <img title="EMPTY" id="state1" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
+                <img title="EMPTY" id="status1" src="/images/empty.png" border="0" style="display: none; vertical-align: bottom"/>
                 <span id="member1" style="display: none"></span>
 	   </dd>
 	 </dl>
@@ -1157,7 +1157,7 @@ The <a href="https://github.com/jmarine/webgl8x8boardgames" target="_blank">sour
 	    <thead>
 		   <tr>
 	             <th width="20" align="left">#</th>
-	             <th width="80" align="left">State</th>
+	             <th width="80" align="left">Status</th>
 		     <th style="text-align: left">Team 1</th>
 		     <th colspan="2" width="20">
 		       <p align="center" style="text-wrap: nowrap">

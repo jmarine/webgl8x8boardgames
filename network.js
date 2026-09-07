@@ -167,7 +167,7 @@ sendRetractMoveRequest: function(game, state, toPlayerNumber)
 
 deleteFinishedGroups: function() {
   this.wgsclient.deleteFinishedGroups();
-  $("#groupsTable>tbody>tr[state='FINISHED']").remove();
+  $("#groupsTable>tbody>tr[status='FINISHED']").remove();
 },
 
 
@@ -179,8 +179,8 @@ exitGame: function(disconnecting)
     $("#game_info").hide();
     $("#member0_info").hide();
     $("#member1_info").hide();
-    $("#state0_info").hide();
-    $("#state1_info").hide();
+    $("#status0_info").hide();
+    $("#status1_info").hide();
     $("#game_type").removeAttr("disabled");
     $("#player1").removeAttr("disabled");
     $("#player2").removeAttr("disabled");
@@ -256,7 +256,7 @@ new_group: function() {
 
 resign: function() {
     var group = app.lobby.gameRoom;
-    if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
+    if(this.wgsclient && group && group.status != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
         var slot = this.wgsclient.getSlotOfGroup(group.gid);
         var data = ""; 
         return this.wgsclient.addAction(group.gid, slot, "RESIGN", data);
@@ -267,7 +267,7 @@ resign: function() {
 
 offerDraw: function() {
   var group = app.lobby.gameRoom;
-  if(this.wgsclient && group && group.state != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
+  if(this.wgsclient && group && group.status != "FINISHED" && this.wgsclient.isMemberOfGroup(group.gid)) {  // When player is not an observer
     var slot = this.wgsclient.getSlotOfGroup(group.gid);
     var data = ""; 
     this.wgsclient.addAction(group.gid, slot, "DRAW_QUESTION", data);
@@ -277,7 +277,7 @@ offerDraw: function() {
 claimVictory: function() {
   var slot = -1;
   var group = app.lobby.currentGroup;
-  if(this.wgsclient && group && group.state != "FINISHED") {  // When player is not an observer
+  if(this.wgsclient && group && group.status != "FINISHED") {  // When player is not an observer
     var data = "";
     if( this.wgsclient.isMemberOfGroup(group.gid)) {
       slot = this.wgsclient.getSlotOfGroup(group.gid);
@@ -288,26 +288,26 @@ claimVictory: function() {
 
 group_opened: function(group) {
     console.log("group change received: " + JSON.stringify(group));
-    if(this.wgsclient.isMemberOfGroup(group.gid) && this.wgsclient.user != group.admin && group.state == "OPEN") {
-        var newState = group.state;
+    if(this.wgsclient.isMemberOfGroup(group.gid) && this.wgsclient.user != group.admin && group.status == "OPEN") {
+        var newStatus = group.status;
         if(confirm($("#confirm_game_request").text())) {
-          newState = "STARTED";
+          newStatus = "STARTED";
         } else {
-          newState = "FINISHED";
+          newStatus = "FINISHED";
         }
 
-        this.wgsclient.updateGroup(group.appId, group.gid, newState, false, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
+        this.wgsclient.updateGroup(group.appId, group.gid, newStatus, false, group.data, group.automatch, group.hidden, group.observable, group.dynamic, group.alliances, function(id,details,errorURI,result,resultKw) {
            if(errorURI) document.l10n.formatValue(errorURI).then(function(msg) { alert(msg) });
         });
 
-        group.state = newState;
+        group.status = newStatus;
 
     }
 
     app.view.UI.clearChat();
     $("#chat_section").show();
-    $("#state0_info").show();
-    $("#state1_info").show();
+    $("#status0_info").show();
+    $("#status1_info").show();
     app.view.UI.hideControls();    
 
     $('#start').hide();
@@ -318,7 +318,7 @@ group_opened: function(group) {
     $("#btnShowMatchingOptions").hide();
     $("#btnHideMatchingOptions").show();
     $("#btnDeleteFinishedGames").hide();
-    if(this.wgsclient.isMemberOfGroup(group.gid) && group.state != "FINISHED") {
+    if(this.wgsclient.isMemberOfGroup(group.gid) && group.status != "FINISHED") {
          $("#btnResignGame").show();
          $("#btnClaimVictory").show();
          $("#btnDrawGame").show();
@@ -541,20 +541,20 @@ group_changed: function(group) {
 },
 
 update_group_member: function(memberId, member, currentUserSelected, roleFixed) {
-    var memberState = member.state ? member.state : "empty";
+    var memberStatus = member.status ? member.status : "empty";
     var memberType  = member.type  ? member.type  : "user";
     var memberName  = member.name  ? member.name  : "";
     if(memberName.length == 0) memberName = $("#empty_member_title").text();  // "Empty";
     //if( member.sid && member.sid == app.lobby.wgsclient.sid ) memberName = "Me";
     
-    var status = memberState.toLowerCase();
+    var status = memberStatus.toLowerCase();
     if(status != 'empty') status = memberType.toLowerCase() + "_" + status;
-    $("#state" + memberId).attr("src", "/images/" + status + ".png");
-    $("#state" + memberId).attr("data-l10n-id", "app.member." + status);
-    //$("#state" + memberId).attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
-    $("#state" + memberId + "_info").attr("src", "/images/" + status + ".png");
-    $("#state" + memberId + "_info").attr("data-l10n-id", "app.member." + status);
-    //$("#state" + memberId + "_info").attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberState);
+    $("#status" + memberId).attr("src", "/images/" + status + ".png");
+    $("#status" + memberId).attr("data-l10n-id", "app.member." + status);
+    //$("#status" + memberId).attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberStatus);
+    $("#status" + memberId + "_info").attr("src", "/images/" + status + ".png");
+    $("#status" + memberId + "_info").attr("data-l10n-id", "app.member." + status);
+    //$("#status" + memberId + "_info").attr("title", ((status!='empty')? memberType.toUpperCase():"") + " " + memberStatus);
     $("#member" + memberId).html( memberName );
     $("#member" + memberId + "_info").html( memberName );
 },
@@ -584,7 +584,7 @@ open_group: function(appId, gid, options) {
 },
 
 getGroupDescription: function(group) {
-    return group.state + " (" + group.num + "/" + group.max + "): " + group.description;
+    return group.status + " (" + group.num + "/" + group.max + "): " + group.description;
 },
 
 addGroupListItem: function(group) {
@@ -593,13 +593,13 @@ addGroupListItem: function(group) {
    opt.attr("gid", group.gid);
    opt.attr('observable', group.observable);   
    opt.attr('class', "scrollTableRow");
-   opt.attr('state', group.state);
+   opt.attr('status', group.status);
 
    var viewButton = "";
    if(group.observable) viewButton = "<br><button onclick=\"javascript:app.lobby.view_group('" + group.appId + "','" + group.gid + "'); return false;\">View</button>";
    
    opt.append('<td data-l10n-id="app.games.' + group.appName +'">' + group.appName + '</td>');
-   opt.append('<td><span data-l10n-id="app.group.state.'+group.state.toLowerCase()+'">' + group.state + "</span>" + (group.password? "<br><span data-l10n-id='app.group.password'></span>" : "" ) + '</td>');
+   opt.append('<td><span data-l10n-id="app.group.status.'+group.status.toLowerCase()+'">' + group.status + "</span>" + (group.password? "<br><span data-l10n-id='app.group.password'></span>" : "" ) + '</td>');
    opt.append('<td>' + group.num + "/" + group.max + viewButton + "</td>");
    
    
@@ -612,7 +612,7 @@ addGroupListItem: function(group) {
        count++;
        
        var playerLabel = "<span data-l10n-id='app.player' data-l10n-args='{\"player\": " + count + "}'></span>"; // + (member.role? " ("+ member.role +")" : "");
-       if(group.state != "FINISHED" && index == group.turn) {
+       if(group.status != "FINISHED" && index == group.turn) {
           playerLabel = "<b>" + playerLabel + "</b>"; 
           if(group.members[group.turn].user == app.lobby.wgsclient.user) localPlayerTurn = true;
        }
