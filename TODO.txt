@@ -8,5 +8,4 @@ Shader:
 - fix perspective shadows (problems on Mali 400 GPU and adjust glPolygonOffset parameters or fix calculation of bias to lower Moire's pattern).
 
 Network: 
-- tournament manager.
 - game observation mode.
