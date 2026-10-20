@@ -38,15 +38,15 @@ var app = app || {}
 app.model = app.model || {}
 app.model.GameFactory = {
   createGame: function(gameType) {
-    var maxPoints = "";
+    var variants = "";
     var pos = gameType.indexOf('-');
     if(pos != -1) {
-        maxPoints = gameType.substring(pos+1);
+        variants = gameType.substring(pos+1).replace(/-/g, ",");
         gameType = gameType.substring(0, pos);
     }
  
     var camelGameType = gameType.substring(0,1).toUpperCase() + gameType.substring(1).toLowerCase();
-    return eval(" new app.model." + camelGameType + "(" + maxPoints + ")");  // allow card variants
+    return eval(" new app.model." + camelGameType + "(" + variants + ")");  // allow many game variants
   }
 }
 
